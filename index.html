@@ -563,6 +563,28 @@ button.scale:hover { background: #F2DFA8; }
 .pvence.warn { background: #FBE9C0; color: #8a5a00; }
 .pvence.hot { background: #F7D4CF; color: #A3231A; animation: pvp 1.1s ease-in-out infinite; }
 @keyframes pvp { 50% { transform: scale(1.04); } }
+
+.susc { padding-block: 8px 24px; }
+.susc h2 { font-size: 1.7rem; color: var(--blue-deep); }
+.splans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: 760px; }
+.splan { background: var(--paper); border: 2px solid #DCCFAE; border-radius: 18px; padding: 18px; display: grid; gap: 8px; position: relative; }
+.splan.prem { border-color: #E0B04A; background: linear-gradient(180deg, #FFF9E8, var(--paper)); }
+.splan h3 { margin: 0; font: 600 1.4rem var(--font-display); color: var(--blue-deep); }
+.splan .sprice { font: 600 1.6rem var(--font-display); color: var(--blue); }
+.splan .sprice small { font: 600 .85rem var(--font-body, inherit); color: var(--ink); }
+.splan .scup { font: 700 .78rem var(--font-display); background: rgba(74,107,58,.12); color: var(--blue-deep); border-radius: 999px; padding: 3px 10px; justify-self: start; }
+.splan .scup.low { background: #F7D4CF; color: #A3231A; }
+.splan .scont { background: rgba(224,176,74,.18); border-radius: 12px; padding: 8px 12px; font-size: .92rem; }
+.splan .sadj { font-size: .78rem; color: var(--ink); opacity: .7; }
+.splan p { margin: 0; }
+.smodal { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 80; display: grid; place-items: center; padding: 16px; }
+.smodal[hidden] { display: none; }
+.sbox { background: var(--paper); border-radius: 20px; padding: 22px; width: min(420px, 100%); display: grid; gap: 10px; position: relative; max-height: 90vh; overflow: auto; }
+.sbox h3 { margin: 0; font: 600 1.35rem var(--font-display); color: var(--blue-deep); }
+.sbox label { display: grid; gap: 4px; font-weight: 700; font-size: .85rem; color: var(--ink); }
+.sbox input { font: inherit; padding: 11px 12px; border-radius: 12px; border: 2px solid #DCCFAE; background: #fff; }
+.sbox .dx { position: absolute; top: 10px; right: 12px; background: none; border: 0; font-size: 1.6rem; cursor: pointer; }
+.sbox .sm-p, .sbox .sm-f { margin: 0; font-size: .85rem; color: var(--ink); }
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -642,6 +664,8 @@ button.scale:hover { background: #F2DFA8; }
 <section class="promos wrap" id="promos" hidden aria-labelledby="t-promos"><div class="menu-head"><h2 id="t-promos"></h2><p id="x-promos"></p></div><div class="cwrap"><div class="cview"><div class="pgrid" id="pgrid"></div></div></div></section>
 </div>
 
+<section class="susc wrap" id="susc" hidden aria-labelledby="t-susc"><div class="menu-head"><h2 id="t-susc">Suscribite</h2><p id="x-susc"></p></div><div class="splans" id="splans"></div></section>
+<div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Zona o dirección de entrega<input id="sm-z"></label><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
 <main class="menu wrap" id="catalogo">
   <div class="menu-head">
     <h2 id="t-menu">Elegí tus frascos</h2>
@@ -947,7 +971,7 @@ var DEFAULTS = {
     var combos = (pr.combos || []).filter(function (cb) { return cb && cb.nombre && cb.items && cb.items.length && Number(cb.precio) > 0; }).map(function (cb) {
       return { nombre: String(cb.nombre), precio: Number(cb.precio), items: cb.items.map(function (it) { return { n: String(it.n), c: Math.floor(Number(it.c) || 0) }; }).filter(function (it) { return it.n && it.c > 0; }), foto: String(cb.foto || ""), vence: String(cb.vence || ""), desc: String(cb.desc || ""), lim: Math.floor(Number(cb.lim) || 0) };
     });
-    return { config: c, tandas: tandas, productos: prods, resenas: (raw && raw.resenas) || [], escala: escala, combos: combos };
+    return { susc: (raw && raw.suscripcion) || { activa: false, planes: [] }, config: c, tandas: tandas, productos: prods, resenas: (raw && raw.resenas) || [], escala: escala, combos: combos };
   }
 
   /* ---------- Pintar ---------- */
@@ -1090,6 +1114,7 @@ var DEFAULTS = {
     var x = "";
     if ((data.escala || []).length) x += btn("__packs", esc(data.config.titulo_packs));
     if (comboList().length) x += btn("__promos", esc(data.config.titulo_promos));
+    if (data.susc && data.susc.planes && data.susc.planes.length) x += btn("__susc", "Suscribite");
     if (reviewList().length && String(data.config.boton_resenas || "").trim()) x += btn("__resenas", esc(data.config.boton_resenas));
     if (x) h += '<div class="sm-sep">Más</div>' + x;
     $("cats-in").innerHTML = h + '<i class="cats-ind" aria-hidden="true"></i>';
@@ -1129,6 +1154,7 @@ var DEFAULTS = {
   $("cats-in").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-cat]"); if (!b) return;
     var bc = b.getAttribute("data-cat");
+    if (bc === "__susc") { smoothTo($("susc")); return; }
     if (bc === "__promos" || bc === "__packs" || bc === "__resenas") { goTo(bc === "__resenas" ? "reviews" : bc.slice(2)); return; }
     if (filt.q || filt.cat) { filt = { q: "", cat: "" }; $("q").value = ""; applyFilter(); }
     spyLock = Date.now() + 1100;
@@ -1503,13 +1529,43 @@ var DEFAULTS = {
     });
   }
   setInterval(vTick, 1000);
+
+  var sPlan = null;
+  function renderSusc() {
+    var S = (data.susc && data.susc.planes) || [], sec = $("susc");
+    sec.hidden = !S.length || !!filt.q;
+    if (sec.hidden) return;
+    $("x-susc").textContent = "Cada mes te llega a tu casa una caja con productos distintos. Tu plan se va ajustando a lo que más te gusta.";
+    $("splans").innerHTML = S.map(function (p, i) {
+      var left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
+      return '<article class="splan' + (prem ? " prem" : "") + '"><h3>' + esc(p.plan) + (prem ? " ✨" : "") + '</h3><div class="sprice">' + (p.precio > 0 ? money(p.precio) + " <small>por mes</small>" : "<small>Precio a confirmar</small>") + "</div>" +
+        '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : "Cupo completo · anotate en lista de espera") + "</span>" +
+        (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") + (p.contenido ? '<div class="scont"><b>Este mes:</b> ' + esc(p.contenido) + "</div>" : "") +
+        (p.ajuste ? '<div class="sadj">Próximo ajuste de precio: ' + esc(p.ajuste) + "</div>" : "") +
+        '<button type="button" class="btn" data-splan="' + i + '">' + (left > 0 ? "Quiero suscribirme" : "Anotarme en la lista") + "</button></article>";
+    }).join("");
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-splan]");
+    if (b) { sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + "Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = ""; $("smodal").hidden = false; return; }
+    if (e.target.closest && (e.target.closest("#sm-x") || e.target === $("smodal"))) { $("smodal").hidden = true; return; }
+    if (e.target.closest && e.target.closest("#sm-go")) {
+      var n = $("sm-n").value.trim(), w = $("sm-w").value.trim();
+      if (!n || w.replace(/\D/g, "").length < 8) { $("sm-f").textContent = "Poné tu nombre y tu WhatsApp."; return; }
+      try { fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify({ accion: "suscribir", plan: sPlan.plan, nombre: n, tel: w, email: $("sm-m").value.trim(), zona: $("sm-z").value.trim() }) }).catch(function () {}); } catch (err) {}
+      var wa = String(data.config.whatsapp || "").replace(/\D/g, "");
+      var txt = "¡Hola! Quiero suscribirme al plan " + sPlan.plan + (sPlan.precio > 0 ? " (" + money(sPlan.precio) + " por mes)" : "") + ". Soy " + n + ".";
+      if (wa) window.open("https://wa.me/" + wa + "?text=" + encodeURIComponent(txt), "_blank");
+      $("sm-f").textContent = "¡Listo! Te anotamos. Te escribimos por WhatsApp para confirmar."; $("sm-go").disabled = true;
+    }
+  });
   function applyData(raw) {
     data = normalize(raw);
     loadCart();
     renderTop();
     renderGrid();
     try { var pf = JSON.parse(localStorage.getItem("encurtidos-facu-cliente") || "null"); if (pf && pf.e) loadUso(pf.e); } catch (e0) {}
-    renderPromos(); vTick();
+    renderPromos(); renderSusc(); vTick();
     refresh();
     setupCarousels();
     setupGoogle(); loadCupones();
