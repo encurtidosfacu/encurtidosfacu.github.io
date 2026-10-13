@@ -518,6 +518,43 @@ button.scale:hover { background: #F2DFA8; }
 .tools .acctbar #gbtn { min-height: 0; margin-top: 2px; }
 .acct-tip { position: absolute; right: 0; top: calc(100% + 8px); width: 230px; background: var(--paper); border: 2px solid var(--sky-line); border-radius: 14px; padding: 10px 12px; font: 600 .8rem/1.35 var(--font-body); color: var(--ink); box-shadow: 0 8px 24px rgba(43, 42, 30, .2); z-index: 40; }
 @media (max-width: 600px) { #acct-who { display: none; } .tools { gap: 10px; } }
+
+/* ===== v7 ===== */
+.crow.noov .rn { display: none !important; }
+/* Portada: igual en celu y compu */
+.hero { flex-wrap: wrap; gap: 14px 10px; padding: 34px 14px 46px; }
+.hero .logo { order: 1; flex: 1 1 0; min-width: 0; align-items: flex-start; text-align: left; }
+.hero .logo img { width: min(330px, 100%); }
+.hero .logo p { font-size: clamp(.9rem, 3.7vw, 1.3rem); text-align: left; }
+.hero-art { order: 2; flex: 0 0 auto; padding-inline: 6px; }
+.hero-art img { width: clamp(64px, 20vw, 170px); border-width: 3px; border-radius: 12px; }
+.hero-art img:nth-child(2) { margin-inline: clamp(-20px, -3vw, -8px); transform: translateY(-10px) rotate(2deg); }
+#box-close, #box-deliv { order: 3; }
+@media (min-width: 760px) { .hero { padding: 56px clamp(24px, 4vw, 64px) 66px; gap: 22px 40px; } .hero-art { padding-inline: 18px; } }
+/* Packs y promos lado a lado */
+.band { display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 8px 36px; padding: 10px max(16px, calc((100% - 1040px) / 2)) 26px; }
+.band > section.promos { flex: 1 1 380px; max-width: 520px; margin: 0; padding: 0; width: auto; }
+.band .cwrap, .band .cview { overflow: visible; padding: 0; }
+.band .cnav { display: none !important; }
+.band .pgrid { display: flex; flex-wrap: wrap; gap: 14px; transform: none !important; padding: 8px 6px 4px; }
+.band #tgrid > * { flex: 1 1 130px; }
+.band #pgrid > * { flex: 1 1 100%; }
+.band .pcard { flex-direction: row; align-items: center; gap: 14px; background: var(--paper); border: 2px dashed var(--blue); border-radius: 14px; padding: 14px; }
+.band .pmos { flex: 0 0 40%; aspect-ratio: 1; }
+.band .pbody { flex: 1; }
+.band .pbadge { top: -12px; transform: rotate(-3deg); background: var(--blue); color: var(--sky); }
+.band .menu-head p { margin-top: 2px; }
+/* Catálogo en filas deslizables */
+.crow { position: relative; }
+.cgrid { display: flex !important; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; padding: 8px 4px 16px; scrollbar-width: thin; scrollbar-color: var(--sky-line) transparent; -webkit-overflow-scrolling: touch; }
+.cgrid > .card { flex: 0 0 clamp(190px, 56vw, 245px) !important; width: auto !important; scroll-snap-align: start; }
+.cgrid .slide { aspect-ratio: 1 / 1; }
+.cgrid .card-body { padding: 12px 14px 14px; gap: 8px; }
+.cgrid .card h3 { font-size: 1.1rem; }
+.cgrid .desc { font-size: .85rem; }
+.rn { display: none; position: absolute; top: 36%; z-index: 5; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,.95); color: var(--blue); font: 600 1.6rem/1 var(--font-display); cursor: pointer; box-shadow: 0 2px 10px rgba(43,42,30,.3); padding: 0 0 3px; }
+.rn.l { left: -14px; } .rn.r { right: -14px; }
+@media (hover: hover) and (min-width: 760px) { .rn { display: block; } }
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -555,7 +592,7 @@ button.scale:hover { background: #F2DFA8; }
         <a id="wa-ask" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span>Consultar por WhatsApp</span></a>
       </div>
     </div>
-    <button class="tool" type="button" id="cart-btn" aria-label="Ver mi pedido"><svg viewBox="0 0 24 24"><path d="M2.5 18.5h19V11L2.5 6.5z"/><path d="M2.5 11.5l19 4.5"/><circle cx="8" cy="14.5" r="1.1"/><circle cx="14" cy="16.5" r="1.1"/><circle cx="17.5" cy="13.5" r=".9"/></svg><span id="cart-lbl">Mi picada 🧀</span><b class="cart-n" id="cart-n" hidden>0</b></button>
+    <button class="tool" type="button" id="cart-btn" aria-label="Ver mi picada"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="17" height="12" rx="4"/><circle cx="21" cy="12" r="1.2"/><path d="M5.5 14.5l3-4.5 3 4.5z"/><circle cx="14.5" cy="10.8" r="1.7"/><circle cx="14.5" cy="15" r="1.1"/></svg><span id="cart-lbl">Mi picada 🧀</span><b class="cart-n" id="cart-n" hidden>0</b></button>
   </div>
  </div>
 </div>
@@ -735,7 +772,7 @@ var DEFAULTS = {
     titulo_quienes: "Quiénes somos",
     titulo_menu: "Nuestros productos",
     texto_menu: "Sumá la cantidad que quieras de cada uno. El total se arma solo.",
-    boton_enviar: "Enviar a macerar",
+    boton_enviar: "Enviar a macerar ⏳",
     titulo_confirmar: "¿Confirmás el envío del pedido?",
     boton_confirmar: "Confirmar y enviar por WhatsApp",
     imagen_fondo: "./fondo.jpg",
@@ -1177,8 +1214,8 @@ var DEFAULTS = {
     refresh();
     return { refresh: refresh, go: go };
   }
-  var cookieLoop = { refresh: function () {}, go: function () {} }, revLoop = Loop($("rgrid"), { auto: 6000, per: revPer }), packLoop = Loop($("tgrid"), { per: function () { return window.innerWidth >= 980 ? 4 : window.innerWidth >= 640 ? 3 : 2; } }),
-      promoLoop = Loop($("pgrid"), { per: function () { return window.innerWidth >= 980 ? 4 : window.innerWidth >= 640 ? 3 : 2; } });
+  var cookieLoop = { refresh: function () {}, go: function () {} }, revLoop = Loop($("rgrid"), { auto: 6000, per: revPer }), packLoop = Loop($("tgrid"), { per: function () { return 999; } }),
+      promoLoop = Loop($("pgrid"), { per: function () { return 999; } });
   function updNav() { cookieLoop.refresh(); }
 
   function slideHtml(m, name, first) {
@@ -1256,7 +1293,7 @@ var DEFAULTS = {
     })(p, i); });
     var groups = [], gi = {};
     vis.forEach(function (i, k) { var c = ps[i].categoria || "Otros", key = fold(c); if (!(key in gi)) { gi[key] = groups.length; groups.push({ c: c, h: [] }); } groups[gi[key]].h.push(_cardsArr[k]); });
-    $("grid").innerHTML = groups.map(function (g) { return '<section class="catsec" id="cat-' + fold(g.c).replace(/[^a-z0-9]+/g, "-") + '" data-cat="' + esc(g.c) + '"><h3 class="cat-h">' + esc(g.c) + "<small>" + g.h.length + '</small></h3><div class="cgrid">' + g.h.join("") + "</div></section>"; }).join("");
+    $("grid").innerHTML = groups.map(function (g) { return '<section class="catsec" id="cat-' + fold(g.c).replace(/[^a-z0-9]+/g, "-") + '" data-cat="' + esc(g.c) + '"><h3 class="cat-h">' + esc(g.c) + "<small>" + g.h.length + '</small></h3><div class="crow"><button type="button" class="rn l" aria-label="Anterior">‹</button><div class="cgrid">' + g.h.join("") + '</div><button type="button" class="rn r" aria-label="Siguiente">›</button></div></section>'; }).join("");
     $("grid").scrollLeft = 0; updNav();
     setupCarousels();
     refresh();
@@ -1431,6 +1468,9 @@ var DEFAULTS = {
     if (promoLoop) promoLoop.refresh(); if (packLoop) packLoop.refresh();
     updLimits();
   }
+  $("grid").addEventListener("click", function (e) { var b = e.target.closest(".rn"); if (!b) return; var g = b.parentNode.querySelector(".cgrid"); g.scrollBy({ left: (b.classList.contains("l") ? -1 : 1) * g.clientWidth * .85, behavior: "smooth" }); });
+  (function () { var g = $("grid"); function ov() { Array.prototype.forEach.call(g.querySelectorAll(".crow"), function (r) { var c = r.querySelector(".cgrid"); r.classList.toggle("noov", c.scrollWidth <= c.clientWidth + 2); }); }
+    new MutationObserver(ov).observe(g, { childList: true }); window.addEventListener("resize", ov); ov(); })();
   $("tgrid").addEventListener("click", function (e) { var t = e.target.closest("button[data-tier]"); if (t) openPack(Number(t.getAttribute("data-tier"))); });
   $("pgrid").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-pj]"); if (!b) return;
@@ -1608,7 +1648,7 @@ var DEFAULTS = {
     if (on) $("acct-name").textContent = s.n.split(" ")[0];
   }
   $("acct-demo").addEventListener("click", function () {
-    var b = document.createElement("div"); b.className = "acct-tip"; b.textContent = "El ingreso con Google se activa al cargar google_client_id en la hoja Config."; $("acct").appendChild(b); setTimeout(function () { b.remove(); }, 4500);
+    var b = document.createElement("div"); b.className = "acct-tip"; b.textContent = "Muy pronto vas a poder ingresar para ver y repetir tus pedidos 🫙"; $("acct").appendChild(b); setTimeout(function () { b.remove(); }, 4500);
   });
   $("acct-out").addEventListener("click", function () {
     try { localStorage.removeItem("encurtidos-facu-cliente"); if (window.google && google.accounts) google.accounts.id.disableAutoSelect(); } catch (e) {}
