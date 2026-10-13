@@ -534,7 +534,8 @@ button.scale:hover { background: #F2DFA8; }
 /* Packs y promos lado a lado */
 .band { display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 8px 36px; padding: 10px max(16px, calc((100% - 1040px) / 2)) 26px; }
 .band > section.promos { flex: 1 1 380px; max-width: 520px; margin: 0; padding: 0; width: auto; }
-.band .cwrap, .band .cview { overflow: visible; padding: 0; }
+.band .cwrap, .band .cview { overflow: visible; padding: 0; margin: 0; }
+.band > section.promos { margin-bottom: 26px; }
 .band .cnav { display: none !important; }
 .band .pgrid { display: flex; flex-wrap: wrap; gap: 14px; transform: none !important; padding: 8px 6px 4px; }
 .band #tgrid > * { flex: 1 1 130px; }
