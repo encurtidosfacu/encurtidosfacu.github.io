@@ -511,6 +511,14 @@ button { cursor:pointer; }
         '<div class="row" style="margin-top:12px;align-items:center"><button class="sw' + (p.ac ? " on" : "") + '" data-pksw="1" style="border:0;background:none;padding:0"><i></i>' + (p.ac ? "Activo" : "Pausado") + '</button><button class="sm" data-kedit="1">' + (ed ? "Cerrar" : "Editar") + "</button></div>" + (ed ? editorP() : "") + "</article>";
     }).join("");
   }
+  function pnormal(d) {
+    var P = st.productos || [], pr = function (n) { var z = P.filter(function (x) { return String(x.nombre).toLowerCase() === String(n).toLowerCase(); })[0]; return z ? Number(z.precio) || 0 : 0; };
+    if (d.tipo === "Combo") return (d.items || []).reduce(function (t, i) { return t + pr(i.n) * (Number(i.c) || 0); }, 0);
+    var L = (d.vars && d.vars.length ? d.vars : P.map(function (x) { return x.nombre; })).map(pr).filter(function (v) { return v > 0; });
+    return (L.length ? Math.min.apply(null, L) : 0) * (Number(d.q) || 0);
+  }
+  function dcalc(d) { var n = pnormal(d), p = Number(d.dpct) || 0; return n > 0 && p > 0 && p < 100 ? Math.round(n * (1 - p / 100) / 50) * 50 : 0; }
+  function dprev(d) { var n = pnormal(d), f = dcalc(d); return n > 0 ? (f ? "Precio normal " + money(n) + " → precio final <b>" + money(f) + "</b>" : "Precio normal " + money(n) + ". Escribí el porcentaje.") : "Elegí primero los frascos para calcular el precio."; }
   function editorP() {
     var d = st.pd, c = d.tipo === "Combo", h = '<div class="add" style="margin-top:10px" id="pk-ed"><div class="nm">' + (d.r ? "Editar " : "Nuevo ") + (c ? "combo" : "pack") + "</div>";
     if (c) h += '<input class="inp" data-kf="nombre" placeholder="Nombre del combo" value="' + esc(d.nombre) + '">';
@@ -521,7 +529,10 @@ button { cursor:pointer; }
     } else {
       h += '<div class="meta">Frascos que valen para este pack (si no marcás ninguna, valen todas):</div><div class="chips" style="flex-wrap:wrap">' + st.ppro.map(function (n) { return '<button class="chip' + (d.vars.indexOf(n) >= 0 ? " on" : "") + '" data-kv="' + esc(n) + '">' + esc(n) + "</button>"; }).join("") + "</div>";
     }
-    h += '<input class="inp" data-kf="precio" type="number" inputmode="numeric" placeholder="Precio" value="' + (d.precio || "") + '"><input class="inp" data-kf="lim" type="number" inputmode="numeric" placeholder="Límite por pedido (opcional)" value="' + (d.lim || "") + '"><div class="meta">Vence (opcional)</div><input class="inp" data-kf="vence" type="date" value="' + esc(d.vence) + '"><textarea class="inp" rows="2" data-kf="texto" placeholder="Texto o descripción (opcional)">' + esc(d.texto) + '</textarea>';
+    h += '<div class="chips"><button class="chip' + (d.mode === "d" ? "" : " on") + '" data-kmode="p">Poner precio $</button><button class="chip' + (d.mode === "d" ? " on" : "") + '" data-kmode="d">Poner % de descuento</button></div>';
+    if (d.mode === "d") h += '<input class="inp" data-kf="dpct" type="number" inputmode="decimal" min="1" max="99" placeholder="% de descuento (ej. 15)" value="' + (d.dpct || "") + '"><div class="meta" id="k-prev">' + dprev(d) + '</div>';
+    else h += '<input class="inp" data-kf="precio" type="number" inputmode="numeric" placeholder="Precio" value="' + (d.precio || "") + '">';
+    h += '<input class="inp" data-kf="lim" type="number" inputmode="numeric" placeholder="Límite por pedido (opcional)" value="' + (d.lim || "") + '"><div class="meta">Vence (opcional)</div><input class="inp" data-kf="vence" type="date" value="' + esc(d.vence) + '"><textarea class="inp" rows="2" data-kf="texto" placeholder="Texto o descripción (opcional)">' + esc(d.texto) + '</textarea>';
     if (c) h += d.r ? '<button class="sm" data-kfoto="1">📎 Foto del combo</button>' : '<div class="meta">Guardá el combo y después podés agregarle una foto con 📎.</div>';
     h += '<div style="display:flex;gap:8px"><button class="btn" data-ksave="1">Guardar</button><button class="sm" data-kcancel="1">Cancelar</button>' + (d.r ? '<button class="sm red" data-kdel="1">Eliminar</button>' : "") + "</div></div>";
     return h;
@@ -1499,6 +1510,7 @@ button { cursor:pointer; }
     if (st.rd && tg.matches("[data-ry]")) { st.rd.y = Number(tg.value) || 0; return; }
     if (st.rd && tg.matches("[data-rin]")) { st.rd.items[Number(tg.getAttribute("data-rin"))].n = tg.value; render(true); return; }
     if (st.rd && tg.matches("[data-riq]")) { st.rd.items[Number(tg.getAttribute("data-riq"))].q = tg.value === "" ? "" : Number(tg.value); return; }
+    if (st.pd && tg.matches("[data-kf=dpct]")) { st.pd.dpct = Number(tg.value) || 0; st.pd.precio = dcalc(st.pd); var kp = document.getElementById("k-prev"); if (kp) kp.innerHTML = dprev(st.pd); return; }
     if (st.pd && tg.matches("[data-kf]")) { var kf = tg.getAttribute("data-kf"); st.pd[kf] = (kf === "nombre" || kf === "texto" || kf === "vence") ? tg.value : Number(tg.value) || 0; return; }
     if (st.pd && tg.matches("[data-kin]")) { st.pd.items[Number(tg.getAttribute("data-kin"))].n = tg.value; return; }
     if (st.pd && tg.matches("[data-kic]")) { st.pd.items[Number(tg.getAttribute("data-kic"))].c = Number(tg.value) || 0; return; }
@@ -1541,8 +1553,9 @@ button { cursor:pointer; }
       if (t.closest("[data-kiadd]")) { st.pd.items.push({ n: "", c: 1 }); render(true); return; }
       var kx = t.closest("[data-kix]"); if (kx) { st.pd.items.splice(Number(kx.getAttribute("data-kix")), 1); render(true); return; }
       if (t.closest("[data-kcancel]")) { st.pd = null; render(true); return; }
+      var kmo = t.closest("[data-kmode]"); if (kmo) { st.pd.mode = kmo.getAttribute("data-kmode"); render(true); return; }
       if (t.closest("[data-ksave]")) {
-        var kd = st.pd; t.closest("[data-ksave]").disabled = true;
+        var kd = st.pd; if (kd.mode === "d") { kd.precio = dcalc(kd); if (!kd.precio) { toast("Poné un % de descuento válido"); return; } } t.closest("[data-ksave]").disabled = true;
         api("savePack", { r: kd.r, orig: kd.orig, tipo: kd.tipo, nombre: kd.nombre, q: kd.q, precio: kd.precio, lim: kd.lim, vence: kd.vence, texto: kd.texto, items: kd.items, vars: kd.vars }).then(function (j) { if (j && j.ok) { st.packs = j.packs; st.pd = null; render(true); toast("Guardado ✓"); } else { toast(j && j.msg || "No se pudo guardar"); render(true); } }).catch(function () { render(true); });
         return;
       }
