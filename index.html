@@ -577,6 +577,32 @@ button.scale:hover { background: #F2DFA8; }
 .splan .scont { background: rgba(224,176,74,.18); border-radius: 12px; padding: 8px 12px; font-size: .92rem; }
 .splan .sadj { font-size: .78rem; color: var(--ink); opacity: .7; }
 .splan p { margin: 0; }
+
+.offers{max-width:1040px;margin:18px auto 0;padding:0 16px}
+.offers[hidden]{display:none}
+.offers .oh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.offers .oh b{font:600 1.15rem var(--font-display);color:var(--blue-deep)}
+.offers .oh span{font-size:.78rem;opacity:.65}
+.otrack{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:4px 2px 10px;scrollbar-width:none}
+.otrack::-webkit-scrollbar{display:none}
+.omini{flex:none;scroll-snap-align:start;border:2px solid var(--sky-line);background:#fff;border-radius:16px;padding:8px 12px 8px 8px;display:flex;align-items:center;gap:10px;font:inherit;text-align:left;cursor:pointer;color:var(--ink);box-shadow:0 2px 8px rgba(43,42,30,.08)}
+.omini img{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none}
+.omini .ot{display:grid;gap:1px;line-height:1.15}
+.omini b{font:700 .88rem var(--font-display);max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.omini span{font-size:.82rem;opacity:.8}
+.omini em{font-style:normal;font-weight:800;font-size:.72rem;background:#E0B04A;color:#3b2b00;border-radius:999px;padding:1px 7px;justify-self:start}
+.omini.tr{background:var(--sky);padding:8px 14px;min-height:62px}
+.sfab{position:fixed;right:14px;bottom:18px;z-index:30;width:58px;height:58px;border-radius:50%;border:0;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px rgba(0,0,0,.28);cursor:pointer;animation:sfp 3.2s ease-in-out infinite}
+.sfab[hidden]{display:none}
+.sfab i{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:999px;background:#E0B04A;color:#3b2b00;font:800 .72rem/20px sans-serif;text-align:center;padding:0 5px;font-style:normal}
+@keyframes sfp{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.spb{width:min(460px,100%)}
+.spch{display:grid;gap:10px}
+.spch button{border:2px solid var(--sky-line);background:#fff;border-radius:16px;padding:14px 16px;text-align:left;font:inherit;cursor:pointer;display:grid;gap:4px;color:var(--ink)}
+.spch button.prem{background:linear-gradient(135deg,#FFF6DA,#FBE7A8);border-color:#E0B04A}
+.spch b{font:600 1.25rem var(--font-display);color:var(--blue-deep)}
+.spch small{opacity:.75}
+.spback{border:0;background:none;color:var(--blue);font-weight:700;cursor:pointer;justify-self:start;padding:0}
 .smodal { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 80; display: grid; place-items: center; padding: 16px; }
 .smodal[hidden] { display: none; }
 .sbox { background: var(--paper); border-radius: 20px; padding: 22px; width: min(420px, 100%); display: grid; gap: 10px; position: relative; max-height: 90vh; overflow: auto; }
@@ -659,13 +685,11 @@ button.scale:hover { background: #F2DFA8; }
   </div></div>
 </section>
 
-<div class="band" id="band">
-<section class="promos wrap" id="packs" hidden aria-labelledby="t-packs"><div class="menu-head"><h2 id="t-packs"></h2><p id="x-packs"></p></div><div class="cwrap"><div class="cview"><div class="pgrid" id="tgrid"></div></div></div></section>
-<section class="promos wrap" id="promos" hidden aria-labelledby="t-promos"><div class="menu-head"><h2 id="t-promos"></h2><p id="x-promos"></p></div><div class="cwrap"><div class="cview"><div class="pgrid" id="pgrid"></div></div></div></section>
-</div>
 
-<section class="susc wrap" id="susc" hidden aria-labelledby="t-susc"><div class="menu-head"><h2 id="t-susc">Suscribite</h2><p id="x-susc"></p></div><div class="splans" id="splans"></div></section>
+<div class="smodal" id="spmodal" hidden role="dialog" aria-modal="true"><div class="sbox spb"><button type="button" class="dx" id="sp-x" aria-label="Cerrar">×</button><h3 id="t-susc">Suscribite</h3><p class="sm-p" id="x-susc"></p><div class="splans" id="splans"></div></div></div>
+<button type="button" class="sfab" id="sfab" hidden aria-label="Suscripción mensual"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><i id="sfab-n" hidden></i></button>
 <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Zona o dirección de entrega<input id="sm-z"></label><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
+<section class="offers" id="offers" hidden aria-label="Ofertas"><div class="oh"><b>🔥 Ofertas y combos</b><span>tocá para verlas</span></div><div class="otrack" id="otrack"></div></section>
 <main class="menu wrap" id="catalogo">
   <div class="menu-head">
     <h2 id="t-menu">Elegí tus frascos</h2>
@@ -675,6 +699,10 @@ button.scale:hover { background: #F2DFA8; }
   <p class="fstat" id="fstat" hidden></p>
   <div class="cwrap"><div class="cview"><div class="grid" id="grid"><div class="msg">Cargando frascos…</div></div></div></div>
 </main>
+<div class="band" id="band">
+<section class="promos wrap" id="packs" hidden aria-labelledby="t-packs"><div class="menu-head"><h2 id="t-packs"></h2><p id="x-packs"></p></div><div class="cwrap"><div class="cview"><div class="pgrid" id="tgrid"></div></div></div></section>
+<section class="promos wrap" id="promos" hidden aria-labelledby="t-promos"><div class="menu-head"><h2 id="t-promos"></h2><p id="x-promos"></p></div><div class="cwrap"><div class="cview"><div class="pgrid" id="pgrid"></div></div></div></section>
+</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="hat" viewBox="0 0 24 24"><circle cx="7" cy="9.5" r="4.4"/><circle cx="17" cy="9.5" r="4.4"/><circle cx="12" cy="6.6" r="5.2"/><rect x="6.6" y="9" width="10.8" height="6.4"/><rect x="6.6" y="17" width="10.8" height="4.6" rx="1.2"/></symbol></svg><section class="reviews wrap" id="reviews" hidden aria-labelledby="t-rev"><h2 id="t-rev"><span id="t-rev-t">Lo que dicen de nosotros</span></h2><div class="rsum" id="rsum" hidden></div><div class="cwrap"><div class="cview"><div class="rgrid" id="rgrid"></div></div></div></section>
 </div>
 
@@ -1154,7 +1182,7 @@ var DEFAULTS = {
   $("cats-in").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-cat]"); if (!b) return;
     var bc = b.getAttribute("data-cat");
-    if (bc === "__susc") { smoothTo($("susc")); return; }
+    if (bc === "__susc") { sSel = null; renderSusc(); $("spmodal").hidden = false; $("sm-ov").click(); return; }
     if (bc === "__promos" || bc === "__packs" || bc === "__resenas") { goTo(bc === "__resenas" ? "reviews" : bc.slice(2)); return; }
     if (filt.q || filt.cat) { filt = { q: "", cat: "" }; $("q").value = ""; applyFilter(); }
     spyLock = Date.now() + 1100;
@@ -1500,12 +1528,20 @@ var DEFAULTS = {
         '<div class="pprice">' + money(cb.precio) + (save > 0 ? "<s>" + money(norm) + "</s>" : "") + priceTwo(cb.precio) + "</div>" +
         (cb.vence ? '<div class="pvence" data-vence="' + esc(cb.vence) + '"></div>' : "") + '<div class="plim"></div><div class="ctrl"><button type="button" data-pj="' + j + '" data-d="-1" aria-label="Quitar">−</button><output id="pq-' + j + '">0</output><button type="button" data-pj="' + j + '" data-d="1" aria-label="Sumar">+</button></div></div></article>';
     }).join("");
+    var oh = sc.map(function (t) { var sv = base * t.q - t.p; return '<button type="button" class="omini tr" data-og="packs"><span class="ot"><b>' + t.q + " frascos</b><span>" + money(t.p) + "</span>" + (sv > 0 ? "<em>-" + Math.round(sv * 100 / (base * t.q)) + "%</em>" : "") + "</span></button>"; }).join("") +
+      list.map(function (cb) {
+        var im = cb.foto ? parseMedia(cb.foto) : null, u = im && im.t === "img" ? im.src : ""; if (!u) cb.items.some(function (it) { u = prodImg(it.n); return !!u; });
+        var nm = comboNormal(cb), sv = nm - cb.precio, pc = nm > 0 && sv > 0 ? Math.round(sv * 100 / nm) : 0;
+        return '<button type="button" class="omini" data-og="promos">' + (u ? '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : "") + '<span class="ot"><b>' + esc(cb.nombre) + "</b><span>" + money(cb.precio) + "</span>" + (pc ? "<em>-" + pc + "%</em>" : "") + "</span></button>";
+      }).join("");
+    $("offers").hidden = !oh || flt; $("otrack").innerHTML = oh;
     if (promoLoop) promoLoop.refresh(); if (packLoop) packLoop.refresh();
     updLimits();
   }
   $("grid").addEventListener("click", function (e) { var b = e.target.closest(".rn"); if (!b) return; var g = b.parentNode.querySelector(".cgrid"); g.scrollBy({ left: (b.classList.contains("l") ? -1 : 1) * g.clientWidth * .85, behavior: "smooth" }); });
   (function () { var g = $("grid"); function ov() { Array.prototype.forEach.call(g.querySelectorAll(".crow"), function (r) { var c = r.querySelector(".cgrid"); r.classList.toggle("noov", c.scrollWidth <= c.clientWidth + 2); }); }
     new MutationObserver(ov).observe(g, { childList: true }); window.addEventListener("resize", ov); ov(); })();
+  $("otrack").addEventListener("click", function (e) { var b = e.target.closest("[data-og]"); if (b) goTo(b.getAttribute("data-og") === "packs" && $("packs").hidden ? "promos" : b.getAttribute("data-og")); });
   $("tgrid").addEventListener("click", function (e) { var t = e.target.closest("button[data-tier]"); if (t) openPack(Number(t.getAttribute("data-tier"))); });
   $("pgrid").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-pj]"); if (!b) return;
@@ -1530,24 +1566,37 @@ var DEFAULTS = {
   }
   setInterval(vTick, 1000);
 
-  var sPlan = null;
+  var sPlan = null, sSel = null;
+  function suscList() { return (data.susc && data.susc.planes) || []; }
   function renderSusc() {
-    var S = (data.susc && data.susc.planes) || [], sec = $("susc");
-    sec.hidden = !S.length || !!filt.q;
-    if (sec.hidden) return;
-    $("x-susc").textContent = "Cada mes te llega a tu casa una caja con productos distintos. Tu plan se va ajustando a lo que más te gusta.";
-    $("splans").innerHTML = S.map(function (p, i) {
-      var left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
-      return '<article class="splan' + (prem ? " prem" : "") + '"><h3>' + esc(p.plan) + (prem ? " ✨" : "") + '</h3><div class="sprice">' + (p.precio > 0 ? money(p.precio) + " <small>por mes</small>" : "<small>Precio a confirmar</small>") + "</div>" +
-        '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : "Cupo completo · anotate en lista de espera") + "</span>" +
-        (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") + (p.contenido ? '<div class="scont"><b>Este mes:</b> ' + esc(p.contenido) + "</div>" : "") +
-        (p.ajuste ? '<div class="sadj">Próximo ajuste de precio: ' + esc(p.ajuste) + "</div>" : "") +
-        '<button type="button" class="btn" data-splan="' + i + '">' + (left > 0 ? "Quiero suscribirme" : "Anotarme en la lista") + "</button></article>";
-    }).join("");
+    var S = suscList(), fab = $("sfab");
+    fab.hidden = !S.length;
+    var tot = S.reduce(function (a, p) { return a + Math.max(0, p.cupos - p.usados); }, 0), n = $("sfab-n");
+    n.hidden = !(S.length && tot > 0 && tot <= 9); n.textContent = tot;
+    if (!S.length) { $("spmodal").hidden = true; return; }
+    $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
+    if (sSel == null || !S[sSel]) {
+      $("splans").innerHTML = '<div class="spch">' + S.map(function (p, i) {
+        var left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
+        return '<button type="button" class="' + (prem ? "prem" : "") + '" data-spt="' + i + '"><b>' + esc(p.plan) + (prem ? " ✨" : "") + "</b><span>" + (p.precio > 0 ? money(p.precio) + " por mes" : "Precio a confirmar") + "</span><small>" + (left > 0 ? "Quedan " + left + " lugares" : "Cupo completo") + " · tocá para ver cómo es</small></button>";
+      }).join("") + "</div>";
+      return;
+    }
+    var p = S[sSel], left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
+    $("splans").innerHTML = '<button type="button" class="spback" data-spb="1">← Ver los dos caminos</button><article class="splan' + (prem ? " prem" : "") + '"><h3>' + esc(p.plan) + (prem ? " ✨" : "") + '</h3><div class="sprice">' + (p.precio > 0 ? money(p.precio) + " <small>por mes</small>" : "<small>Precio a confirmar</small>") + "</div>" +
+      '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : "Cupo completo · anotate en lista de espera") + "</span>" +
+      (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") + (p.contenido ? '<div class="scont"><b>Este mes:</b> ' + esc(p.contenido) + "</div>" : "") +
+      (p.ajuste ? '<div class="sadj">Próximo ajuste de precio: ' + esc(p.ajuste) + "</div>" : "") +
+      '<button type="button" class="btn" data-splan="' + sSel + '">' + (left > 0 ? "Quiero suscribirme" : "Anotarme en la lista") + "</button></article>";
   }
   document.addEventListener("click", function (e) {
+    var T = e.target.closest ? e.target : null;
+    if (T && T.closest("#sfab")) { sSel = null; renderSusc(); $("spmodal").hidden = false; return; }
+    if (T && (T.closest("#sp-x") || T === $("spmodal"))) { $("spmodal").hidden = true; return; }
+    var spt = T && T.closest("[data-spt]"); if (spt) { sSel = Number(spt.getAttribute("data-spt")); renderSusc(); return; }
+    if (T && T.closest("[data-spb]")) { sSel = null; renderSusc(); return; }
     var b = e.target.closest && e.target.closest("[data-splan]");
-    if (b) { sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + "Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = ""; $("smodal").hidden = false; return; }
+    if (b) { $("spmodal").hidden = true; sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + "Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = ""; $("smodal").hidden = false; return; }
     if (e.target.closest && (e.target.closest("#sm-x") || e.target === $("smodal"))) { $("smodal").hidden = true; return; }
     if (e.target.closest && e.target.closest("#sm-go")) {
       var n = $("sm-n").value.trim(), w = $("sm-w").value.trim();
