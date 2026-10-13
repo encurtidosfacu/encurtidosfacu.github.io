@@ -145,14 +145,22 @@ button { cursor:pointer; }
 .va.er{border-color:#e8b4b0;background:#fdf1f0}
 .vq{background:#FBF3DC;border-radius:12px;padding:10px 12px;margin:8px 0;font-weight:600}
 
-.msel-on{outline:3px solid #4A6B3A;outline-offset:-3px;background:#EDF2E4 !important}
-.msel-on::after{content:"✓";position:absolute;top:8px;right:10px;width:24px;height:24px;border-radius:50%;background:#4A6B3A;color:#fff;display:grid;place-items:center;font-weight:800;font-size:.9rem}
+.msel-on{outline:2px solid #4A6B3A;outline-offset:-2px;background:#F1F6EA !important;transition:background .15s}
+.msel-on::after{content:"✓";position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:#4A6B3A;color:#fff;display:grid;place-items:center;font-weight:800;font-size:.85rem;z-index:2}
 .msel-mode article.card{position:relative;-webkit-user-select:none;user-select:none}
-.msel-mode article.card:not(.msel-on)::after{content:"";position:absolute;top:8px;right:10px;width:22px;height:22px;border-radius:50%;border:2px solid #C9D1BC;background:#fff}
-#msbar{position:fixed;left:0;right:0;top:0;z-index:60;background:#2F4A25;color:#fff;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.msel-mode article.card:not(.msel-on)::after{content:"";position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2px solid #C9D1BC;background:#fff;z-index:2}
+.msel-mode .vfab{display:none}
+.msel-mode #view{padding-bottom:150px}
+#msbar{position:fixed;left:10px;right:10px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:60;background:rgba(32,40,30,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;padding:8px;border-radius:20px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 #msbar[hidden]{display:none}
-#msbar b{flex:1;min-width:90px}
-#msbar button{border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:700;background:#fff;color:#2F4A25}
+#msbar .r1{display:flex;align-items:center;gap:6px}
+#msbar .r1 b{flex:1;font-size:.95rem;padding-left:4px}
+#msbar .r2{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+#msbar .r2::-webkit-scrollbar{display:none}
+#msbar button{border:0;border-radius:999px;padding:9px 14px;font:inherit;font-size:.88rem;font-weight:700;background:rgba(255,255,255,.14);color:#fff;white-space:nowrap;flex:none}
+#msbar .r1 button{background:transparent;padding:8px 12px}
+#msbar .r1 button[data-msx]{font-size:1.1rem;padding:6px 12px}
+#msbar .r2 button:first-child:not(.red){background:#fff;color:#243320}
 #msbar button.red{background:#d93a2f;color:#fff}
 #msbar button.arm{background:#8f1d14;color:#fff}
 </style>
@@ -1213,7 +1221,7 @@ button { cursor:pointer; }
     if (!b) { b = document.createElement("div"); b.id = "msbar"; b.hidden = true; document.body.appendChild(b); }
     if (!MS.on) { b.hidden = true; document.body.classList.remove("msel-mode"); return; }
     b.hidden = false; document.body.classList.add("msel-mode");
-    b.innerHTML = '<button data-msx="1">✕</button><b>' + msCount() + " seleccionado" + (msCount() === 1 ? "" : "s") + '</b><button data-msall="1">Todos</button>' + msAct();
+    b.innerHTML = '<div class="r1"><button data-msx="1">✕</button><b>' + msCount() + " seleccionado" + (msCount() === 1 ? "" : "s") + '</b><button data-msall="1">Todos</button></div><div class="r2">' + msAct() + '</div>';
   }
   function msApply() {
     if (MS.on && MS.v !== st.v + (st.v === "suscripciones" ? st.sut : "")) { MS.on = false; MS.keys = {}; }
