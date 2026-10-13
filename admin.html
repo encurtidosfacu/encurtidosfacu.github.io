@@ -180,6 +180,11 @@ button { cursor:pointer; }
 body.sh-open{overflow:hidden}
 @keyframes shu{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 @keyframes shf{from{opacity:0}to{opacity:1}}
+.sec-h{font:700 .74rem var(--fd);letter-spacing:.08em;text-transform:uppercase;color:#6B7A5C;margin:18px 4px 8px}
+.card.todo{padding:6px 14px}.card.todo.ok{padding:14px}
+.trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #EEF0E4}.trow:last-of-type{border-bottom:0}
+.qa{border:0;background:#4A6B3A;color:#fff;border-radius:999px;padding:9px 16px;font:inherit;font-weight:700;font-size:.85rem;flex:none}
+.qa:disabled{opacity:.6}
 </style>
 </head>
 <body>
@@ -510,15 +515,25 @@ body.sh-open{overflow:hidden}
     var h = '<div class="hero" id="hero" data-go="finanzas" style="cursor:pointer"><small>Hola' + (nom ? ", " + esc(nom) : "") + ' 👋 · vendido en ' + MN[cm] + ' ' + cy + ' (pedidos entregados)</small><b>' + money(vm) + "</b><small>" + pm + " pedidos · " + ck + " frascos" + (vs != null ? " · " + (vs >= 0 ? "▲ " : "▼ ") + Math.abs(vs) + "% vs mes anterior" : "") + "</small></div>" +
       '<button class="card" id="porvenir" data-go="pedidos" data-fil="todos" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px"><div><div class="meta">Por venir · pendientes y en marcha (sin entregar)</div><b style="font-size:1.35rem;color:#4A6B3A">' + money(vpv) + '</b></div><span style="color:var(--soft)">' + npv + (npv === 1 ? " pedido" : " pedidos") + " ›</span></button>" +
       '<div class="kpis" id="kp-ped">' + [["pend", "Pendientes"], ["coc", "A macerar"], ["list", "Para entregar"]].map(function (k) { return '<button class="kpi" data-go="pedidos" data-fil="' + k[0] + '"><b>' + c[k[0]] + "</b><span>" + k[1] + "</span></button>"; }).join("") + "</div>";
+    var alH = "", todoH = "";
+    (function () {
+      var ord = { pend: 0, list: 1, coc: 2 }, T = st.pedidos.filter(function (p) { return ord[estadoDe(p)] != null; }).sort(function (a, b) { var d = ord[estadoDe(a)] - ord[estadoDe(b)]; return d || ((pf(a.fecha) || 0) - (pf(b.fecha) || 0)); });
+      var act = { pend: ["ap", "Aprobar"], coc: ["he", "Listo"], list: ["en", "Entregado"] }, lbl = { pend: "Por aprobar", coc: "A macerar", list: "Para entregar" };
+      if (!T.length) { todoH = '<div class="card todo ok"><b>✅ Todo al día</b><span class="meta"> · no hay pedidos pendientes</span></div>'; return; }
+      todoH = '<div class="nm" style="margin:2px 2px 8px">Para hacer ahora <span class="badge o">' + T.length + "</span></div><div class=\"card todo\">" + T.slice(0, 5).map(function (p) {
+        var e = estadoDe(p), a = act[e];
+        return '<div class="trow"><div style="min-width:0;flex:1"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl[e] + " · " + (Number(p.cant) || 0) + " frascos" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div></div><button class="qa" data-qa="' + p.r + ":" + a[0] + '">' + a[1] + "</button></div>";
+      }).join("") + (T.length > 5 ? '<button class="sm" data-go="pedidos" data-fil="todos" style="margin-top:8px">Ver los ' + T.length + " pedidos ›</button>" : "") + "</div>";
+    })();
     var al = [];
     if (viejos) al.push(["⏰ " + viejos + (viejos === 1 ? " pedido sin aprobar hace más de 24 h" : " pedidos sin aprobar hace más de 24 h"), "pedidos", "pend"]);
     if (ag) al.push(["🚫 " + ag + (ag === 1 ? " frasco agotado" : " frascos agotados"), "productos", ""]);
     stkAlertLines().forEach(function (x) { al.push(x); });
-    if (al.length) h += '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" data-go="' + x[1] + '" data-fil="' + x[2] + '" style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
+    if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" data-go="' + x[1] + '" data-fil="' + x[2] + '" style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
     if (ks.length) h += '<div class="nm" style="margin:6px 2px 8px">Entregas pendientes</div><div class="card" id="entregas">' + ks.map(function (k) { return '<div class="frow"><span>' + esc(k) + "</span><span><b>" + ent[k].n + "</b> pedidos · " + ent[k].q + " frascos</span></div>"; }).join("") + "</div>";
     h += '<div class="nm" style="margin:6px 2px 8px">Atajos</div><div class="kpis four" id="atajos" style="grid-template-columns:repeat(4,1fr)">' + [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["resenas", "⭐", "Reseñas"]].filter(function (x) { return allowed(x[0]); }).map(function (x) { return '<button class="kpi" data-go="' + x[0] + '"' + (x[3] ? ' data-newp="1"' : "") + '><b style="font-size:1.4rem">' + x[1] + '</b><span style="font-size:.68rem;line-height:1.15">' + x[2] + "</span></button>"; }).join("") + "</div>";
-    return h;
+    return todoH + alH + h;
   }
   /* ---------- Más ---------- */
   function renderMas() {
@@ -529,9 +544,11 @@ body.sh-open{overflow:hidden}
     if (st.alertas === undefined && !st.stkf && allowed("proveedores")) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (st.v === "mas") render(true); } }).catch(function () {}); }
     var alsw = allowed("proveedores") ? '<button class="mi" data-act="stkalert"><i>🔔</i><div><b>Alertas de stock</b><span>' + (st.alertas === undefined ? "Cargando…" : st.alertas ? "Activadas: te aviso cuando falten insumos" : "Desactivadas (activalas cuando cargues el stock)") + '</span></div><span class="badge ' + (st.alertas ? "g" : "o") + '">' + (st.alertas ? "ON" : "OFF") + "</span></button>" : "";
     var ac = alsw + '<button class="mi" data-act="refresh"><i>↻</i><div><b>Actualizar datos</b><span>Traer lo más nuevo de la planilla</span></div></button><button class="mi" data-act="logout"><i>⎋</i><div><b>Cerrar sesión</b><span>' + esc(st.me && st.me.email || "") + "</span></div></button>";
-    st.mo = st.mo || { neg: 1 };
-    function grp(k, ttl, sub, body) { return '<button class="mi" data-mo="' + k + '" style="width:100%;background:var(--card,#fff);border-radius:14px;margin:10px 0 6px"><div><b>' + ttl + "</b><span>" + sub + '</span></div><span style="color:var(--soft)">' + (st.mo[k] ? "▴" : "▾") + "</span></button>" + (st.mo[k] ? '<div class="menu">' + body + "</div>" : ""); }
-    return (neg.length ? grp("neg", "🥒 Mi negocio y la página", "Textos, insumos, stock, recetas, packs, cupones", neg.map(mi).join("")) : "") + grp("app", "⚙️ Configuración de la aplicación", "Reseñas, voz, accesos y sesión", app.map(mi).join("") + ac);
+    function sec(ttl, body) { return body ? '<div class="sec-h">' + ttl + '</div><div class="menu">' + body + "</div>" : ""; }
+    function pick(keys) { return neg.filter(function (x) { return keys.indexOf(x[0]) >= 0; }).map(mi).join(""); }
+    return sec("Vender", pick(["packs", "cupones", "suscripciones", "textos"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
+      sec("Producir", pick(["proveedores", "stock", "puntos", "recetas"])) +
+      sec("Cuenta y ajustes", app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
   }
   var BACK = '<button class="back" data-go="mas">‹ Más</button>';
   /* ---------- Packs ---------- */
@@ -1282,6 +1299,10 @@ body.sh-open{overflow:hidden}
     body.innerHTML = ""; body.appendChild(a); d.querySelector(".sh-h b").textContent = ttl;
     d.hidden = false; document.body.classList.add("sh-open"); body.scrollTop = keep;
   }
+  document.addEventListener("click", function (e) {
+    var q = e.target.closest && e.target.closest("[data-qa]"); if (!q) return; e.stopPropagation();
+    var pr = q.getAttribute("data-qa").split(":"); q.disabled = true; q.textContent = "…"; patchPedido(Number(pr[0]), pr[1], true);
+  }, true);
   function msApply() {
     if (MS.on && MS.v !== st.v + (st.v === "suscripciones" ? st.sut : "")) { MS.on = false; MS.keys = {}; }
     var c = msCfg(); if (!c) { MS.on = false; }
