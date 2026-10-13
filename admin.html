@@ -855,20 +855,33 @@ body.sh-open{overflow:hidden}
   /* ---------- Stock ---------- */
   var NUMW = { un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, medio: 0.5, media: 0.5 };
   var QU = "kg|kilos?|kilogramos?|gramos?|gr|g|litros?|lt|l|ml|cc|unidades?|u|docenas?|hojas?|rollos?|cajas?|bolsas?|bolsitas?|paquetes?|metros?|cm|stickers?";
+  var STOPW = /^(agregame|agregar|agrega|agregue|agregalo|agregale|sumame|sumar|suma|sumale|cargame|cargar|carga|cargale|anadi|anadir|anota|anotame|ingresa|ingresame|ingresar|gaste|gastamos|gastar|use|usamos|usar|saque|sacame|descuenta|descontame|resta|restame|compre|compramos|comprar|tengo|tenemos|hay|quedan|quedaron|quedo|me|nos|se|un|una|uno|unos|unas|de|del|la|el|lo|los|las|al|en|con|por|a|para|y|e|stock|mas|menos|total|ahora|hoy|ya|que|mi|mis|kg|kgs|kilo|kilos|kilogramo|kilogramos|g|gr|grs|gramo|gramos|l|lt|lts|litro|litros|ml|cc|u|unidad|unidades|docena|docenas|medio|media|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|doce|cantidad|insumo|insumos)$/;
+  function spokenToks(seg) { return nrm(seg).split(" ").filter(function (w) { return w && !/^\d+([.,]\d+)?$/.test(w) && !STOPW.test(w); }); }
+  function tokEq(a, b) { if (a === b) return true; if (a.length < 3 || b.length < 3) return false; var k = Math.max(3, Math.min(a.length, b.length) - 2); return a.slice(0, k) === b.slice(0, k) && Math.abs(a.length - b.length) <= 3; }
   function stkMatch(seg) {
-    var st0 = nrm(seg).split(" "), best = null, bs = 0, br = 0;
+    var sp = spokenToks(seg); if (!sp.length) return null;
+    var best = null, bs = 0;
     (st.stock || []).forEach(function (x) {
-      var tk = nrm(x.ins).split(" ").filter(function (t) { return t.length >= 3 && !/^\d+$/.test(t) && !/^(del|con|para|packaging)$/.test(t); }); if (!tk.length) return;
-      var sc = tk.filter(function (t) { return st0.some(function (w) { var k = Math.max(4, t.length - 2); return w.length >= 4 && (w.indexOf(t.slice(0, k)) === 0 || t.indexOf(w.slice(0, Math.max(4, w.length - 2))) === 0); }); }).length;
-      var r = sc / tk.length; if (sc > bs || (sc === bs && r > br)) { best = x; bs = sc; br = r; }
+      var tk = nrm(x.ins).split(" ").filter(function (t) { return t && !/^\d+$/.test(t) && !/^(del|con|para|de|la|el|packaging)$/.test(t); }); if (!tk.length) return;
+      var spInX = sp.every(function (w) { return tk.some(function (t) { return tokEq(w, t); }); }), xInSp = tk.every(function (t) { return sp.some(function (w) { return tokEq(w, t); }); });
+      if (!spInX) return;
+      var sc = (spInX ? 1 : 0) + (xInSp ? 1 : 0) + (spInX && xInSp ? 1 : 0) - Math.abs(tk.length - sp.length) * 0.01;
+      if (sc > bs) { best = x; bs = sc; }
     });
-    return bs >= 1 ? best : null;
+    return best;
   }
+  function spokenName(seg) {
+    var words = String(seg).toLowerCase().split(/[^a-záéíóúüñ0-9]+/).filter(Boolean), out = [];
+    words.forEach(function (w) { var n = nrm(w); if (!n || /^\d+$/.test(n) || STOPW.test(n)) return; out.push(w); });
+    var nm = out.join(" "); return nm ? nm.charAt(0).toUpperCase() + nm.slice(1) : "";
+  }
+  var UNORM = { kg: "kg", kgs: "kg", kilo: "kg", kilos: "kg", kilogramo: "kg", kilogramos: "kg", g: "g", gr: "g", grs: "g", gramo: "g", gramos: "g", l: "l", lt: "l", lts: "l", litro: "l", litros: "l", ml: "ml", cc: "ml", u: "unidad", un: "unidad", unidad: "unidad", unidades: "unidad" };
   function stkParse(tx, mode) {
-    var T = nrm(tx), tipo = mode === "prov" ? "compra" : /gast|\buse\b|usamos|consum|descont|\bresta|saque/.test(T) ? "consumo" : /quedan|quedaron|\btengo\b|\bhay\b|ajust|\bcont[e]\b|inventario/.test(T) || mode === "stock" ? "ajuste" : "compra";
+    tx = String(tx).replace(/(\d+(?:[.,]\d+)?|\bun\b|\buna\b|\buno\b|\bdos\b|\btres\b)\s*(kilos?|kg|litros?|lts?|l)\s+y\s+(medio|media)\b/gi, function (m0, n0, u0) { var v = isNaN(parseFloat(String(n0).replace(",", "."))) ? NUMW[String(n0).toLowerCase()] : parseFloat(String(n0).replace(",", ".")); return (v + 0.5) + " " + u0; });
+    var T = nrm(tx), tipo = mode === "prov" ? "compra" : /gast|\buse\b|usamos|consum|descont|\bresta|saque/.test(T) ? "consumo" : /agreg|sum[ae]|sumale|carg|anad|ingres|compr|entraron|llegaron|repuse|repon|\+/.test(T) ? "compra" : /quedan|quedaron|\btengo\b|\bhay\b|ajust|\bcont[e]\b|inventario/.test(T) || mode === "stock" ? "ajuste" : "compra";
     var out = [];
     String(tx).split(/[;,]|\s+y\s+|\.\s+/).forEach(function (seg) {
-      var it = stkMatch(seg); if (!it) return;
+      var it = stkMatch(seg), nuevo = false; if (!it) { var snm = spokenName(seg); if (!snm) return; it = { ins: snm, uni: "unidad", nuevo: true }; nuevo = true; }
       var s = String(seg).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""), UQ = "(kg|kilos?|litros?|l|lt|unidad|unidades|u|g|gr|gramos?|ml)";
       var price = 0, pu = "", m = s.match(new RegExp("\\$\\s*([\\d.,]+)(?:\\s*(?:el|por|x|cada)\\s*" + UQ + "\\b)?")) || s.match(new RegExp("([\\d.,]+)\\s*(pesos|mangos|palos|lucas?)\\b(?:\\s*(?:el|por|x|cada)\\s*" + UQ + "\\b)?")) || s.match(new RegExp("\\b(?:por|a|en|cuesta|costo|salio|pague|pago)\\s+\\$?\\s*([\\d.,]+)(?!\\s*(?:" + QU + ")\\b)(?:\\s*(?:el|por|x|cada)\\s*" + UQ + "\\b)?"));
       if (m) { price = parseAR(m[1]); var lu = m[2] && /^(luca|lucas)$/.test(m[2]); if (lu) { price *= 1000; pu = m[3] || ""; } else pu = (m[2] && !/pesos|mangos|palos/.test(m[2]) ? m[2] : m[3]) || ""; if (/^(pesos|mangos|palos|lucas?)$/.test(pu)) pu = ""; s = s.replace(m[0], " "); }
@@ -876,6 +889,7 @@ body.sh-open{overflow:hidden}
       var re = new RegExp("(\\d+(?:[.,]\\d+)?|un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|medio|media)\\s*(" + QU + ")?\\b", "g"), q = 0, qu = "", mm;
       while ((mm = re.exec(s))) { var isw = isNaN(parseFloat(mm[1])); if (isw && !mm[2]) continue; q = isw ? NUMW[mm[1]] : parseAR(mm[1]); qu = mm[2] || ""; if (q > 0) break; }
       if (!(q > 0)) return;
+      if (nuevo) it.uni = UNORM[nrm(qu)] || UNORM[nrm(qu).replace(/s$/, "")] || "unidad";
       var uk = nrm(qu).replace(/s$/, ""), f = UF[nrm(qu)] || UF[uk] || null, b = UF[nrm(it.uni)] || null, warn = false, n = q;
       if (f && b && f[0] === b[0]) n = q * f[1] / b[1]; else if (b && qu && !f) warn = true; else if (f && b) warn = true;
       var tot = 0;
@@ -883,28 +897,28 @@ body.sh-open{overflow:hidden}
         var pf2 = pu ? (UF[pu] || UF[pu.replace(/s$/, "")]) : null;
         tot = pf2 && b && pf2[0] === b[0] ? price * n * b[1] / pf2[1] : pu ? price * q : price;
       }
-      out.push({ ins: it.ins, uni: it.uni, tipo: tipo, cant: Math.round(n * 1e6) / 1e6, precio: Math.round(tot * 100) / 100, warn: warn });
+      out.push({ ins: it.ins, uni: it.uni, tipo: tipo, cant: Math.round(n * 1e6) / 1e6, precio: Math.round(tot * 100) / 100, warn: warn, nuevo: nuevo });
     });
     return out;
   }
   function skBar(ph, hint) {
-    var h = '<div class="vzin" id="sk-quick">' + (SR ? '<button class="vzmic" data-sk="mic" id="sk-mic" aria-label="Hablar">🎙️</button>' : "") + '<input class="inp" id="sk-q" placeholder="' + ph + '" autocomplete="off" value="' + esc(st.skq && st.skq.text || "") + '"><button class="vzsend" data-sk="parse" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>';
+    var h = '<div class="vzin" id="sk-quick">' + (SR ? '<button class="vzmic" data-sk="mic" id="sk-mic" aria-label="Hablar">🎙️</button>' : "") + '<input class="inp" id="sk-q" placeholder="' + ph + '" autocomplete="off" value="' + esc(st.skq && (st.skq.mode || "stock") === (st.v === "proveedores" ? "prov" : "stock") && st.skq.text || "") + '"><button class="vzsend" data-sk="parse" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>';
     h += '<div class="meta" style="margin:6px 4px 10px">' + hint + "</div>";
     var md = st.v === "proveedores" ? "prov" : "stock";
     if (st.skq && st.skq.items && (st.skq.mode || "stock") === md) {
-      h += '<div class="card">' + (st.skq.items.length ? st.skq.items.map(function (i) { return '<div class="frow"><span>' + stkLine(i) + "</span></div>"; }).join("") + '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" data-sk="ok">Confirmar</button><button class="sm" data-sk="no">Cancelar</button></div>' : '<div class="meta">No encontré el insumo o la cantidad. ' + (md === "prov" ? "Probá: «compré 1 kilo de manteca a 3000»." : "Probá: «gasté 500 g de harina».") + '</div><button class="sm" data-sk="no" style="margin-top:8px">Cerrar</button>') + "</div>";
+      h += '<div class="card">' + (st.skq.items.length ? st.skq.items.map(function (i, k) { return '<div class="frow" style="display:block"><span>' + stkLine(i) + "</span>" + (i.tipo === "compra" ? '<div style="display:flex;gap:8px;margin-top:6px"><input class="inp" data-skp="prov" data-i="' + k + '" placeholder="Proveedor (opcional)" value="' + esc(i.prov || "") + '" style="flex:1.3"><input class="inp" data-skp="precio" data-i="' + k + '" inputmode="decimal" placeholder="Precio total $" value="' + (i.precio ? i.precio : "") + '" style="flex:1"></div>' : "") + "</div>"; }).join("") + '<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" data-sk="ok">Confirmar</button><button class="sm" data-sk="no">Cancelar</button></div>' : '<div class="meta">No encontré el insumo o la cantidad. ' + (md === "prov" ? "Probá: «compré 1 kilo de manteca a 3000»." : "Probá: «gasté 500 g de harina».") + '</div><button class="sm" data-sk="no" style="margin-top:8px">Cerrar</button>') + "</div>";
     }
     return h;
   }
   function stkLine(i) {
-    return (i.tipo === "compra" ? "🛒 Compra" : i.tipo === "consumo" ? "➖ Gasto" : "🔢 Contado") + " · <b>" + esc(i.ins) + "</b> · " + (i.tipo === "ajuste" ? "quedan " : i.tipo === "compra" ? "+" : "−") + fm(i.cant) + " " + esc(i.uni) + (i.precio ? " · $" + fm(i.precio) : i.tipo === "compra" ? " · sin precio" : "") + (i.warn ? " ⚠️ revisá la unidad" : "");
+    return (i.tipo === "compra" ? "🛒 Compra" : i.tipo === "consumo" ? "➖ Gasto" : "🔢 Contado") + " · <b>" + esc(i.ins) + "</b>" + (i.nuevo ? " 🆕 <i>(insumo nuevo)</i>" : "") + " · " + (i.tipo === "ajuste" ? "quedan " : i.tipo === "compra" ? "+" : "−") + fm(i.cant) + " " + esc(i.uni) + (i.precio ? " · $" + fm(i.precio) : i.tipo === "compra" ? " · sin precio" : "") + (i.warn ? " ⚠️ revisá la unidad" : "");
   }
   function skb() { return st.skbusy && Date.now() - st.skbusy < 15000; }
   function stkLoad(cb) { if (st.stock) return cb(); api("stock").then(function (j) { st.stock = j && j.ok ? j.stock : []; cb(); }).catch(function () { st.stock = []; cb(); }); }
   function stkApply(items) {
     if (skb()) { toast("Guardando… esperá un segundo"); return Promise.resolve({ ok: 0, fail: "" }); }
     st.skbusy = Date.now(); var chain = Promise.resolve(), ok = 0, fail = "";
-    items.forEach(function (i) { chain = chain.then(function () { return api("stockMov", { ins: i.ins, tipo: i.tipo, cant: i.cant, precio: i.precio, rid: i.rid || (i.rid = Date.now() + "-" + Math.random().toString(36).slice(2)) }).then(function (j) { if (j && j.ok) { st.stock = j.stock; if (j.alertas != null) st.alertas = !!j.alertas; ok++; } else fail = (j && j.msg) || "No se pudo guardar"; }); }); });
+    items.forEach(function (i) { if (i.nuevo) chain = chain.then(function () { return api("addInsumo", { t: "a", nombre: i.ins, unidad: i.uni }).then(function (j) { if (j && j.ok) { st.prov = j.proveedores; VC.prov = null; } else if (!(j && /exist|ya/i.test(j.msg || ""))) fail = (j && j.msg) || "No se pudo crear el insumo"; }); }); chain = chain.then(function () { return api("stockMov", { ins: i.ins, tipo: i.tipo, cant: i.cant, precio: i.precio, rid: i.rid || (i.rid = Date.now() + "-" + Math.random().toString(36).slice(2)) }).then(function (j) { if (j && j.ok) { st.stock = j.stock; if (j.alertas != null) st.alertas = !!j.alertas; ok++; } else fail = (j && j.msg) || "No se pudo guardar"; }); }); });
     st.movs = null; st.movf = 0;
     return chain.then(function (r0) { st.skbusy = 0; return r0; }, function (e0) { st.skbusy = 0; throw e0; }).then(function () { if (items.some(function (i) { return i.tipo === "compra" && i.precio > 0; })) { VC.prov = null; if (!DEMO) api("proveedores").then(function (j) { if (j && j.ok) st.prov = j.proveedores; }).catch(function () {}); } return { ok: ok, fail: fail }; });
   }
@@ -1303,6 +1317,24 @@ body.sh-open{overflow:hidden}
     var q = e.target.closest && e.target.closest("[data-qa]"); if (!q) return; e.stopPropagation();
     var pr = q.getAttribute("data-qa").split(":"); q.disabled = true; q.textContent = "…"; patchPedido(Number(pr[0]), pr[1], true);
   }, true);
+  function skPrepare(kt, mdk) {
+    var go = function () {
+      var items = stkParse(kt, mdk), P = st.prov || {};
+      items.forEach(function (i) {
+        var row = (P.a || []).concat(P.p || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0];
+        if (row) { i.prov = row.prov || ""; i.prov0 = i.prov; if (!i.precio && row.costo && i.tipo === "compra") i.precio = Math.round(row.costo * i.cant); }
+        else { i.prov = ""; i.prov0 = ""; }
+      });
+      st.skq = { text: kt, items: items, mode: mdk }; render(true);
+    };
+    if (st.prov || DEMO) { go(); return; }
+    api("proveedores").then(function (j) { if (j && j.ok) st.prov = j.proveedores; go(); }).catch(go);
+  }
+  document.addEventListener("input", function (e) {
+    var t = e.target; if (!t.matches || !t.matches("[data-skp]") || !st.skq) return;
+    var it = st.skq.items[Number(t.getAttribute("data-i"))]; if (!it) return;
+    if (t.getAttribute("data-skp") === "precio") it.precio = parseAR(t.value) || 0; else it.prov = t.value;
+  });
   function msApply() {
     if (MS.on && MS.v !== st.v + (st.v === "suscripciones" ? st.sut : "")) { MS.on = false; MS.keys = {}; }
     var c = msCfg(); if (!c) { MS.on = false; }
@@ -1702,7 +1734,7 @@ body.sh-open{overflow:hidden}
       if (any) { st.loaded = {}; var v = st.v; fetchView(v); st.loaded.mas = true; }
     });
   }
-  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.id === "sk-q") { e.preventDefault(); var kt = e.target.value.trim(); if (kt) { var mdk = st.v === "proveedores" ? "prov" : "stock"; st.skq = { text: kt, items: stkParse(kt, mdk), mode: mdk }; render(true); } } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.id === "sk-q") { e.preventDefault(); var kt = e.target.value.trim(); if (kt) { var mdk = st.v === "proveedores" ? "prov" : "stock"; skPrepare(kt, mdk); } } });
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-vz]"); if (!b) return;
     var a = b.getAttribute("data-vz");
@@ -1921,9 +1953,9 @@ body.sh-open{overflow:hidden}
     var sk = t.closest("[data-sk]");
     if (sk) {
       var ka = sk.getAttribute("data-sk");
-      if (ka === "parse") { if (st.skrec) { try { st.skrec.stop(); } catch (e) {} } var kt = $("sk-q").value.trim(), mdk = st.v === "proveedores" ? "prov" : "stock"; st.skq = { text: kt, items: stkParse(kt, mdk), mode: mdk }; render(true); return; }
+      if (ka === "parse") { if (st.skrec) { try { st.skrec.stop(); } catch (e) {} } var kt = $("sk-q").value.trim(), mdk = st.v === "proveedores" ? "prov" : "stock"; skPrepare(kt, mdk); return; }
       if (ka === "no") { st.skq = null; render(true); return; }
-      if (ka === "ok") { if (skb()) return; sk.disabled = true; sk.textContent = "Guardando…"; var its = st.skq && st.skq.items || []; stkApply(its).then(function (r) { st.skq = null; if (st.v === "proveedores" && !DEMO) api("proveedores").then(function (j) { if (j && j.ok) st.prov = j.proveedores; render(true); }).catch(function () {}); render(true); toast(r.fail ? r.fail : "Compra cargada ✓ (" + r.ok + ")"); }); return; }
+      if (ka === "ok") { if (skb()) return; sk.disabled = true; sk.textContent = "Guardando…"; var its = st.skq && st.skq.items || []; stkApply(its).then(function (r) { var pc = its.filter(function (i) { return i.tipo === "compra" && (i.prov || "") !== (i.prov0 || ""); }); if (pc.length && !DEMO) api("proveedores").then(function (j) { if (!j || !j.ok) return; st.prov = j.proveedores; var ch = Promise.resolve(); pc.forEach(function (i) { var t = "a", row = (st.prov.a || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0]; if (!row) { t = "p"; row = (st.prov.p || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0]; } if (row) ch = ch.then(function () { return api("setProveedor", { t: t, r: row.r, ins: row.ins, campo: "prov", valor: i.prov }); }); }); ch.then(function () { return api("proveedores"); }).then(function (j2) { if (j2 && j2.ok) { st.prov = j2.proveedores; VC.prov = null; } }).catch(function () {}); }).catch(function () {}); st.skq = null; if (st.v === "proveedores" && !DEMO) api("proveedores").then(function (j) { if (j && j.ok) st.prov = j.proveedores; render(true); }).catch(function () {}); render(true); toast(r.fail ? r.fail : "Compra cargada ✓ (" + r.ok + ")"); }); return; }
       if (ka === "mic") {
         if (!SR) { toast("Tu navegador no tiene dictado. Escribilo."); return; }
         if (st.skrec) { try { st.skrec.stop(); } catch (e) {} return; }
