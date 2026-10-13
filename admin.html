@@ -1317,14 +1317,49 @@ body.sh-open{overflow:hidden}
     var q = e.target.closest && e.target.closest("[data-qa]"); if (!q) return; e.stopPropagation();
     var pr = q.getAttribute("data-qa").split(":"); q.disabled = true; q.textContent = "…"; patchPedido(Number(pr[0]), pr[1], true);
   }, true);
+  function skAuto(items) {
+    toast("Cargando…");
+    stkApply(items).then(function (r) {
+      render(true); toast(r.fail ? r.fail : "Cargado ✓" + (items.length > 1 ? " (" + r.ok + ")" : ""));
+      var cs = items.filter(function (i) { return i.tipo === "compra"; });
+      if (r.ok && cs.length && !DEMO) api("proveedores").then(function (j) { if (j && j.ok) { st.prov = j.proveedores; } skAsk(cs); }).catch(function () { skAsk(cs); });
+      else if (r.ok && cs.length) skAsk(cs);
+    }).catch(function () { toast("No se pudo guardar"); });
+  }
+  function skAsk(cs) {
+    var old = document.getElementById("skask"); if (old) old.remove();
+    var d = document.createElement("div"); d.className = "modal"; d.id = "skask";
+    d.innerHTML = '<div class="card" style="width:min(420px,100%);margin:0;max-height:88vh;overflow:auto"><div class="nm" style="margin-bottom:2px">¿Querés sumar proveedor y precio?</div><div class="meta" style="margin-bottom:10px">Es opcional. Ya quedó cargado en el stock.</div>' +
+      cs.map(function (i, k) { var P = st.prov || {}, row = (P.a || []).concat(P.p || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0];
+        if (row) { i.prov = i.prov || row.prov || ""; i.prov0 = row.prov || ""; if (!i.precio && row.costo) i.sug = Math.round(row.costo * i.cant); }
+        return '<div style="margin-bottom:10px"><b>' + esc(i.ins) + '</b> <span class="meta">· ' + fm(i.cant) + " " + esc(i.uni) + '</span><div style="display:flex;gap:8px;margin-top:6px"><input class="inp" data-ak="prov" data-i="' + k + '" placeholder="Proveedor" value="' + esc(i.prov || "") + '" style="flex:1.3"><input class="inp" data-ak="precio" data-i="' + k + '" inputmode="decimal" placeholder="Precio total $" value="' + (i.precio || i.sug || "") + '" style="flex:1"></div></div>'; }).join("") +
+      '<div style="display:flex;gap:8px"><button class="btn" data-ak="save">Guardar</button><button class="sm" data-ak="skip">Ahora no</button></div></div>';
+    document.body.appendChild(d);
+    d.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-ak]"); if (e.target === d) { d.remove(); return; } if (!b) return;
+      var a = b.getAttribute("data-ak"); if (a === "skip") { d.remove(); return; }
+      if (a !== "save") return;
+      b.disabled = true; b.textContent = "Guardando…";
+      var inp = d.querySelectorAll("input"), vals = cs.map(function () { return { prov: "", precio: 0 }; });
+      Array.prototype.forEach.call(inp, function (x) { var k = Number(x.getAttribute("data-i")); if (x.getAttribute("data-ak") === "prov") vals[k].prov = x.value.trim(); else vals[k].precio = parseAR(x.value) || 0; });
+      var ch = Promise.resolve();
+      cs.forEach(function (i, k) {
+        var v = vals[k], P = st.prov || {}, t = "a", row = (P.a || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0]; if (!row) { t = "p"; row = (P.p || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0]; } if (!row || DEMO) return;
+        if (v.precio > 0 && v.precio !== (i.precio || 0)) ch = ch.then(function () { return api("setProveedor", { t: t, r: row.r, ins: row.ins, campo: "cant", valor: String(i.cant) }); }).then(function () { return api("setProveedor", { t: t, r: row.r, ins: row.ins, campo: "precio", valor: String(v.precio) }); });
+        if (v.prov !== (row.prov || "")) ch = ch.then(function () { return api("setProveedor", { t: t, r: row.r, ins: row.ins, campo: "prov", valor: v.prov }); });
+      });
+      ch.then(function () { return DEMO ? null : api("proveedores"); }).then(function (j) { if (j && j.ok) st.prov = j.proveedores; VC.prov = null; d.remove(); toast("Guardado ✓"); render(true); }).catch(function () { d.remove(); toast("No se pudo guardar"); });
+    });
+  }
   function skPrepare(kt, mdk) {
     var go = function () {
       var items = stkParse(kt, mdk), P = st.prov || {};
       items.forEach(function (i) {
         var row = (P.a || []).concat(P.p || []).filter(function (z) { return nrm(z.ins) === nrm(i.ins); })[0];
-        if (row) { i.prov = row.prov || ""; i.prov0 = i.prov; if (!i.precio && row.costo && i.tipo === "compra") i.precio = Math.round(row.costo * i.cant); }
+        if (row) { i.prov = row.prov || ""; i.prov0 = i.prov; if (row.costo && i.tipo === "compra") { i.sug = Math.round(row.costo * i.cant); if (mdk === "prov" && !i.precio) i.precio = i.sug; } }
         else { i.prov = ""; i.prov0 = ""; }
       });
+      if (mdk === "stock" && items.length) { st.skq = null; skAuto(items); return; }
       st.skq = { text: kt, items: items, mode: mdk }; render(true);
     };
     if (st.prov || DEMO) { go(); return; }
@@ -1949,7 +1984,7 @@ body.sh-open{overflow:hidden}
     var mdl = t.closest("[data-mdel]"); if (mdl) { if (skb()) return; st.skbusy = Date.now(); mdl.disabled = true; mdl.textContent = "…"; api("delMov", { r: Number(mdl.getAttribute("data-mdel")), ins: mdl.getAttribute("data-mi") }).then(function (j) { st.skbusy = 0; if (j && j.ok) { st.stock = j.stock; st.movs = null; st.movf = 0; render(true); toast("Movimiento deshecho ✓"); } else { toast(j && j.msg || "No se pudo"); st.movs = null; st.movf = 0; render(true); } }).catch(function () { st.skbusy = 0; st.movs = null; st.movf = 0; toast("No se pudo deshacer. Reintentá."); render(true); }); return; }
     var skx = t.closest("[data-skx]"); if (skx) { var kn = skx.getAttribute("data-skx"); st.skx = st.skx === kn ? "" : kn; render(true); return; }
     var skf = t.closest("[data-skf]"); if (skf) { st.skf = skf.getAttribute("data-skf"); render(true); return; }
-    var skb = t.closest("[data-skb]"); if (skb) { stkBtn(skb.closest("[data-ins]"), skb.getAttribute("data-skb")); return; }
+    var skbt = t.closest("[data-skb]"); if (skbt) { stkBtn(skbt.closest("[data-ins]"), skbt.getAttribute("data-skb")); return; }
     var sk = t.closest("[data-sk]");
     if (sk) {
       var ka = sk.getAttribute("data-sk");
