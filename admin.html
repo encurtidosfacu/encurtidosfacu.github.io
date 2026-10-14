@@ -216,6 +216,18 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
 .crumb[data-crumb]{cursor:pointer}.crdd{position:absolute;z-index:60;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;min-width:230px;max-height:65vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(32,40,30,.25);padding:6px}.crdd button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 .98rem inherit;font-family:inherit;color:var(--ink,#27301f);text-align:left}.crdd button.on{background:#EDF2E4;color:#4A6B3A}.crdd button:active{background:#EDF2E4}
 .ssw.pw>.ssc,.ssw.pw>article.card{background:var(--ecb)!important;border-left:6px solid var(--ecf);transition:background .25s,border-color .25s}
 .kpi[style*="background:var(--blue)"] *{color:#fff!important}
+.cf-top{padding:6px 4px 10px}.cf-k{color:var(--soft);font-size:.9rem}.cf-t{font:700 1.6rem var(--fd);color:var(--ink)}
+.cf-search{display:flex;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:12px 16px;margin:4px 0 18px;box-shadow:0 1px 0 #E3E8D6}.cf-search input{flex:1;border:0;background:none;font:inherit;font-size:1rem;outline:none;min-width:0}
+.cf-h{font:700 .8rem var(--fd);letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:6px 6px 8px}
+.cf-card{background:#fff;border-radius:22px;padding:2px 16px;margin-bottom:18px;box-shadow:0 1px 0 #E3E8D6}
+.cf-row{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #EEF0E4}.cf-row:last-child{border-bottom:0}.cf-row.col{flex-direction:column;align-items:stretch;gap:0}
+.cf-l{flex:1;min-width:0;font-size:1rem;color:var(--ink)}.cf-l small{display:block;color:var(--soft);font-size:.8rem;margin-top:2px}
+.cf-ctl{display:flex;align-items:center;gap:8px;flex:none}
+.cf-b{width:38px;height:38px;border-radius:12px;border:0;background:var(--sky);color:var(--blue);font-size:1.05rem;font-weight:800;cursor:pointer}
+.cf-go{border:0;border-radius:999px;background:var(--sky);color:var(--blue);font:700 .88rem var(--fb);padding:10px 16px;cursor:pointer;flex:none;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cf-go.dark{background:#2b2b26;color:#fff}
+.cf-sw{width:52px;height:30px;border-radius:999px;border:0;background:#D8D3CC;position:relative;flex:none;cursor:pointer;transition:.15s;padding:0}.cf-sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}.cf-sw.on{background:var(--blue)}.cf-sw.on i{left:25px}
+body.nobadge #bell-n{display:none!important}
+
 </style>
 </head>
 <body>
@@ -355,7 +367,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function signedOut(msg) { st.token = ""; st.me = null; store("uovo_adm_tok", null); store("uovo_adm_me", null); try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf("uovo_c_") === 0) localStorage.removeItem(k); }); } catch (e) {} showLogin(msg); setTimeout(function () { if (!clientId) clientId = load("uovo_adm_cid"); if (clientId) initGoogle(); }, 0); try { if (window.google && google.accounts) google.accounts.id.disableAutoSelect(); } catch (e) {} }
   function enter(me) {
     st.mod = load("uovo_adm_mod") || "gen"; if (!MODNAV[st.mod]) st.mod = "gen"; buildNav();
-    st.me = me; if (!DEMO) { store("uovo_adm_me", JSON.stringify(me)); var sv0 = load("uovo_adm_v"); if (sv0 && st.v === "inicio" && !st.entered) st.v = sv0; } st.entered = 1; $("login").hidden = true; $("app").hidden = false; 
+    st.me = me; if (!DEMO) { store("uovo_adm_me", JSON.stringify(me)); var sv0 = load("uovo_adm_v"); if (sv0 && st.v === "inicio" && !st.entered) st.v = sv0; if (UI.open === "pedidos" && !st.entered && !DEMO) st.v = "pedidos"; } st.entered = 1; $("login").hidden = true; $("app").hidden = false; 
     $("demobar").hidden = !DEMO; $("vfab").hidden = false; st.vz = false; if (me.rol === "Dueño") api("vozEstado").then(function (j) { st.vz = !!(j && j.clave); }).catch(function () {}); setTimeout(driveWelcome, 1500);
     applyPerms(); goto(allowed(st.v) ? st.v : firstView());
   }
@@ -617,7 +629,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     function pick(keys) { return neg.filter(function (x) { return keys.indexOf(x[0]) >= 0; }).map(mi).join(""); }
     return sec("Producir", pick(["proveedores", "stock", "puntos", "recetas"]) + (allowed("proveedores") ? '<button class="mi" data-buy="1"><i>🛒</i><div><b>Lista de compras</b><span>Qué comprar y carritos para imprimir o WhatsApp</span></div></button>' : "")) +
       sec("Vender", pick(["packs", "cupones", "suscripciones", "tarjetas"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
-      sec("Ajustes", '<button class="mi" data-uicfg="1"><i>🎛</i><div><b>Personalizar Admin</b><span>Orden, bloques, atajos, pestañas, nombre y color</span></div></button>' + pick(["textos"]) + app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
+      sec("Ajustes", '<button class="mi" data-cfgpop="1"><i>⚙️</i><div><b>Configuraciones de la app</b><span>Orden, tarjetas, atajos, pestañas, avisos, nombre y color</span></div></button>' + pick(["textos"]) + app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
   }
   var BACK = '<button class="back" data-go="mas">‹ Más</button>';
   /* ---------- Packs ---------- */
@@ -2004,6 +2016,10 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       ["[data-pksw]", "Activo / Pausado", "Activá o pausá la oferta en la tienda."]],
     recetas: [["#rnew", "Nueva receta", "Elegí el producto, cuántos frascos salen de una preparación y los insumos con su cantidad."],
       ["[data-redit]", "Editar receta", "Cambiá insumos y cantidades de una preparación. El costo por frasco se recalcula solo."]],
+    pdash: [["[data-ghoy]", "Gestionados hoy", "Lo que se movió hoy: pedidos nuevos, enviados, anomalías y actividad."], [".kpi", "Tarjetas de estado", "Tocá una para ver solo esos pedidos. Tocala de nuevo para volver a ver todo."], ["#atajos, .atj", "Atajos", "Accesos rápidos. Los podés reordenar o esconder en Ajustes."], ["#nav [data-v=pset]", "Ajustes", "Ahí configurás este módulo: orden, tarjetas, avisos, nombre y color."]],
+    pset: [["#cf-q", "Buscador de ajustes", "Escribí una palabra y te muestro solo los ajustes que la tengan."], [".cf-card", "Interruptores y flechas", "Prendé o apagá cada bloque. Las flechas ↑ ↓ cambian el orden. ✏️ cambia el nombre."], [".cf-go", "Botones de acción", "Editar plazos, medios de pago, ver el registro de actividad y más."]],
+    prdash: [[".kpi", "Estado de producción", "Cuántos insumos están sin stock, por agotarse, qué comprar y qué recetas faltan."], ["[data-prep]", "Qué tengo que preparar", "El total de frascos a preparar según los pedidos. Tocalo para ver el detalle."], ["#nav [data-v=prset]", "Ajustes", "Configurá este módulo: alertas de stock, orden, nombre y color."]],
+    prset: [["#cf-q", "Buscador de ajustes", "Escribí una palabra y te muestro solo los ajustes que la tengan."], [".cf-card", "Interruptores y flechas", "Prendé o apagá cada bloque. Las flechas ↑ ↓ cambian el orden."]],
     accesos: [[".help", "Compartir acceso", "Solo vos ves esta pantalla."],
       ["#a-mail", "Mail de Google", "Escribí el mail de la persona. Entra con esa cuenta."],
       ["#a-perms", "Qué puede usar", "Elegí las secciones que va a ver esa persona. Después podés cambiarlas, pausarla o quitarla."],
@@ -2087,6 +2103,11 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     { t: "Ver la guía de una pantalla", k: "guia ayuda tutorial varita wizard explicar pantalla", go: "", p: ["Tocá la varita ✨ arriba a la derecha.", "Te marca cada parte de la pantalla actual con una explicación."] },
     { t: "Actualizar los datos", k: "actualizar refrescar recargar nuevos pedidos no aparece", go: "", p: ["Tocá Más → Actualizar datos para traer lo más nuevo."] },
     { t: "Instalar la app en el celular", k: "instalar celular icono pantalla inicio app descargar", go: "", p: ["Abrí esta página en Chrome (Android) o Safari (iPhone).", "Android: menú ⋮ → Instalar app. iPhone: Compartir → Agregar a pantalla de inicio."] },
+    { t: "Personalizar un módulo (orden, colores, nombres)", k: "personalizar configuracion ajustes orden ocultar esconder color nombre modulo tarjetas atajos pestañas barra", go: "pset", p: ["Entrá al módulo y tocá Ajustes abajo (en Admin: Más → Configuraciones de la app).", "Usá los interruptores para mostrar u ocultar, las flechas ↑ ↓ para ordenar y ✏️ para renombrar.", "Abajo podés cambiar el nombre y el color del módulo."] },
+    { t: "Ver qué se gestionó hoy", k: "gestionados hoy anomalias enviado sin hecho actividad registro movimientos", go: "pdash", p: ["En Pedidos, tocá Gestionados hoy.", "Ves pedidos nuevos, enviados, anomalías (ej. enviado sin estar hecho) y la actividad del día."] },
+    { t: "Cambiar el estado de varios pedidos a la vez", k: "seleccion multiple varios pedidos mantener apretado masivo aprobar hecho entregado deshacer", go: "pedidos", p: ["En Pedidos, mantené apretado un pedido.", "Tocá otros para sumarlos y elegí Aprobar, Hecho, Entregado o Cancelar.", "Si te equivocás, tocá Deshacer (aparece 8 segundos)."] },
+    { t: "Ver el registro de actividad", k: "registro actividad historial quien cambio que cuando log", go: "pset", p: ["Tocá Ajustes en Pedidos y después Registro de actividad.", "Muestra quién cambió cada pedido y cuándo."] },
+    { t: "Cambiar los medios de pago", k: "medios pago efectivo transferencia editar agregar tarjeta", go: "pset", p: ["Pedidos → Ajustes → Medios de pago → Editar.", "Agregá, renombrá, ordená o borrá. Se usan al crear un pedido."] },
     { t: "Salir de la app", k: "salir cerrar sesion logout desloguear cuenta", go: "", p: ["Tocá Más → Cerrar sesión."] },
     { t: "Dictar órdenes por voz", k: "voz dictar ordenes ia clave api asistente comandos", go: "voz", p: ["Es opcional y necesita una clave de API de Anthropic (con costo mínimo por uso).", "Si no la cargás, el micrófono funciona igual como ayuda."] }
   ];
@@ -3247,6 +3268,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function uiM(m) { var u = UI[m] = UI[m] || {}; u.hide = u.hide || []; u.order = u.order || []; u.lab = u.lab || {}; u.nav = u.nav || []; u.navHide = u.navHide || []; u.navLab = u.navLab || {}; u.atHide = u.atHide || []; u.atOrd = u.atOrd || []; u.atLab = u.atLab || {}; return u; }
   var HOMEV = { gen: "inicio", ped: "pdash", prod: "prdash" }, NOHIDE = ["pset", "prset", "mas", "inicio", "pdash", "prdash"];
   var BLK_L = { "data-ghoy": "Gestionados hoy", "data-pdhoy": "Hoy enviaste", "data-pdf": "Tarjetas de estado", "data-prep": "Qué tengo que preparar", "data-sc": "Atajos" };
+  function uiFirstTxt(el) { var w = document.createTreeWalker(el, 4), n; while ((n = w.nextNode())) { var t = n.nodeValue.replace(/\s+/g, " ").trim(); if (t.length > 1) return t.slice(0, 28); } return ""; }
   function uiScan(root) {
     var kids = Array.prototype.slice.call(root.children), B = [], pend = null;
     kids.forEach(function (el) {
@@ -3256,12 +3278,14 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       var key = el.id || ""; if (!key) { var q = el.matches("[data-ghoy],[data-pdhoy],[data-prep]") ? el : el.querySelector("[data-pdf],[data-prep],[data-sc],[data-go],[data-mod],[data-act]"); if (q) { var at = Array.prototype.slice.call(q.attributes).filter(function (a) { return a.name.indexOf("data-") === 0 && a.name !== "data-fil"; })[0]; key = at ? at.name : ""; } }
       if (!key) key = (el.className || el.tagName).toString().split(" ")[0];
       if (el.classList.contains("atj")) key = "atajos" + B.filter(function (b) { return b.key.indexOf("atajos") === 0; }).length;
-      var lab = BLK_L[key] || (pend === null && els.length > 1 ? els[0].textContent.replace(/\s+/g, " ").trim().slice(0, 28) : "") || (key.indexOf("atajos") === 0 ? "Atajos" : el.textContent.replace(/\s+/g, " ").trim().slice(0, 26)) || key;
+      var lab = BLK_L[key] || (pend === null && els.length > 1 ? uiFirstTxt(els[0]) : "") || (key.indexOf("atajos") === 0 ? (key === "atajos0" ? "Atajos" : "Atajos (" + (+key.slice(6) + 1) + ")") : uiFirstTxt(el)) || key;
       B.push({ key: key, els: els, lab: lab.replace(/\s*\d+$/, "") });
     });
     return B;
   }
+  function owOnce() { if (!UI.ow || st.__ow || !st.loaded.pedidos) return; st.__ow = 1; var n = st.pedidos.filter(function (p) { var e = estadoDe(p); return e === "pend" || e === "coc" || e === "list"; }).length; if (n) pedPopOpen("Para hacer ahora · " + n, function (p) { var e = estadoDe(p); return e === "pend" || e === "coc" || e === "list"; }); }
   function uiApply() {
+    try { owOnce(); } catch (e0) {}
     var m = st.mod || "gen"; if (st.v !== HOMEV[m]) return; var u = uiM(m), v = $("view"); if (/^\s*Cargando/.test(v.textContent)) return; var B = uiScan(v), ch = false;
     B.forEach(function (b) { if (u.lab[b.key] !== b.lab) { u.lab[b.key] = b.lab; ch = true; } });
     var idx = function (k) { var i = u.order.indexOf(k); return i < 0 ? 1000 : i; };
@@ -3319,6 +3343,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     });
   }
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-uicfg]"); if (b) { e.stopPropagation(); uiOpen(); } }, true);
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-cfgpop]"); if (b) { e.stopPropagation(); cfgPop(); } }, true);
   function payList() { return (UI.pay && UI.pay.length) ? UI.pay : ["Efectivo", "Transferencia", "Pago full"]; }
   function listEdit(title, key, defs) {
     var d = popBase("lsted", 380);
@@ -3344,14 +3369,87 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     else if (a === "rng") setPick("Fechas iniciales de Pedidos", [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]], UI.pdp || "todo", function (v) { UI.pdp = v; uiSave(); st.pdp = v; toast("Guardado ✓"); render(true); });
   }, true);
   function cfgRow(ic, t, s, attr) { return '<button class="mi" ' + attr + "><i>" + ic + "</i><div><b>" + t + "</b><span>" + s + "</span></div></button>"; }
-  function renderPrSet() {
-    var al = st.alertas === undefined ? "Cargando…" : st.alertas ? "Activadas: te aviso cuando falten insumos" : "Desactivadas";
-    if (st.alertas === undefined && !st.stkf && allowed("proveedores")) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (st.v === "prset") render(true); } }).catch(function () {}); }
-    return '<div class="sec-h">Stock</div><div class="menu">' + cfgRow("🔔", "Alertas de stock", al, 'data-act="stkalert"') + cfgRow("🎯", "Puntos de pedido", "Cuándo avisarte para reponer cada insumo", 'data-go="puntos"') + "</div>" +
-      '<div class="sec-h">Qué producís y comprás</div><div class="menu">' + cfgRow("🧾", "Insumos y proveedores", "Precios, unidades y proveedores", 'data-sc="proveedores"') + cfgRow("🥒", "Recetas", "Ingredientes y costo de cada frasco", 'data-sc="recetas"') + cfgRow("🛒", "Lista de compras", "Carritos, proveedores e impresión", 'data-buy="1"') + "</div>" +
-      '<div class="sec-h">Esta pantalla</div><div class="menu">' + cfgRow("🎛", "Personalizar Producción", "Orden, bloques, atajos, pestañas, nombre y color", 'data-uicfg="1"') + cfgRow("↻", "Actualizar datos", "Traer lo más nuevo de la planilla", 'data-act="refresh"') + "</div>" +
-      '<div class="sec-h">Módulos</div><div class="menu"><button class="mi" data-mod="ped"><i>📋</i><div><b>Pedidos</b><span>Seguimiento y entregas</span></div></button><button class="mi" data-mod="gen"><i>🏠</i><div><b>Admin</b><span>Productos, finanzas, packs y textos</span></div></button></div>';
+  /* ---------- Configuración estándar (los 3 módulos) ---------- */
+  var CFGM = null;
+  function cfSw(on, attr) { return '<button class="cf-sw' + (on ? " on" : "") + '" ' + attr + ' aria-pressed="' + (on ? "true" : "false") + '"><i></i></button>'; }
+  function cfRow(label, right, sub, attr) { return '<div class="cf-row"' + (attr || "") + ' data-cf-t="' + esc(nrm(label + " " + (sub || ""))) + '"><div class="cf-l">' + label + (sub ? '<small>' + sub + "</small>" : "") + "</div>" + (right || "") + "</div>"; }
+  function cfCard(title, rows) { return rows ? '<div class="cf-sec" data-cf-s="1"><div class="cf-h">' + title + '</div><div class="cf-card">' + rows + "</div></div>" : ""; }
+  function cfChips(label, key, opts, cur) { return '<div class="cf-row col" data-cf-t="' + esc(nrm(label)) + '"><div class="cf-l">' + label + '</div><div class="chips" style="margin:8px 0 0">' + opts.map(function (o) { return '<button class="chip' + (o[0] === cur ? " on" : "") + '" data-cf="' + key + "|" + o[0] + '">' + o[1] + "</button>"; }).join("") + "</div></div>"; }
+  function cfOrd(list, hid, labFn, kind, ren, nohide) {
+    return list.map(function (x) { var off = hid.indexOf(x.key) >= 0; return cfRow('<span style="' + (off ? "opacity:.45" : "") + '">' + esc(labFn(x)) + "</span>", '<span class="cf-ctl">' + (ren ? '<button class="cf-b" data-cf="ren|' + kind + "|" + esc(x.key) + '" aria-label="Renombrar">✏️</button>' : "") + '<button class="cf-b" data-cf="up|' + kind + "|" + esc(x.key) + '" aria-label="Subir">↑</button><button class="cf-b" data-cf="dn|' + kind + "|" + esc(x.key) + '" aria-label="Bajar">↓</button>' + ((nohide || NOHIDE).indexOf(x.key) >= 0 ? "" : cfSw(!off, 'data-cf="tg|' + kind + "|" + esc(x.key) + '"')) + "</span>"); }).join("");
   }
+  function cfOrdered(base, arr, key) { var o = arr, ix = function (k) { var i = o.indexOf(k); return i < 0 ? 1000 : i; }; return base.map(function (b, i) { return { b: b, i: i }; }).sort(function (a, c) { return ix(key(a.b)) - ix(key(c.b)) || a.i - c.i; }).map(function (x) { return x.b; }); }
+  function cfgPage(m) {
+    var u = uiM(m), sc = uiHomeScan(m), blocks = [], seen = {};
+    sc.B.forEach(function (b) { if (/^Cargando/.test(b.lab)) return; seen[b.key] = 1; blocks.push({ key: b.key, lab: b.lab }); });
+    Object.keys(u.lab).forEach(function (k) { if (!seen[k] && !/^Cargando/.test(u.lab[k])) blocks.push({ key: k, lab: u.lab[k] }); });
+    blocks = cfOrdered(blocks, u.order, function (x) { return x.key; });
+    var ats = cfOrdered(sc.A, u.atOrd, function (x) { return x.key; }), navs = cfOrdered(MODNAV[m].map(function (x) { return { key: x[0], lab: x[1] }; }), u.nav, function (x) { return x.key; });
+    var kp = UI.kpiHide = UI.kpiHide || {}, kh = kp[m] = kp[m] || [], h = '<div class="cf-top"><div class="cf-k">Ajustes</div><div class="cf-t">Configuración · ' + esc(u.name || MODS[m][1]) + '</div></div><div class="cf-search"><span>🔍</span><input id="cf-q" type="search" placeholder="Buscar un ajuste…" autocomplete="off"></div><div id="cf-body">';
+    h += cfCard("Pantalla de inicio · orden y visibilidad", blocks.length ? cfOrd(blocks, u.hide, function (x) { return x.lab; }, "blk", false) : '<div class="cf-row"><div class="cf-l"><small>Abrí el inicio de este módulo una vez para ver sus bloques acá.</small></div></div>');
+    if (m === "ped") h += cfCard("Tarjetas de resumen", PDK.map(function (k) { return cfRow(k[1], cfSw(kh.indexOf(k[0]) < 0, 'data-cf="kpi|' + k[0] + '"')); }).join(""));
+    if (m === "prod") h += cfCard("Tarjetas de resumen", ["Sin stock / bajo mínimo", "Por agotarse", "Para comprar", "Sin receta"].map(function (k) { return cfRow(k, cfSw(kh.indexOf(k) < 0, 'data-cf="kpi|' + esc(k) + '"')); }).join(""));
+    h += cfCard("Atajos del inicio", ats.length ? cfOrd(ats, u.atHide, function (x) { return u.atLab[x.key] || x.lab; }, "atj", true, []) : "");
+    h += cfCard("Pestañas de abajo", cfOrd(navs, u.navHide, function (x) { return u.navLab[x.key] || x.lab; }, "nav", true));
+    if (m === "ped") {
+      var fl = FILS.map(function (f) { return [f[0], f[1]]; });
+      h += cfCard("Reglas", cfChips("Filtro inicial de Pedidos", "fil", fl, UI.fil || "pend") + cfChips("Fechas iniciales de Pedidos", "pdp", [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]], UI.pdp || "todo") + cfChips("Abrir la app en", "open", [["", "Inicio"], ["pedidos", "Pedidos"]], UI.open || ""));
+      h += cfCard("Plazos y pagos", cfRow("Plazos de preparación", '<button class="cf-go" data-cf="plz">Editar</button>', "Estándar " + ((st.plz || { def: 7 }).def) + " días · por producto o pack") + cfRow("Medios de pago", '<button class="cf-go" data-cf="pay">Editar</button>', esc(payList().join(" · "))));
+    }
+    if (m === "prod") {
+      var al = st.alertas === undefined ? "Cargando…" : st.alertas ? "Activadas" : "Desactivadas";
+      if (st.alertas === undefined && !st.stkf && allowed("proveedores")) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (cfgRefresh) cfgRefresh(); } }).catch(function () {}); }
+      h += cfCard("Stock y compras", cfRow("Alertas de stock", cfSw(!!st.alertas, 'data-cf="stk"'), "Te aviso cuando falten insumos (" + al + ")") + cfRow("Puntos de pedido", '<button class="cf-go" data-cf="go|puntos">Abrir</button>', "Cuándo reponer cada insumo") + cfRow("Insumos y proveedores", '<button class="cf-go" data-cf="sc|proveedores">Abrir</button>', "Precios, unidades y proveedores") + cfRow("Recetas", '<button class="cf-go" data-cf="sc|recetas">Abrir</button>', "Ingredientes y costo de cada frasco") + cfRow("Lista de compras", '<button class="cf-go" data-cf="buy">Abrir</button>', "Carritos, proveedores e impresión"));
+    }
+    if (m === "gen") h += cfCard("Reglas", cfChips("Abrir la app en", "open", [["", "Inicio"], ["pedidos", "Pedidos"]], UI.open || "") + cfChips("Fechas iniciales de Pedidos", "pdp", [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]], UI.pdp || "todo") + cfRow("Medios de pago", '<button class="cf-go" data-cf="pay">Editar</button>', esc(payList().join(" · "))));
+    h += cfCard("Avisos", cfRow("Ventana al abrir con lo que hay que hacer", cfSw(!!UI.ow, 'data-cf="ow"'), "Un resumen de pedidos por preparar cada vez que entrás") + cfRow("Numerito rojo en la campanita", cfSw(UI.badge !== false, 'data-cf="badge"')) + cfRow("Gestionados hoy", '<button class="cf-go" data-cf="ghoy">Ver</button>', "Lo que se movió hoy y anomalías") + cfRow("Registro de actividad", '<button class="cf-go" data-cf="act">Ver</button>', "Quién cambió qué y cuándo"));
+    h += cfCard("Nombre y color del módulo", cfRow("Nombre", '<button class="cf-go" data-cf="name">' + esc(u.name || MODS[m][1]) + " ✏️</button>") + '<div class="cf-row col" data-cf-t="color"><div class="cf-l">Color</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">' + UICOL.map(function (c) { return '<button data-cf="col|' + c + '" style="width:40px;height:40px;border-radius:50%;border:3px solid ' + ((u.color || MODC[m]) === c ? "#233018" : "#fff") + ";background:" + c + ';box-shadow:0 0 0 1px #D9E2CC" aria-label="Color"></button>'; }).join("") + "</div></div>");
+    h += cfCard("Cuenta y datos", cfRow("Guía paso a paso de la app", '<button class="cf-go dark" data-cf="guide">▶ Ver guía</button>') + cfRow("Actualizar los datos ahora", '<button class="cf-go" data-cf="refresh">↻ Actualizar</button>') + cfRow("Restablecer ajustes de este módulo", '<button class="cf-go" data-cf="reset">Restablecer</button>') + cfRow("Cerrar sesión en este dispositivo", '<button class="cf-go" data-cf="logout">Salir</button>'));
+    return h + "</div>";
+  }
+  var cfgRefresh = null;
+  function cfgGo(m) { return function () { CFGM = m; return cfgPage(m); }; }
+  function renderPSet() { return cfgPage("ped"); }
+  function renderPrSet() { return cfgPage("prod"); }
+  function cfgPop() {
+    var d = popBase("cfgpop", 480); function draw() { var y = d.__c.scrollTop; d.__c.innerHTML = popHead("⚙️ Configuración de la app") + cfgPage("gen"); d.__c.scrollTop = y; } draw(); cfgRefresh = function () { if ($("cfgpop") === d) draw(); else cfgRefresh = null; }; d.__draw = draw;
+  }
+  document.addEventListener("input", function (e) {
+    if (!e.target || e.target.id !== "cf-q") return; var q = nrm(e.target.value), root = e.target.closest("#view,#cfgpop") || document;
+    Array.prototype.forEach.call(root.querySelectorAll(".cf-row[data-cf-t]"), function (r) { r.style.display = !q || r.getAttribute("data-cf-t").indexOf(q) >= 0 ? "" : "none"; });
+    Array.prototype.forEach.call(root.querySelectorAll(".cf-sec"), function (s) { var any = Array.prototype.some.call(s.querySelectorAll(".cf-row[data-cf-t]"), function (r) { return r.style.display !== "none"; }); s.style.display = any ? "" : "none"; });
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-cf]"); if (!b) return; e.stopPropagation();
+    var p = b.getAttribute("data-cf").split("|"), a = p[0], inPop = !!b.closest("#cfgpop"), m = inPop ? "gen" : (st.v === "pset" ? "ped" : st.v === "prset" ? "prod" : (st.mod || "gen")), u = uiM(m);
+    function done(nb) { uiSave(); if (nb !== false) buildNav(); if (inPop) { var cp = $("cfgpop"); if (cp && cp.__draw) cp.__draw(); } var y = window.scrollY, q = $("cf-q") ? $("cf-q").value : ""; render(true); if (q && $("cf-q")) { $("cf-q").value = q; $("cf-q").dispatchEvent(new Event("input", { bubbles: true })); } }
+    function scanKeys(kind) { var sc = uiHomeScan(m); if (kind === "blk") { var ks = sc.B.map(function (x) { return x.key; }).filter(function (k) { return true; }); Object.keys(u.lab).forEach(function (k) { if (ks.indexOf(k) < 0) ks.push(k); }); return cfOrdered(ks, u.order, function (x) { return x; }); } if (kind === "atj") return cfOrdered(sc.A.map(function (x) { return x.key; }), u.atOrd, function (x) { return x; }); return cfOrdered(MODNAV[m].map(function (x) { return x[0]; }), u.nav, function (x) { return x; }); }
+    var AR = { blk: ["order", "hide", null], atj: ["atOrd", "atHide", "atLab"], nav: ["nav", "navHide", "navLab"] };
+    if (a === "up" || a === "dn") { var kd = p[1], A = scanKeys(kd), i = A.indexOf(p[2]), j = i + (a === "up" ? -1 : 1); if (i < 0 || j < 0 || j >= A.length) return; A.splice(i, 1); A.splice(j, 0, p[2]); u[AR[kd][0]] = A; done(); return; }
+    if (a === "tg") { var H = u[AR[p[1]][1]], ix = H.indexOf(p[2]); if (ix >= 0) H.splice(ix, 1); else H.push(p[2]); done(); return; }
+    if (a === "ren") { var kd2 = p[1], lm = AR[kd2][2], cur = (u[lm] || {})[p[2]]; if (!cur) cur = kd2 === "nav" ? (MODNAV[m].filter(function (x) { return x[0] === p[2]; })[0] || [])[1] : (uiHomeScan(m).A.filter(function (x) { return x.key === p[2]; })[0] || {}).lab; textAsk("Nuevo nombre", cur, function (v) { if (!v) return; u[lm][p[2]] = v; done(); }); return; }
+    if (a === "kpi") { var kk = (UI.kpiHide = UI.kpiHide || {})[m] = (UI.kpiHide[m] || []), ik = kk.indexOf(p[1]); if (ik >= 0) kk.splice(ik, 1); else kk.push(p[1]); done(false); return; }
+    if (a === "fil") { UI.fil = p[1]; st.fil = p[1]; done(false); return; }
+    if (a === "pdp") { UI.pdp = p[1]; st.pdp = p[1]; done(false); return; }
+    if (a === "open") { UI.open = p[1]; done(false); return; }
+    if (a === "ow") { UI.ow = !UI.ow; done(false); return; }
+    if (a === "badge") { UI.badge = UI.badge === false; document.body.classList.toggle("nobadge", UI.badge === false); done(false); return; }
+    if (a === "col") { u.color = p[1]; done(); return; }
+    if (a === "name") { textAsk("Nombre del módulo", u.name || MODS[m][1], function (v) { if (v) { u.name = v; done(); } }); return; }
+    if (a === "reset") { delete UI[m]; if (m === "ped") { delete UI.fil; delete UI.pdp; } if (UI.kpiHide) delete UI.kpiHide[m]; toast("Ajustes restablecidos ✓"); done(); return; }
+    if (a === "pay") { listEdit("Medios de pago", "pay", ["Efectivo", "Transferencia", "Pago full"]); return; }
+    if (a === "plz") { plzPop(function () { done(false); }); return; }
+    if (a === "act") { actView(); return; }
+    if (a === "ghoy") { gesHoy(); return; }
+    if (a === "guide") { var cp2 = $("cfgpop"); if (cp2) cp2.remove(); openTour(st.v); return; }
+    if (a === "refresh") { $("refresh").click(); toast("Actualizando…"); return; }
+    if (a === "logout") { signedOut(""); return; }
+    if (a === "stk") { var tg = document.createElement("button"); tg.setAttribute("data-act", "stkalert"); document.body.appendChild(tg); tg.click(); tg.remove(); setTimeout(function () { done(false); }, 600); return; }
+    if (a === "go") { var cp3 = $("cfgpop"); if (cp3) cp3.remove(); goto(p[1]); return; }
+    if (a === "sc") { scOpen(p[1]); return; }
+    if (a === "buy") { blBuy(); return; }
+  }, true);
+  if (UI.badge === false) document.body.classList.add("nobadge");
   if (UI.fil) st.fil = UI.fil; if (UI.pdp) st.pdp = UI.pdp;
   /* ---------- Módulos: General / Pedidos / Producción ---------- */
   var MODS = { gen: ["🏠", "Admin"], ped: ["📋", "Pedidos"], prod: ["🥒", "Producción"] }, MODC = { gen: "#4A6B3A", ped: "#A8803F", prod: "#8A4F36" };
@@ -3420,7 +3518,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var cnt = {}; PDK.forEach(function (k) { cnt[k[0]] = st.pedidos.filter(function (p) { return pdMatch(p, k[0]); }).length; });
     var L = act.filter(function (p) { return !f || pdMatch(p, f); }).sort(function (a, b) { return (pf(a.fecha) || 0) - (pf(b.fecha) || 0); });
     var h = '<button class="card" data-ghoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>📋 Gestionados hoy</b><span class="meta">ver ›</span></button><button class="card" data-pdhoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>🚚 Hoy enviaste ' + sent.length + '</b><span class="meta">' + (sent.length ? "ver ›" : "") + "</span></button>" +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + PDK.map(function (k) { var on = f === k[0], bad = (k[0] === "dem" || k[0] === "sin") && cnt[k[0]] > 0; return '<button class="kpi" data-pdf="' + k[0] + '" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid ' + (on ? "var(--blue)" : "#E3E8D6") + ";background:" + (on ? "var(--blue)" : "#fff") + ";color:" + (on ? "#fff" : bad ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[1] + '</span><b style="font-size:1.7rem">' + cnt[k[0]] + "</b></button>"; }).join("") + "</div>" +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + PDK.filter(function (k) { return (UI.kpiHide && UI.kpiHide.ped || []).indexOf(k[0]) < 0; }).map(function (k) { var on = f === k[0], bad = (k[0] === "dem" || k[0] === "sin") && cnt[k[0]] > 0; return '<button class="kpi" data-pdf="' + k[0] + '" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid ' + (on ? "var(--blue)" : "#E3E8D6") + ";background:" + (on ? "var(--blue)" : "#fff") + ";color:" + (on ? "#fff" : bad ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[1] + '</span><b style="font-size:1.7rem">' + cnt[k[0]] + "</b></button>"; }).join("") + "</div>" +
       '<div class="nm" style="margin:4px 2px 8px">' + (f ? PDK.filter(function (k) { return k[0] === f; })[0][1] : "Todo lo que está en curso") + ' <span class="badge o">' + L.length + '</span>' + (f ? ' <button class="sm" data-pdf="" style="margin-left:6px">Ver todo</button>' : "") + "</div>" +
       (L.length ? '<div class="card" style="padding:4px 12px">' + pdRows(L) + "</div>" : '<div class="card todo ok"><b>✅ Nada por acá</b></div>') +
       '<div class="atj" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><button class="at" data-go="pedidos" data-fil="todos"><i>📋</i><span>Todos los pedidos</span></button><button class="at" data-mod="prod"><i>🥒</i><span>Producción</span></button><button class="at" data-buy="1"><i>🛒</i><span>Lista de compras</span></button></div>';
@@ -3434,19 +3532,11 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       var d = popBase("pdhoy", 400); d.__c.innerHTML = popHead("🚚 Enviados hoy · " + S.length) + S.map(function (p) { return '<div class="frow" style="padding:10px 0"><button data-todo-open="' + p.r + '" style="flex:1;text-align:left;border:0;background:none;font:inherit">' + esc(p.nombre) + '<div class="meta">' + pedCats(p) + '</div></button><span class="meta">' + (p.en ? "Entregado" : "En camino") + "</span></div>"; }).join("");
     }
   }, true);
-  function renderPSet() {
-    var P = st.plz || { def: 7 }, fl = (FILS.filter(function (f) { return f[0] === (UI.fil || "pend"); })[0] || ["", "Pendientes"])[1], rg = ({ todo: "Todo", hoy: "Hoy", sem: "Esta semana", mes: "Este mes", anio: "Este año" })[UI.pdp || "todo"];
-    return '<div class="sec-h">Plazos y pagos</div><div class="menu"><button class="mi" data-pset="plz"><i>📅</i><div><b>Plazos de preparación</b><span>Estándar ' + P.def + ' días · por producto o pack</span></div></button>' + cfgRow("💳", "Medios de pago", payList().join(" · "), 'data-cfgact="pay"') + "</div>" +
-      '<div class="sec-h">Cómo se ven los pedidos</div><div class="menu">' + cfgRow("🔎", "Filtro inicial", fl, 'data-cfgact="fil"') + cfgRow("🗓", "Fechas iniciales", rg, 'data-cfgact="rng"') + cfgRow("📋", "Ver todos los pedidos", "Lista completa con buscador y filtros", 'data-go="pedidos" data-fil="todos"') + "</div>" +
-      '<div class="sec-h">Registro</div><div class="menu">' + cfgRow("📋", "Gestionados hoy", "Lo que se movió hoy y anomalías", 'data-ghoy="1"') + cfgRow("🕘", "Registro de actividad", "Quién cambió qué y cuándo", 'data-cfgact="act"') + "</div>" +
-      '<div class="sec-h">Esta pantalla</div><div class="menu">' + cfgRow("🎛", "Personalizar Pedidos", "Orden, bloques, atajos, pestañas, nombre y color", 'data-uicfg="1"') + cfgRow("↻", "Actualizar datos", "Traer lo más nuevo de la planilla", 'data-act="refresh"') + "</div>" +
-      '<div class="sec-h">Módulos</div><div class="menu"><button class="mi" data-mod="prod"><i>🥒</i><div><b>Producción</b><span>Stock, insumos, recetas y compras</span></div></button><button class="mi" data-mod="gen"><i>🏠</i><div><b>Admin</b><span>Productos, finanzas, packs y textos</span></div></button></div>';
-  }
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-pset=plz]"); if (b) { e.stopPropagation(); plzPop(function () { if (st.v === "pset") render(true); }); } }, true);
   function renderPrDash() {
     if (!st.loaded.pedidos || !st.stock) { if (!st.mdl) { st.mdl = 1; modLoad(function () { st.mdl = 0; if (st.v === "prdash") render(true); }); } return '<div class="empty">Cargando…</div>'; }
     var S = st.stock || [], rojo = S.filter(function (x) { return x.nivel === "rojo"; }).length, amar = S.filter(function (x) { return x.nivel === "amarillo"; }).length, B = st.blp ? st.blp.buy.length : 0, nor = st.blp && st.blp.nor ? st.blp.nor.length : 0;
-    var K = [["Sin stock / bajo mínimo", rojo, rojo], ["Por agotarse", amar, 0], ["Para comprar", B, 0], ["Sin receta", nor, nor]];
+    var K = [["Sin stock / bajo mínimo", rojo, rojo], ["Por agotarse", amar, 0], ["Para comprar", B, 0], ["Sin receta", nor, nor]].filter(function (k) { return (UI.kpiHide && UI.kpiHide.prod || []).indexOf(k[0]) < 0; });
     var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + K.map(function (k) { return '<div class="kpi" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid #E3E8D6;background:#fff;color:' + (k[2] ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[0] + '</span><b style="font-size:1.7rem">' + k[1] + "</b></div>"; }).join("") + "</div>";
     var PA = catsOf(prepAll()), PK = catOrder(PA);
     h += '<button class="card" data-prep="1" style="width:100%;text-align:left;margin-bottom:12px"><b>🥒 Qué tengo que preparar</b><div class="meta">' + (PK.length ? PK.map(function (c) { return PA[c].tot + " " + esc(c); }).join(" · ") : "Nada por ahora") + " ›</div></button>";
