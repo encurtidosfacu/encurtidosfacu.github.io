@@ -576,6 +576,7 @@ button.scale:hover { background: #F2DFA8; }
 .splan .scup.low { background: #F7D4CF; color: #A3231A; }
 .splan .scont { background: rgba(224,176,74,.18); border-radius: 12px; padding: 8px 12px; font-size: .92rem; }
 .splan .sadj { font-size: .78rem; color: var(--ink); opacity: .7; }
+.sadj.sct { font-size: .9rem; font-weight: 700; background: #FFF1D6; color: #8a5a00; border-radius: 12px; padding: 8px 12px; opacity: 1; text-align: center; }
 .splan p { margin: 0; }
 
 .offers{max-width:1040px;margin:18px auto 0;padding:0 16px}
@@ -1609,6 +1610,9 @@ var DEFAULTS = {
   $("tr-rev").addEventListener("click", function () { var r = $("reviews"); if (r && !r.hidden) smoothTo(r); });
   var sPlan = null, sSel = null;
   function suscList() { return (data.susc && data.susc.planes) || []; }
+  function sCount(a) { var m = String(a || "").match(/^(\d{4})-(\d{2})-(\d{2})/); if (!m) return null; var t = new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59).getTime() - Date.now(); return t > 0 ? t : null; }
+  function sFmt(t) { var d = Math.floor(t / 864e5), h = Math.floor(t % 864e5 / 36e5), mi = Math.floor(t % 36e5 / 6e4), s = Math.floor(t % 6e4 / 1e3), z = function (n) { return ("0" + n).slice(-2); }; return (d ? d + " d " : "") + z(h) + ":" + z(mi) + ":" + z(s); }
+  setInterval(function () { var L = document.querySelectorAll(".sct[data-sc]"); for (var i = 0; i < L.length; i++) { var t = sCount(L[i].getAttribute("data-sc")); if (t == null) { L[i].hidden = true; continue; } var b = L[i].querySelector("b"); if (b) b.textContent = sFmt(t); } }, 1000);
   function renderSusc() {
     var S = suscList(), fab = $("sfab");
     fab.hidden = !S.length;
@@ -1617,7 +1621,8 @@ var DEFAULTS = {
     if (!S.length) { $("spmodal").hidden = true; return; }
     $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
     if (sSel == null || !S[sSel]) {
-      $("splans").innerHTML = '<div class="spch">' + S.map(function (p, i) {
+      var cdp = S.filter(function (p) { return sCount(p.ajuste); }).sort(function (a, b) { return sCount(a.ajuste) - sCount(b.ajuste); })[0];
+      $("splans").innerHTML = (cdp ? '<div class="sadj sct" data-sc="' + esc(cdp.ajuste) + '" style="margin-bottom:10px">⏳ El precio actual vale solo por <b>' + sFmt(sCount(cdp.ajuste)) + "</b></div>" : "") + '<div class="spch">' + S.map(function (p, i) {
         var left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
         return '<button type="button" class="' + (prem ? "prem" : "") + '" data-spt="' + i + '"><b>' + esc(p.plan) + (prem ? " ✨" : "") + "</b><span>" + (p.precio > 0 ? money(p.precio) + " por mes" : "Precio a confirmar") + "</span><small>" + (left > 0 ? "Quedan " + left + " lugares" : "Cupo completo") + " · tocá para ver cómo es</small></button>";
       }).join("") + "</div>";
@@ -1627,7 +1632,7 @@ var DEFAULTS = {
     $("splans").innerHTML = '<button type="button" class="spback" data-spb="1">← Ver los dos caminos</button><article class="splan' + (prem ? " prem" : "") + '"><h3>' + esc(p.plan) + (prem ? " ✨" : "") + '</h3><div class="sprice">' + (p.precio > 0 ? money(p.precio) + " <small>por mes</small>" : "<small>Precio a confirmar</small>") + "</div>" +
       '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : "Cupo completo · anotate en lista de espera") + "</span>" +
       (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") +
-      (p.ajuste ? '<div class="sadj">Próximo ajuste de precio: ' + esc(p.ajuste) + "</div>" : "") +
+      (sCount(p.ajuste) ? '<div class="sadj sct" data-sc="' + esc(p.ajuste) + '">⏳ El precio actual vale solo por <b>' + sFmt(sCount(p.ajuste)) + "</b></div>" : "") +
       '<button type="button" class="btn" data-splan="' + sSel + '">' + (left > 0 ? "Quiero suscribirme" : "Anotarme en la lista") + "</button></article>";
   }
   document.addEventListener("click", function (e) {

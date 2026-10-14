@@ -1207,13 +1207,38 @@ body.sh-open{overflow:hidden}
       return;
     }
     b = t.closest("[data-cjcopy]"); if (b) { var u = CAJA_URL + b.getAttribute("data-cjcopy"); try { navigator.clipboard.writeText(u); toast("Link copiado ✓"); } catch (x) { toast(u); } return; }
-    b = t.closest("[data-cjcard]"); if (b) { st.tj = tjGet(); st.tj.src = "caja"; st.tj.codigo = b.getAttribute("data-cjcard"); goto("tarjetas"); return; }
+    b = t.closest("[data-cjcard]"); if (b) { st.tj = tjGet(); st.tj.src = "caja"; st.tj.codigo = b.getAttribute("data-cjcard"); var cc = ((st.su && st.su.cajas) || []).filter(function (x) { return x.codigo === st.tj.codigo; })[0], ee = cc && ((st.su.envios) || []).filter(function (x) { return x.id === cc.id; })[0]; st.tj.sid = ee ? ee.sid : ""; goto("tarjetas"); return; }
   });
   document.addEventListener("input", function (ev) {
     var t = ev.target; if (!t.matches || !st.cjd) return;
     if (t.matches("[data-cj]")) st.cjd[t.getAttribute("data-cj")] = t.value;
     else if (t.matches("[data-cjn]")) st.cjd.productos[Number(t.getAttribute("data-cjn"))].n = t.value;
     else if (t.matches("[data-cjd]")) st.cjd.productos[Number(t.getAttribute("data-cjd"))].d = t.value;
+  });
+
+  function cajaQrModal(c, sub) {
+    var old = document.getElementById("cajaqr"); if (old) old.remove();
+    var url = CAJA_URL + c.codigo, nm = String(sub.nombre || "").split(" ")[0], d = document.createElement("div"); d.className = "modal"; d.id = "cajaqr";
+    d.innerHTML = '<div class="card" style="width:min(380px,100%);margin:0;text-align:center"><div class="nm">QR de ' + esc(sub.nombre) + '</div><div id="cq-qr" style="width:220px;height:220px;margin:12px auto;background:#fff;padding:8px;border-radius:12px;box-sizing:content-box"></div><div class="meta" style="word-break:break-all">' + esc(url) + '</div><div class="meta" style="margin:6px 0 10px">Ojo: al abrir el link se ve el contenido y la caja queda como entregada.</div><a class="btn" style="display:block;text-decoration:none;text-align:center" target="_blank" rel="noopener" href="' + suWa(sub.tel, "Hola " + nm + "! 🎁 Cuando abras tu caja, escaneá o abrí este link para ver qué trae y contarnos qué te pareció: " + url) + '">💬 Enviar por WhatsApp</a><div style="display:flex;gap:8px;margin-top:8px"><button class="sm" id="cq-c" style="flex:1">Copiar link</button><button class="sm" id="cq-t" style="flex:1">🖨️ Tarjeta</button><button class="sm" id="cq-x" style="flex:1">Cerrar</button></div></div>';
+    document.body.appendChild(d);
+    loadQR(function () { var el = d.querySelector("#cq-qr"); if (el) el.innerHTML = window.qrcode ? '<div style="width:220px;height:220px">' + qrSvg(url).replace("<svg", '<svg style="width:100%;height:100%"') + "</div>" : '<div class="meta" style="padding-top:90px">No se pudo cargar el generador de QR</div>'; });
+    d.addEventListener("click", function (e) {
+      if (e.target === d || e.target.closest("#cq-x")) { d.remove(); return; }
+      if (e.target.closest("#cq-c")) { try { navigator.clipboard.writeText(url); toast("Link copiado ✓"); } catch (x) { toast(url); } return; }
+      if (e.target.closest("#cq-t")) { d.remove(); st.tj = tjGet(); st.tj.src = "caja"; st.tj.codigo = c.codigo; st.tj.sid = sub.id; goto("tarjetas"); }
+    });
+  }
+  function ensureCaja(sid) {
+    var D = st.su, sub = D && D.suscriptores.filter(function (x) { return x.id === sid; })[0]; if (!sub) return Promise.reject(new Error("sub"));
+    var envs = D.envios.filter(function (e) { return e.sid === sid; }).sort(function (a, c) { return String(a.mes).localeCompare(String(c.mes)); }), en = envs[envs.length - 1], p = Promise.resolve(en);
+    if (!en) p = api("saveSuscEnvio", { r: 0, sid: sid, mes: st.sumes || suHoy().slice(0, 7), contenido: "" }).then(function (j) { if (!(j && j.ok)) throw new Error("env"); var oc = st.su.cajas; st.su = j; st.su.cajas = oc; var l = j.envios.filter(function (e) { return e.sid === sid; }); return l[l.length - 1]; });
+    return p.then(function (en2) { var c = cajaOf(en2.id); if (c) return c; return api("cajaSave", { id: en2.id, mensaje: "", musica: "", productos: cajaParse(en2.contenido) }).then(function (j) { if (!(j && j.ok)) throw new Error("caja"); st.su.cajas = j.cajas; return cajaOf(en2.id); }); }).then(function (c) { if (!c) throw new Error("c"); return c; });
+  }
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest && ev.target.closest("[data-suqr]"); if (!b || !st.su) return;
+    var sid = b.getAttribute("data-suqr"), sub = st.su.suscriptores.filter(function (x) { return x.id === sid; })[0]; if (!sub) return;
+    b.disabled = true;
+    ensureCaja(sid).then(function (c) { b.disabled = false; cajaQrModal(c, sub); }).catch(function () { b.disabled = false; toast("No se pudo generar el QR"); });
   });
 
   /* ---------- Tarjetas y stickers ---------- */
@@ -1224,18 +1249,19 @@ body.sh-open{overflow:hidden}
   }
   function loadQR(cb) {
     if (window.qrcode) { cb(); return; }
-    if (st.qrl === 1) return; st.qrl = 1;
-    var sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"; sc.onload = function () { st.qrl = 2; cb(); }; sc.onerror = function () { st.qrl = 3; cb(); }; document.head.appendChild(sc);
+    (st.qrq = st.qrq || []).push(cb); if (st.qrl === 1) return; st.qrl = 1;
+    var fl = function (ok) { st.qrl = ok ? 2 : 3; var q = st.qrq || []; st.qrq = []; q.forEach(function (f) { try { f(); } catch (e) {} }); };
+    var sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"; sc.onload = function () { fl(1); }; sc.onerror = function () { fl(0); }; document.head.appendChild(sc);
   }
   function qrSvg(txt) { try { var q = window.qrcode(0, "M"); q.addData(txt); q.make(); return q.createSvgTag({ cellSize: 1, margin: 0, scalable: true }); } catch (e) { return ""; } }
   function tjUrl(d) { return d.src === "caja" && d.codigo ? CAJA_URL + d.codigo : d.src === "url" ? d.url : ""; }
-  function cardHtml(d, mm) {
-    var F = TJF[d.fmt] || TJF.tarjeta, url = tjUrl(d), q = Math.round(F.q * (d.qsz || 100) / 100 * 10) / 10;
+  function cardHtml(d, mm, ph) {
+    var F = TJF[d.fmt] || TJF.tarjeta, url = tjUrl(d) || (ph && d.src !== "none" ? CAJA_URL + "ejemplo123" : ""), q = Math.round(F.q * (d.qsz || 100) / 100 * 10) / 10;
     var qr = url ? (window.qrcode ? '<div class="tq" style="width:calc(var(--mm)*' + q + ');height:calc(var(--mm)*' + q + ')">' + qrSvg(url) + "</div>" : '<div class="tq" style="width:calc(var(--mm)*' + q + ');height:calc(var(--mm)*' + q + ');display:grid;place-items:center;font-size:.7rem;color:#999">QR…</div>') : "";
     return '<div class="tcard' + (F.round ? " rnd" : "") + (F.row ? " row" : "") + '" style="--mm:' + mm + ';width:calc(var(--mm)*' + F.w + ');height:calc(var(--mm)*' + F.h + ');background:' + esc(d.bg) + ";color:" + esc(d.fg) + ";border-color:" + esc(d.acc) + '">' +
       '<div class="tt">' + (d.emoji ? '<div class="te" style="font-size:calc(var(--mm)*' + (F.row ? 8 : F.round ? 5 : 7) + ')">' + esc(d.emoji) + "</div>" : "") + (d.title ? '<div class="th" style="font-size:calc(var(--mm)*' + (F.row ? (F.h > 40 ? 5 : 4) : F.round ? 3.6 : 4.4) + ');color:' + esc(d.acc) + '">' + esc(d.title) + "</div>" : "") + (d.text && !F.notext ? '<div class="tx" style="font-size:calc(var(--mm)*' + (F.row ? (F.h > 40 ? 3.2 : 2.6) : 2.8) + ')">' + esc(d.text) + "</div>" : "") + "</div>" + qr + "</div>";
   }
-  function tjPrev() { var d = tjGet(), el = $("tj-prev"); if (!el) return; var F = TJF[d.fmt] || TJF.tarjeta, k = Math.min(3.6, (Math.min(window.innerWidth, 520) - 70) / F.w); el.innerHTML = cardHtml(d, (Math.round(k * 100) / 100) + "px"); }
+  function tjPrev() { var d = tjGet(), el = $("tj-prev"); if (!el) return; var F = TJF[d.fmt] || TJF.tarjeta, k = Math.min(3.6, (Math.min(window.innerWidth, 520) - 70) / F.w); el.innerHTML = cardHtml(d, (Math.round(k * 100) / 100) + "px", true); }
   function tjSaved() { try { return JSON.parse(load("enc_tj_list") || "[]"); } catch (e) { return []; } }
   function renderTarjetas() {
     var d = tjGet(), D = st.su, cajas = (D && D.cajas) || [];
@@ -1245,22 +1271,32 @@ body.sh-open{overflow:hidden}
     var h = BACK + '<div class="help">Diseñá tarjetas, etiquetas o stickers con el QR de cada caja, y mandalos a imprimir desde acá.</div><div class="card" style="text-align:center"><div id="tj-prev" style="display:flex;justify-content:center;padding:6px 0"></div></div>';
     h += '<div class="card"><div class="nm" style="margin-bottom:8px">Formato</div><div class="chips">' + Object.keys(TJF).map(function (k) { return '<button class="chip' + (d.fmt === k ? " on" : "") + '" data-tjf="' + k + '">' + TJF[k].l + "</button>"; }).join("") + "</div></div>";
     h += '<div class="card"><div class="nm" style="margin-bottom:8px">Diseño</div><div class="add"><div class="tjrow">' + sw("bg", "Fondo") + sw("fg", "Texto") + sw("acc", "Detalle") + '</div><input class="inp" data-tj="emoji" placeholder="Emoji o logo (ej. 🫙)" value="' + esc(d.emoji) + '"><input class="inp" data-tj="title" placeholder="Título" value="' + esc(d.title) + '"><textarea class="inp" rows="2" data-tj="text" placeholder="Texto">' + esc(d.text) + "</textarea></div></div>";
-    h += '<div class="card"><div class="nm" style="margin-bottom:8px">Código QR</div><div class="add"><select class="inp" data-tjs="1"><option value="none"' + (d.src === "none" ? " selected" : "") + '>Sin QR</option><option value="caja"' + (d.src === "caja" ? " selected" : "") + ">QR de una caja</option><option value=\"url\"" + (d.src === "url" ? " selected" : "") + ">QR de otro link (Instagram, web…)</option></select>";
-    if (d.src === "caja") h += cajas.length ? '<select class="inp" data-tjcaja="1"><option value="">Elegí la caja…</option>' + cajas.map(function (c) { var en = (D.envios || []).filter(function (x) { return x.id === c.id; })[0] || {}; return '<option value="' + esc(c.codigo) + '"' + (d.codigo === c.codigo ? " selected" : "") + ">" + esc((en.nombre || c.id) + " · " + (en.mes || "")) + "</option>"; }).join("") + "</select>" : '<div class="meta">Todavía no armaste ninguna caja con QR: andá a Suscripciones › Envíos › «Armar caja del QR».</div>';
+    h += '<div class="card"><div class="nm" style="margin-bottom:8px">Código QR</div><div class="add"><select class="inp" data-tjs="1"><option value="none"' + (d.src === "none" ? " selected" : "") + '>Sin QR</option><option value="caja"' + (d.src === "caja" ? " selected" : "") + ">QR de la caja de un cliente suscrito</option><option value=\"url\"" + (d.src === "url" ? " selected" : "") + ">QR de otro link (Instagram, web…)</option></select>";
+    if (d.src === "caja") h += D.suscriptores.length ? '<select class="inp" data-tjcaja="1"><option value="">Elegí el cliente suscrito…</option>' + D.suscriptores.filter(function (x) { return x.estado !== "Baja"; }).map(function (x) { return '<option value="' + esc(x.id) + '"' + (d.sid === x.id ? " selected" : "") + ">" + esc(x.nombre + " · " + x.plan) + "</option>"; }).join("") + "</select>" + (d.sid && !d.codigo ? '<div class="meta">Generando el QR…</div>' : "") : '<div class="meta">Todavía no hay suscriptores. Cuando alguien se anote aparece acá.</div>';
     if (d.src === "url") h += '<input class="inp" data-tj="url" placeholder="https://…" value="' + esc(d.url) + '">';
     if (d.src !== "none") h += '<label class="meta">Tamaño del QR <input type="range" min="60" max="130" step="5" data-tj="qsz" value="' + (d.qsz || 100) + '" style="width:100%"></label>';
     h += "</div></div>";
     var unopened = cajas.filter(function (c) { return !c.abierta; }).length;
-    h += '<div class="card"><div class="nm" style="margin-bottom:8px">Imprimir</div><div class="add"><label class="meta">Copias en la hoja<input class="inp" type="number" min="1" max="60" inputmode="numeric" data-tj="copies" value="' + (d.copies || 8) + '"></label><button class="btn" data-tjprint="1">🖨️ Imprimir esta tarjeta</button>' + (cajas.length ? '<button class="btn" data-tjprint="all" style="background:#fff;color:var(--accent,#4A6B3A);border:2px solid #4A6B3A">Imprimir una por cada caja' + (unopened ? " (" + unopened + " sin abrir)" : "") + "</button>" : "") + '<button class="sm" data-tjsave="1">💾 Guardar este diseño</button></div><div class="meta" style="margin-top:6px">Se abre la pantalla de impresión: elegí tu impresora (o «Guardar como PDF»).</div></div>';
+    h += '<div class="card"><div class="nm" style="margin-bottom:8px">Imprimir</div><div class="add"><label class="meta">Copias en la hoja<input class="inp" type="number" min="1" max="60" inputmode="numeric" data-tj="copies" value="' + (d.copies || 8) + '"></label><button class="btn" data-tjprint="1">🖨️ Imprimir esta tarjeta</button>' + (D.suscriptores.length ? '<button class="btn" data-tjprint="all" style="background:#fff;color:#4A6B3A;border:2px solid #4A6B3A">Imprimir una por cada suscriptor activo</button>' : "") + '<button class="sm" data-tjsave="1">💾 Guardar este diseño</button></div><div class="meta" style="margin-top:6px">Se abre la pantalla de impresión: elegí tu impresora (o «Guardar como PDF»).</div></div>';
     var sv = tjSaved(); if (sv.length) h += '<div class="card"><div class="nm" style="margin-bottom:8px">Mis diseños</div><div class="chips">' + sv.map(function (x, i) { return '<button class="chip" data-tjload="' + i + '">' + esc(x.name) + '</button>'; }).join("") + "</div></div>";
     setTimeout(tjPrev, 0);
     return h;
   }
   function tjPrint(all) {
-    var d = tjGet(), list = [], cajas = (st.su && st.su.cajas) || [];
-    if (all === "all") cajas.filter(function (c) { return !c.abierta; }).concat(cajas.filter(function (c) { return c.abierta; }).slice(0, 0)).forEach(function (c) { var x = {}; for (var k in d) x[k] = d[k]; x.src = "caja"; x.codigo = c.codigo; list.push(x); });
-    else for (var i = 0; i < Math.max(1, Math.min(60, Number(d.copies) || 1)); i++) list.push(d);
-    if (!list.length) { toast("No hay nada para imprimir"); return; }
+    var d = tjGet();
+    if (all === "all") {
+      var subs = (st.su.suscriptores || []).filter(function (x) { return x.estado === "Activo" || x.estado === "Pendiente de pago"; });
+      if (!subs.length) { toast("No hay suscriptores activos"); return; }
+      toast("Preparando los QR…"); var list = [], ch = Promise.resolve();
+      subs.forEach(function (x) { ch = ch.then(function () { return ensureCaja(x.id); }).then(function (c) { var o = {}; for (var k in d) o[k] = d[k]; o.src = "caja"; o.codigo = c.codigo; list.push(o); }); });
+      ch.then(function () { tjSheet(list); }).catch(function () { toast("No se pudieron generar todos los QR"); });
+      return;
+    }
+    var l2 = []; if (d.src === "caja" && !d.codigo) { toast("Elegí primero el cliente"); return; }
+    for (var i = 0; i < Math.max(1, Math.min(60, Number(d.copies) || 1)); i++) l2.push(d);
+    tjSheet(l2);
+  }
+  function tjSheet(list) {
     var ps = $("printSheet"); if (!ps) { ps = document.createElement("div"); ps.id = "printSheet"; document.body.appendChild(ps); }
     ps.innerHTML = list.map(function (x) { return cardHtml(x, "1mm"); }).join("");
     document.body.classList.add("printing");
@@ -1282,7 +1318,7 @@ body.sh-open{overflow:hidden}
   document.addEventListener("change", function (ev) {
     var t = ev.target; if (!t.matches || st.v !== "tarjetas") return;
     if (t.matches("[data-tjs]")) { tjGet().src = t.value; render(true); return; }
-    if (t.matches("[data-tjcaja]")) { tjGet().codigo = t.value; tjPrev(); return; }
+    if (t.matches("[data-tjcaja]")) { var dd = tjGet(); dd.sid = t.value; dd.codigo = ""; if (!t.value) { render(true); return; } render(true); ensureCaja(t.value).then(function (c) { dd.codigo = c.codigo; if (st.v === "tarjetas") render(true); }).catch(function () { toast("No se pudo generar el QR"); }); return; }
   });
 
   /* ---------- Suscripciones ---------- */
@@ -1305,7 +1341,7 @@ body.sh-open{overflow:hidden}
           '<div class="add" style="margin-top:10px"><div style="display:flex;gap:8px"><input class="inp" data-spf="precio" type="number" inputmode="numeric" placeholder="Precio por mes $" value="' + (p.precio || "") + '"><input class="inp" data-spf="cupos" type="number" inputmode="numeric" placeholder="Cupos del mes" value="' + (p.cupos || "") + '"></div>' +
           '<textarea class="inp" rows="2" data-spf="desc" placeholder="Descripción del plan">' + esc(p.desc) + '</textarea>' +
           '<div class="meta" style="margin-bottom:-4px">Qué lleva la caja de este mes (solo para vos: el cliente NO lo ve al comprar)</div><textarea class="inp" rows="2" data-spf="contenido" placeholder="Ej: 1 salamín, 1 queso y 1 frasco de pepinos">' + esc(p.contenido) + '</textarea>' +
-          '<div class="meta" style="margin-bottom:-4px">Próximo ajuste de precio (opcional)</div><input class="inp" data-spf="ajuste" type="date" value="' + esc(p.ajuste) + '">' +
+          '<div class="meta" style="margin-bottom:-4px">Fecha límite del precio actual (el cliente ve una cuenta regresiva)</div><input class="inp" data-spf="ajuste" type="date" value="' + esc(p.ajuste) + '">' +
           '<button class="btn" data-spsave="1">Guardar plan</button></div></article>';
       }).join("");
     } else if (st.sut === "subs") {
@@ -1320,7 +1356,7 @@ body.sh-open{overflow:hidden}
           b += '<div class="add" style="margin-top:10px"><div style="display:flex;gap:8px"><select class="inp" data-sf="estado">' + SU_EST.map(function (e) { return "<option" + (e === x.estado ? " selected" : "") + ">" + e + "</option>"; }).join("") + '</select><select class="inp" data-sf="plan">' + D.planes.map(function (p) { return "<option" + (p.plan === x.plan ? " selected" : "") + ">" + esc(p.plan) + "</option>"; }).join("") + '</select></div>' +
             '<input class="inp" data-sf="zona" placeholder="Zona o dirección" value="' + esc(x.zona) + '"><textarea class="inp" rows="2" data-sf="notas" placeholder="Notas (alergias, preferencias de entrega…)">' + esc(x.notas) + '</textarea>' +
             '<div class="meta" style="margin-bottom:-4px">Sus gustos (lo que le gusta y lo que no)</div><textarea class="inp" rows="2" data-sf="gustos" placeholder="Ej: le encantaron los pepinos, no probó la bondiola">' + esc(x.gustos) + '</textarea>' +
-            '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-susave="1">Guardar</button><a class="sm" href="' + suWa(x.tel, "Hola " + x.nombre.split(" ")[0] + "!") + '" target="_blank" rel="noopener">💬 WhatsApp</a><button class="sm" data-suenv="' + esc(x.id) + '">＋ Registrar envío</button></div>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-susave="1">Guardar</button><a class="sm" href="' + suWa(x.tel, "Hola " + x.nombre.split(" ")[0] + "!") + '" target="_blank" rel="noopener">💬 WhatsApp</a><button class="sm" data-suenv="' + esc(x.id) + '">＋ Registrar envío</button><button class="sm" data-suqr="' + esc(x.id) + '">🎫 Generar QR</button></div>' +
             '<div class="meta">Alta: ' + esc(x.fecha) + "</div>" +
             (hist.length ? '<div class="meta" style="margin-top:6px"><b>Historial de cajas</b></div>' + hist.map(function (e) { return '<div class="frow"><span>' + esc(e.mes) + " · " + esc(e.contenido || "sin detalle") + (e.fav ? " · ⭐ " + esc(e.fav) : "") + "</span><span>" + (e.entregado ? "✓ entregado" : e.enviado ? "enviado" : "por enviar") + "</span></div>"; }).join("") : '<div class="meta">Todavía no recibió cajas.</div>') + "</div>";
         }
