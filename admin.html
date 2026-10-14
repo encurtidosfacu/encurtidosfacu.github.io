@@ -302,6 +302,8 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       if (op === "accesos") return res({ ok: true, accesos: d.accesos });
       if (op === "catalogo") return res({ ok: true, catalogo: d.productos.map(function (p) { p.desc = "Pepinos en escabeche con eneldo."; p.fotos = ""; p.ing = "cacao, vainilla"; return p; }) });
       if (op === "config") return res({ ok: true, config: d.cfg });
+      if (op === "plazos" || op === "setPlazo") return res({ ok: true, def: 7, items: [{ n: "Pack x3", d: 10 }] });
+      if (op === "setSuscPago") return res({ ok: true });
       if (op === "suscData") return res({ ok: true, planes: [{ r: 2, activo: true, plan: "Estándar", precio: 40000, cupos: 8, usados: 1, desc: "Clásico", contenido: "", ajuste: "" }], suscriptores: [{ r: 2, id: "S-1", fecha: "2026-10-01", nombre: "Ana Gómez", tel: "1155555555", mail: "", plan: "Estándar", estado: "Activo", zona: "", notas: "", gustos: "" }], envios: [{ r: 2, id: "E-1", mes: "2026-10", sid: "S-1", nombre: "Ana Gómez", plan: "Estándar", contenido: "Pepinos agridulces — con queso\nBerenjenas al escabeche — en tostadas", enviado: "", entregado: "", fav: "", nota: "" }] });
       if (op === "cajaData" || op === "cajaSave") { d.cajas = d.cajas || []; if (op === "cajaSave") { var cx = d.cajas.filter(function (z) { return z.id === extra.id; })[0]; if (!cx) { cx = { id: extra.id, codigo: "abc123def4", abierta: "", vals: {}, comentario: "" }; d.cajas.push(cx); } cx.mensaje = extra.mensaje; cx.musica = extra.musica; cx.productos = extra.productos; } return res({ ok: true, cajas: d.cajas }); }
       if (op === "proveedores" || op === "setProveedor" || op === "addInsumo") return res({ ok: true, proveedores: d.prov });
@@ -446,15 +448,13 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       var b = '<article class="card pc' + (c ? " dim" : "") + '" data-r="' + p.r + '"><button class="row" data-pdx="' + p.r + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center;gap:10px"><div style="min-width:0;flex:1"><div class="nm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + (p.notas ? " 📝" : "") + '</div><div class="id">' + esc(p.id) + " · " + pedCats(p) + "" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + ((e === "pend" || e === "coc") ? blBadge(p) : "") + '</div><div style="text-align:right"><div class="tot" style="font-size:1rem">' + money(p.total) + '</div><span style="display:inline-block;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:999px;background:' + sb[1] + ";color:" + sb[2] + '">' + sb[0] + '</span></div><span class="pen">' + PEN + "</span></button>";
       if (open) {
         b += '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" +
-          '<div class="meta">' + esc(p.fecha) + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
+          '<div class="meta">' + esc(p.fecha) + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + (p.desc ? " · −" + p.desc + "%" : "") + (p.ev ? " · 🚚 Enviado" + (p.fev ? " " + fdm(p.fev) : "") : "") + '</div><div class="meta" style="margin-top:2px">' + pedPromTxt(p) + "</div>" +
           (wa ? '<a class="sm" target="_blank" rel="noopener" href="' + wa + '" style="margin-top:8px">💬 ' + esc(p.tel) + "</a>" : "") +
           '<textarea class="inp" rows="2" data-pnota="1" placeholder="Nota del pedido…" style="margin-top:8px">' + esc(p.notas) + "</textarea>" +
-          '<details class="pedit" style="margin-top:8px"' + (st.pded === p.r ? " open" : "") + '><summary class="sm" style="display:inline-block;cursor:pointer">✏️ Editar datos del pedido</summary><div class="add" style="margin-top:8px">' +
-          [["nombre", "Nombre", p.nombre, "text"], ["tel", "Teléfono", p.tel, "tel"], ["mail", "Email", p.mail, "email"], ["total", "Total $", p.total, "text"], ["entrega", "Entrega (texto)", p.entrega, "text"], ["pago", "Medio de pago", p.pago, "text"]].map(function (f) { return '<label class="meta">' + f[1] + '<input class="inp" data-pedf="' + f[0] + '" type="' + f[3] + '" value="' + esc(f[2] == null ? "" : f[2]) + '"></label>'; }).join("") +
-          '<label class="meta">Pedido (ej: 2 x Zanahorias, 1 x Pepinos)<textarea class="inp" rows="3" data-pedf="pedido">' + esc(p.pedido) + "</textarea></label></div></details>" +
+          '<button class="sm" data-pedit2="' + p.r + '" style="margin-top:8px">✏️ Editar datos del pedido</button>' +
           (c ? '<div style="margin-top:8px"><span class="badge">' + (p.cl ? "Cancelado por el cliente" : "Cancelado por nosotros") + "</span></div>" :
             ('<div class="tgl"><button class="tg' + (p.ap ? " on" : "") + '" data-t="ap">' + (p.ap ? "✓ " : "") + 'Aprobado</button><button class="tg' + (p.he ? " on" : "") + '" data-t="he">' + (p.he ? "✓ " : "") + 'Hecho</button><button class="tg' + (p.en ? " on" : "") + '" data-t="en">' + (p.en ? "✓ " : "") + "Entregado</button></div>")) +
-          '<div class="row" style="margin-top:10px;align-items:center"><button class="sm red" data-dpe="1">Eliminar pedido</button>' +
+          '<div class="row" style="margin-top:10px;align-items:center"><button class="sm" data-seg="' + p.r + '">📦 Seguimiento</button><button class="sm red" data-dpe="1">Eliminar pedido</button>' +
           (p.cl ? "" : (p.cc ? '<button class="sm" data-t="cc" data-v="0">Reactivar</button>' : '<button class="sm red" data-cc="1">Cancelar pedido</button>')) + "</div>";
       }
       return pedSw(p, b + "</article>");
@@ -467,6 +467,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       return !q || (p.nombre + " " + p.id + " " + p.pedido + " " + p.tel).toLowerCase().indexOf(q) >= 0;
     });
     if (!st.loaded.productos && !st.pprf) { st.pprf = 1; api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === "pedidos") render(true); } }).catch(function () {}); }
+    if (!st.plz && !st.plzf) { st.plzf = 1; plzLoad(function () { if (st.v === "pedidos") render(true); }); }
     var PP = [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]];
     var h = '<button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
       '<input class="search" id="pq" type="search" placeholder="Buscar por nombre, código o pedido…" value="' + esc(st.q) + '">' +
@@ -1780,7 +1781,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       '<textarea class="inp" rows="2" id="pm-n" placeholder="Nota del pedido…" style="margin-top:8px">' + esc(p.notas) + "</textarea>" +
       (c ? '<div style="margin-top:8px"><span class="badge">' + (p.cl ? "Cancelado por el cliente" : "Cancelado por nosotros") + "</span></div>" :
         '<div class="tgl"><button class="tg' + (p.ap ? " on" : "") + '" data-pm="ap">' + (p.ap ? "✓ " : "") + 'Aprobado</button><button class="tg' + (p.he ? " on" : "") + '" data-pm="he">' + (p.he ? "✓ " : "") + 'Hecho</button><button class="tg' + (p.en ? " on" : "") + '" data-pm="en">' + (p.en ? "✓ " : "") + "Entregado</button></div>") +
-      '<div class="row" style="margin-top:12px;align-items:center"><button class="sm red" data-pm="del">Eliminar pedido</button>' + (p.cl ? "" : (p.cc ? '<button class="sm" data-pm="react">Reactivar</button>' : '<button class="sm red" data-pm="cc">Cancelar pedido</button>')) + "</div></div>";
+      '<div class="row" style="margin-top:12px;align-items:center"><button class="sm" data-seg="' + p.r + '">📦 Seguimiento</button><button class="sm red" data-pm="del">Eliminar pedido</button>' + (p.cl ? "" : (p.cc ? '<button class="sm" data-pm="react">Reactivar</button>' : '<button class="sm red" data-pm="cc">Cancelar pedido</button>')) + "</div></div>";
     document.body.appendChild(d);
     function dg(x) { return String(x || "").replace(/\D/g, "").slice(-8); }
     function same(q) { var m = d.querySelector("#pm-mail").value.trim().toLowerCase(), t = dg(d.querySelector("#pm-tel").value), n = d.querySelector("#pm-nom").value.trim().toLowerCase();
@@ -3106,6 +3107,112 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       if (e.key === "Enter" && e.target.id === "pp-p") { e.preventDefault(); var ok = d.querySelector("[data-pok]"); if (ok) ok.click(); }
     });
   }
+
+  /* ---------- Seguimiento de pedidos, plazos y pagos de suscriptores ---------- */
+  function isoD(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function fdm(iso) { var m = String(iso || "").match(/^(\d+)-(\d+)-(\d+)/); return m ? m[3] + "/" + m[2] : ""; }
+  function plzLoad(cb) { if (st.plz) return cb(); api("plazos").then(function (j) { st.plz = j && j.ok ? { def: j.def, items: j.items } : { def: 7, items: [] }; cb(); }).catch(function () { st.plz = { def: 7, items: [] }; cb(); }); }
+  function pedPlazo(p) { var P = st.plz || { def: 7, items: [] }, t = nrm(p.pedido || ""), m = P.items.filter(function (x) { return t.indexOf(nrm(x.n)) >= 0; }).map(function (x) { return x.d; }); return m.length ? Math.max.apply(null, m) : P.def; }
+  function pedProm(p) { if (p.prom) { var x = p.prom.split("-"); return new Date(+x[0], +x[1] - 1, +x[2]); } var d = pf(p.fecha); if (!d) return null; d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() + pedPlazo(p)); return d; }
+  function pedPromTxt(p) {
+    if (p.cc || p.cl || p.en) return ""; var d = pedProm(p); if (!d) return "";
+    var hoy = new Date(); hoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()); var n = Math.round((d - hoy) / 864e5);
+    return '<span style="color:' + (n < 0 ? "var(--err)" : n <= 2 ? "#B26A00" : "var(--soft)") + ';font-weight:700">📅 Entregar antes del ' + fdm(isoD(d)) + (n < 0 ? " · vencido hace " + (-n) + " d" : n === 0 ? " · hoy" : " · en " + n + " d") + "</span>";
+  }
+  function segPop(r) {
+    var p = st.pedidos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
+    var d = popBase("segp", 420), MP = ["Efectivo", "Transferencia", "Mercado Pago"];
+    function wait(pr) { return Promise.resolve(pr).then(function () { if ($("segp") === d) draw(); }); }
+    function draw() {
+      var st1 = function (k, lab, on, sub) { return '<button class="btn" data-sg="' + k + '" style="width:100%;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;' + (on ? "" : "background:#fff;color:var(--ink);border:1.5px solid #cfd8c8") + '"><span>' + (on ? "✓ " : "") + lab + '</span><span style="font-weight:500;font-size:.85rem">' + (sub || "") + "</span></button>"; };
+      var c = p.cc || p.cl, prom = pedProm(p), pm = p.pago || "";
+      d.__c.innerHTML = popHead("📦 " + esc(p.nombre)) +
+        '<div class="meta" style="margin-bottom:10px">' + esc(p.id) + " · " + money(p.total) + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
+        (c ? '<div class="badge" style="margin-bottom:10px">' + (p.cl ? "Cancelado por el cliente" : "Cancelado por nosotros") + "</div>" :
+          st1("ap", "Aprobado (pagado)", p.ap) + st1("he", "Hecho", p.he) + st1("ev", "Enviado", p.ev, p.ev && p.fev ? fdm(p.fev) + " ✎" : "") + st1("en", "Entregado", p.en)) +
+        '<div class="meta" style="margin:8px 0 4px">Medio de pago</div><div class="chips" style="flex-wrap:wrap;margin-bottom:8px">' + MP.map(function (m) { return '<button class="chip' + (pm === m ? " on" : "") + '" data-sg-mp="' + m + '">' + m + "</button>"; }).join("") + '<button class="chip' + (pm && MP.indexOf(pm) < 0 ? " on" : "") + '" data-sg-mp="otro">' + (pm && MP.indexOf(pm) < 0 ? esc(pm) : "Otro…") + "</button></div>" +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><span class="meta" style="flex:1">Descuento aplicado %</span><input class="inp" id="sg-d" inputmode="decimal" value="' + esc(p.desc || "") + '" placeholder="0" style="width:90px"></div>' +
+        '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="meta" style="flex:1">Entrega prometida' + (p.prom ? "" : " (plazo " + pedPlazo(p) + " d)") + '</span><input class="inp" id="sg-p" type="date" value="' + (prom ? isoD(prom) : "") + '" style="width:150px"></div>' +
+        '<button class="sm" data-sg-plz="1" style="margin-top:6px">⚙️ Plazos de preparación</button> <button class="sm" data-pclose="1" style="margin-top:6px">Cerrar</button>';
+    }
+    plzLoad(draw);
+    d.addEventListener("click", function (e) {
+      var t = e.target, b;
+      if ((b = t.closest("[data-sg]"))) {
+        var k = b.getAttribute("data-sg"), cur = !!p[k];
+        if (k === "ev") { if (cur && p.fev) { dateAsk("Fecha de envío", p.fev, function (v) { wait(patchPedido(r, "fev", v)); }, function () { wait(patchPedido(r, "ev", false).then(function () { return patchPedido(r, "fev", ""); })); }); return; } if (!cur) { dateAsk("Fecha de envío", isoD(new Date()), function (v) { wait(patchPedido(r, "ev", true).then(function () { return patchPedido(r, "fev", v); })); }); return; } }
+        wait(patchPedido(r, k, !cur)); return;
+      }
+      if ((b = t.closest("[data-sg-mp]"))) { var m = b.getAttribute("data-sg-mp"); if (m === "otro") { textAsk("Medio de pago", p.pago || "", function (v) { wait(patchPedido(r, "pago", v)); }); return; } wait(patchPedido(r, "pago", p.pago === m ? "" : m)); return; }
+      if (t.closest("[data-sg-plz]")) { plzPop(function () { if ($("segp") === d) draw(); }); return; }
+    });
+    d.addEventListener("change", function (e) {
+      if (e.target.id === "sg-d") { wait(patchPedido(r, "desc", Number(parseAR(e.target.value)) || 0)); }
+      if (e.target.id === "sg-p") { wait(patchPedido(r, "prom", e.target.value)); }
+    });
+  }
+  function dateAsk(title, v, ok, clear) {
+    var q = popBase("dask", 320);
+    q.__c.innerHTML = popHead(title) + '<input class="inp" id="da-v" type="date" value="' + esc(v || "") + '" style="margin-bottom:12px"><div style="display:flex;gap:8px"><button class="btn" data-da-ok="1" style="flex:1">Guardar</button>' + (clear ? '<button class="sm red" data-da-cl="1">Quitar</button>' : "") + '<button class="sm" data-pclose="1">Cancelar</button></div>';
+    q.addEventListener("click", function (e) { if (e.target.closest("[data-da-ok]")) { var x = q.querySelector("#da-v").value; if (!x) { toast("Elegí una fecha"); return; } q.remove(); ok(x); } else if (e.target.closest("[data-da-cl]")) { q.remove(); clear(); } });
+  }
+  function textAsk(title, v, ok) {
+    var q = popBase("task", 320);
+    q.__c.innerHTML = popHead(title) + '<input class="inp" id="ta-v" value="' + esc(v || "") + '" style="margin-bottom:12px"><div style="display:flex;gap:8px"><button class="btn" data-ta-ok="1" style="flex:1">Guardar</button><button class="sm" data-pclose="1">Cancelar</button></div>';
+    setTimeout(function () { var i = q.querySelector("#ta-v"); if (i) i.focus(); }, 30);
+    q.addEventListener("click", function (e) { if (e.target.closest("[data-ta-ok]")) { var x = q.querySelector("#ta-v").value.trim(); q.remove(); ok(x); } });
+    q.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); q.querySelector("[data-ta-ok]").click(); } });
+  }
+  function plzPop(done) {
+    var d = popBase("plzp", 400);
+    function save(n, v, del) { return (DEMO ? Promise.resolve({ ok: true }) : api("setPlazo", { n: n, d: v, del: !!del })).then(function (j) { if (j && j.ok) { if (j.items) st.plz = { def: j.def, items: j.items }; } else toast(j && j.msg || "No se pudo guardar"); }).catch(function () { toast("No se pudo guardar"); }); }
+    function draw() {
+      var P = st.plz || { def: 7, items: [] };
+      d.__c.innerHTML = popHead("⚙️ Plazos de preparación") + '<div class="meta" style="margin-bottom:10px">Días desde que entra el pedido hasta la fecha prometida. Si el pedido tiene varios productos, vale el plazo más largo.</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eee"><b style="flex:1">Estándar (todo lo demás)</b><input class="inp" data-pz="*" inputmode="numeric" value="' + P.def + '" style="width:70px"><span class="meta">días</span></div>' +
+        P.items.map(function (x) { return '<div style="display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eee"><span style="flex:1;min-width:0">' + esc(x.n) + '</span><input class="inp" data-pz="' + esc(x.n) + '" inputmode="numeric" value="' + x.d + '" style="width:70px"><span class="meta">días</span><button class="sm red" data-pzx="' + esc(x.n) + '">✕</button></div>'; }).join("") +
+        '<button class="sm" data-pz-add="1" style="margin-top:10px">＋ Producto o pack con plazo propio</button> <button class="btn" data-pclose="1" style="margin-top:10px">Listo</button>';
+    }
+    plzLoad(draw);
+    d.addEventListener("change", function (e) { var k = e.target.getAttribute && e.target.getAttribute("data-pz"); if (k == null) return; var v = Math.max(0, Math.floor(Number(parseAR(e.target.value)) || 0)); if (k === "*") st.plz.def = v; else st.plz.items.forEach(function (x) { if (x.n === k) x.d = v; }); save(k, v); });
+    d.addEventListener("click", function (e) {
+      var b;
+      if ((b = e.target.closest("[data-pzx]"))) { var n = b.getAttribute("data-pzx"); st.plz.items = st.plz.items.filter(function (x) { return x.n !== n; }); save(n, 0, true); draw(); return; }
+      if (e.target.closest("[data-pz-add]")) {
+        var names = (st.productos || []).map(function (x) { return x.nombre; }).concat((st.packs || []).map(function (x) { return x.nombre || ("Pack x" + x.q); })).filter(function (n) { return n && !st.plz.items.some(function (x) { return x.n === n; }); });
+        var q = popBase("plzq", 340); q.__c.innerHTML = popHead("Elegí o escribí") + '<div class="chips" style="flex-wrap:wrap;margin-bottom:10px">' + names.map(function (n) { return '<button class="chip" data-pq="' + esc(n) + '">' + esc(n) + "</button>"; }).join("") + '</div><div style="display:flex;gap:6px"><input class="inp" id="pq-n" placeholder="Otro nombre…" style="flex:1;min-width:0"><button class="btn" data-pq-o="1" style="padding:6px 14px">Usar</button></div>';
+        q.addEventListener("click", function (e2) { var c = e2.target.closest("[data-pq]"), o = e2.target.closest("[data-pq-o]"), n2 = c ? c.getAttribute("data-pq") : o ? q.querySelector("#pq-n").value.trim() : ""; if (!n2) return; q.remove(); st.plz.items.push({ n: n2, d: st.plz.def }); save(n2, st.plz.def); draw(); });
+      }
+    });
+    d.__rm = d.remove; d.remove = function () { d.__rm(); if (done) done(); };
+  }
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-pedit2]"); if (!b) return; e.stopPropagation(); e.preventDefault(); pedModal(Number(b.getAttribute("data-pedit2"))); }, true);
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-seg]"); if (!b) return; e.stopPropagation(); e.preventDefault(); segPop(Number(b.getAttribute("data-seg"))); }, true);
+  function suPagoTxt(x) { var mes = suHoy().slice(0, 7); return x.pagoMes === mes ? "💲 Pagó" : (x.pagoMes ? "⏳ Debe (último " + x.pagoMes + ")" : "⏳ Sin pagos"); }
+  function suPagoPop(sid, after) {
+    var x = st.su.suscriptores.filter(function (z) { return z.id === sid; })[0]; if (!x) return;
+    var pl = (st.su.planes || []).filter(function (z) { return z.plan === x.plan; })[0], mes = suHoy().slice(0, 7), d = popBase("supp", 360), MP = ["Efectivo", "Transferencia", "Mercado Pago"], M = x.medio || "";
+    function draw() {
+      d.__c.innerHTML = popHead("💲 " + esc(x.nombre)) + '<div class="meta" style="margin-bottom:8px">' + esc(x.plan) + " · mes " + mes + (x.pagoMes === mes ? " · <b style='color:var(--ok)'>pagado " + money(x.monto) + (x.fpago ? " el " + fdm(x.fpago) : "") + "</b>" : " · pendiente") + "</div>" +
+        '<div class="meta">Monto $</div><input class="inp" id="sp-m" inputmode="decimal" value="' + esc(x.pagoMes === mes ? x.monto : (pl ? pl.precio : "")) + '" style="font-size:1.2rem;font-weight:800;margin-bottom:8px">' +
+        '<div class="chips" style="flex-wrap:wrap;margin-bottom:12px">' + MP.map(function (m) { return '<button class="chip' + (M === m ? " on" : "") + '" data-sp-mp="' + m + '">' + m + "</button>"; }).join("") + "</div>" +
+        '<div style="display:flex;gap:8px"><button class="btn" data-sp-ok="1" style="flex:1">' + (x.pagoMes === mes ? "Actualizar" : "Marcar pagado ✓") + "</button>" + (x.pagoMes ? '<button class="sm red" data-sp-un="1">Deshacer</button>' : "") + '<button class="sm" data-pclose="1">Cerrar</button></div>';
+    }
+    function send(body) {
+      return (DEMO ? Promise.resolve(Object.assign({ ok: true }, st.su)) : api("setSuscPago", Object.assign({ r: x.r, id: x.id }, body))).then(function (j) {
+        if (!j || !j.ok) { toast(j && j.msg || "No se pudo guardar"); return; }
+        if (DEMO) { if (body.limpiar) { x.pagoMes = ""; x.monto = 0; x.fpago = ""; } else { x.pagoMes = body.mes; x.monto = body.monto; x.fpago = body.fecha; x.medio = body.medio; } } else { var oc = st.su.cajas; st.su = j; st.su.cajas = oc; }
+        d.remove(); toast("Guardado ✓"); if (after) after(); render(true);
+      }).catch(function () { toast("No se pudo guardar"); });
+    }
+    draw();
+    d.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-sp-mp]"); if (b) { var m = b.getAttribute("data-sp-mp"); M = M === m ? "" : m; var v = d.querySelector("#sp-m").value; draw(); d.querySelector("#sp-m").value = v; return; }
+      if (e.target.closest("[data-sp-un]")) { send({ limpiar: true }); return; }
+      if (e.target.closest("[data-sp-ok]")) { var mo = parseAR(d.querySelector("#sp-m").value) || 0; if (!(mo > 0)) { toast("Poné el monto"); return; } send({ mes: mes, monto: mo, fecha: suHoy(), medio: M }); }
+    });
+  }
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-susp]"); if (!b) return; e.stopPropagation(); e.preventDefault(); suPagoPop(b.getAttribute("data-susp"), function () { var q = document.getElementById("sc-q"); if (q) q.dispatchEvent(new Event("input", { bubbles: true })); }); }, true);
   /* atajos: acciones rápidas en ventana */
   function scMic(d) { return '<button class="ibtn" data-sc-mic="1" aria-label="Dictar" style="background:var(--blue);width:44px;height:44px;flex:none"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>'; }
   function scBar(ph, add) { return '<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><input class="search" id="sc-q" type="search" placeholder="' + ph + '" style="margin:0;flex:1;min-width:0" autocomplete="off">' + (add ? '<button class="btn" data-sc-add="1" aria-label="Agregar" style="width:44px;height:44px;padding:0;font-size:1.5rem;flex:none">＋</button>' : "") + scMic() + "</div>"; }
@@ -3185,7 +3292,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         if (!F.k && !q) return pl + h2 + '<div class="meta" style="margin:6px 0 10px">Tocá un plan, un número o un filtro para ver los suscriptores.</div><button class="btn" data-go="suscripciones" data-pclose="1">Abrir suscripciones ›</button>';
         var L = SB.filter(function (x) { if (x.estado === "Baja" && F.k !== "baja") return false; if (F.k === "pend") return /pend/i.test(x.estado || ""); if (F.k && F.k.indexOf("p:") === 0) return x.plan === F.k.slice(2); return true; }).filter(function (x) { return !q || nrm(x.nombre + " " + (x.zona || "") + " " + (x.tel || "")).indexOf(q) >= 0; });
         var planes = (D.planes || []).map(function (p) { return p.plan; }), ests = ["Activo", "Pendiente de pago", "Pausado", "Baja"];
-        var rows = L.map(function (x) { return '<div style="padding:10px 0;border-top:1px solid #eee" data-sid="' + esc(x.id) + '"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(x.nombre) + '</b><span class="meta">' + esc(x.zona || "") + '</span></div><div style="display:flex;gap:6px;margin-top:6px"><button class="sm" data-sc-pk2="plan" style="flex:1">' + esc(x.plan) + ' ✎</button><button class="sm" data-sc-pk2="estado" style="flex:1">' + esc(x.estado) + ' ✎</button></div></div>'; }).join("");
+        var rows = L.map(function (x) { return '<div style="padding:10px 0;border-top:1px solid #eee" data-sid="' + esc(x.id) + '"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(x.nombre) + '</b><span class="meta">' + esc(x.zona || "") + '</span></div><div style="display:flex;gap:6px;margin-top:6px"><button class="sm" data-sc-pk2="plan" style="flex:1">' + esc(x.plan) + ' ✎</button><button class="sm" data-sc-pk2="estado" style="flex:1">' + esc(x.estado) + ' ✎</button></div><button class="sm" data-susp="' + esc(x.id) + '" style="margin-top:6px;width:100%">' + suPagoTxt(x) + ' · tocá para registrar</button></div>'; }).join("");
         return pl + h2 + (rows || '<div class="empty">Sin suscriptores.</div>') + '<button class="sm" data-go="suscripciones" data-pclose="1" style="margin-top:10px">Abrir suscripciones ›</button>';
       }
       if (k === "textos") {
