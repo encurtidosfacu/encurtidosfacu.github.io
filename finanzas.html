@@ -49,7 +49,7 @@ input.n{text-align:right;width:92px}
 .pill{font-size:12px;color:var(--soft)}
 </style></head><body>
 <div class="demo" id="demo" hidden>MODO DEMO · datos de ejemplo, lo que cargues queda solo en este navegador</div>
-<header><b>πKDA · Finanzas</b><a href="admin.html">← Admin</a></header>
+<header><b>πKDA · Finanzas</b><button class="chip" id="hq" style="padding:5px 12px">❓ Ayuda</button><a href="admin.html">← Admin</a></header>
 <nav id="nav"></nav>
 <main id="app"></main>
 <script>
@@ -251,8 +251,19 @@ function vSistema(){
   '<div class="card"><h3>De dónde sale cada número</h3><div class="help">Ventas: pedidos de la tienda (sin cancelados) + ventas manuales.<br>CMV: costo de cada producto (Recetas) × unidades vendidas.<br>Gastos: los que cargás en Gastos.<br>Comisiones y envío: se configuran por canal en Precios.<br>Compras: movimientos de Stock.</div></div>'+
   '<div class="card"><h3>Estado</h3><div class="sub">'+(D.err?esc(D.err):D.ok?"Datos leídos correctamente · "+D.pedidos.length+" pedidos, "+D.cat.length+" productos":"Cargando…")+'</div></div>';
 }
+
+var AYUDA={
+inicio:["Inicio · ¿cómo voy este mes?",["<b>Ventas del mes:</b> lo que realmente entró (ventas netas). Abajo, cuánto aportó cada canal y cuándo fue el último dato cargado: si un canal tiene fecha vieja, sus números están desactualizados.","<b>Resultado económico:</b> la ganancia real del mes. Dice <i>En preparación</i> mientras falten costos o gastos: así no te llevás un número falso.","<b>Margen bruto:</b> de cada $100 vendidos, cuánto queda después del costo de producir. Si baja, algo se encareció o estás vendiendo muy barato.","<b>Gastos del mes y Ticket promedio:</b> cuánto sale mantener el negocio y cuánto gasta en promedio cada cliente.","<b>Revisar:</b> lista lo que falta o está raro (costos sin cargar, gastos vacíos, fuentes sin conectar). Es lo primero que conviene resolver.","<b>Para qué sirve:</b> en 10 segundos saber si el mes va bien y qué atender."]],
+er:["Estado de Resultados · ¿gano plata?",["Es la cuenta completa, de arriba hacia abajo, por canal y en total:","<b>Ventas brutas:</b> todo lo facturado.<br><b>− Descuentos y ajustes:</b> lo que regalaste (cupones, devoluciones).<br><b>+ Envío cobrado:</b> lo que el cliente pagó de envío.<br><b>= Ventas netas:</b> lo que entró de verdad.","<b>− CMV:</b> costo de los productos que vendiste (insumos y producción).<br><b>= Utilidad bruta:</b> lo que queda para pagar el resto.","<b>− Gastos</b> (comerciales, publicidad, operativos, impuestos).<br><b>= Resultado:</b> tu ganancia.","Cada importe muestra su equivalente en dólares debajo.","<b>Para qué sirve:</b> ver en qué canal ganás y en cuál solo facturás, y si los gastos se comen la utilidad."]],
+ventas:["Ventas · el detalle",["Lista de cada venta del mes con su canal. Las de la tienda entran solas; las de otros canales (WhatsApp, Mercado Libre, mayoristas) las cargás con <b>＋ Cargar venta</b>.","Podés filtrar por canal para comparar de dónde viene la plata. En cada venta manual podés cargar descuento y envío cobrado.","<b>Para qué sirve:</b> que todas las ventas, vengan de donde vengan, queden en un solo lugar y alimenten el resto."]],
+precios:["Precios · ¿a cuánto vendo para ganar?",["Elegí un producto y mirá, por canal, cuánto te queda por unidad.","<b>Precio de venta:</b> editable, es un simulador: no cambia el precio real.<br><b>Costo (CMV):</b> sale de Recetas.<br><b>Comisión:</b> lo que cobra el canal (Mercado Libre, pasarela de pago).<br><b>Envío:</b> lo que ponés vos por unidad.","<b>Utilidad neta y Margen:</b> lo que realmente ganás. En rojo = perdés plata con ese canal.","<b>Para qué sirve:</b> decidir qué precio poner y en qué canal conviene vender cada producto. Es la pantalla que más decisiones mueve."]],
+gastos:["Gastos · lo que sale",["Cargá cada gasto con <b>＋ Cargar gasto</b>, eligiendo tipo y canal (o General).","<b>Comerciales:</b> comisiones, envíos que pagás.<br><b>Publicidad:</b> Meta Ads, Google, etc.<br><b>Operativos:</b> alquiler, servicios, sueldos.<br><b>Impuestos.</b>","<b>Para qué sirve:</b> sin gastos cargados el resultado no es real. Acá se completa la ecuación."]],
+compras:["Compras · insumos comprados",["Muestra lo que compraste en el mes y cuánto gastaste. Viene de Stock: cuando cargás una compra allá, aparece acá.","<b>Para qué sirve:</b> controlar cuánto invertís en materia prima y cuándo."]],
+sistema:["Sistema · de dónde salen los datos",["<b>Fuentes:</b> cada lugar que aporta ventas. Verde = conectada; gris = pendiente. Se pueden sumar más sin cambiar nada de lo demás.","<b>Dólar de referencia:</b> para mostrar importes en US$.","<b>De dónde sale cada número:</b> explica cómo se calcula cada cosa.","<b>Para qué sirve:</b> confiar en los números sabiendo de dónde vienen."]]
+};
+function ayuda(k){var a=AYUDA[k],o=pop('<h3>'+a[0]+'</h3>'+a[1].map(function(x){return '<div class="help">'+x+'</div>'}).join("")+'<div class="row"><button class="btn" id="ok">Entendido</button></div>');o.querySelector("#ok").onclick=function(){o.remove()}}
 var VIEWS={inicio:vInicio,er:vER,ventas:vVentas,precios:vPrecios,gastos:vGastos,compras:vCompras,sistema:vSistema};
-function render(){drawNav();$("app").innerHTML=D.err&&!D.ok?'<div class="card">'+esc(D.err)+'</div>':VIEWS[ST.v]()}
+function render(){drawNav();$("app").innerHTML=(D.err&&!D.ok?'<div class="card">'+esc(D.err)+'</div>':'<div style="text-align:right;margin-top:6px"><button class="chip" data-ay="1">❓ ¿Qué estoy viendo?</button></div>'+VIEWS[ST.v]())}
 function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
 function pop(html){var o=document.createElement("div");o.className="ov";o.innerHTML='<div class="pop">'+html+'</div>';o.addEventListener("click",function(e){if(e.target===o)o.remove()});document.body.appendChild(o);return o}
 function chips(name,arr,sel){return '<div class="per" data-grp="'+name+'">'+arr.map(function(a){return '<button type="button" class="chip'+(a[0]===sel?" on":"")+'" data-sel="'+name+'" data-val="'+a[0]+'">'+a[1]+'</button>'}).join("")+'</div>'}
@@ -260,6 +271,7 @@ function uid(){return "x"+Math.random().toString(36).slice(2,8)}
 
 document.addEventListener("click",function(e){
   var t=e.target.closest("button,[data-sel]");if(!t)return;var d=t.dataset;
+  if(t.id==="hq"||d.ay){ayuda(ST.v);return}
   if(d.v){ST.v=d.v;render();window.scrollTo(0,0);return}
   if(d.go){ST.v=d.go;render();return}
   if(d.pm){ST.m+=+d.pm;if(ST.m<0){ST.m=11;ST.y--}if(ST.m>11){ST.m=0;ST.y++}render();return}
@@ -296,5 +308,6 @@ document.addEventListener("change",function(e){
 });
 render();
 loadAll().then(render);
+if(!lsG("fz_vista",0)){lsS("fz_vista",1);setTimeout(function(){ayuda("inicio")},600)}
 })();
 </script></body></html>
