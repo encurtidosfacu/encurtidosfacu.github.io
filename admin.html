@@ -472,7 +472,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     if (!st.loaded.productos && !st.pprf) { st.pprf = 1; api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === "pedidos") render(true); } }).catch(function () {}); }
     if (!st.plz && !st.plzf) { st.plzf = 1; plzLoad(function () { if (st.v === "pedidos") render(true); }); }
     var PP = [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]];
-    var h = '<button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
+    var h = '<button class="sm" data-ghoy="1" style="margin-bottom:8px">📋 Gestionados hoy</button><button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
       '<input class="search" id="pq" type="search" placeholder="Buscar por nombre, código o pedido…" value="' + esc(st.q) + '">' +
       '<button class="chip" data-pdtog="1" style="margin:0 0 8px">📅 ' + esc((PP.filter(function (x) { return x[0] === (st.pdp || "todo"); })[0] || ["", "Rango"])[1]) + ' · fecha del pedido ' + (st.pdo ? "▴" : "▾") + '</button><div' + (st.pdo ? "" : ' hidden') + '><div class="chips">' + PP.map(function (x) { return '<button class="chip' + ((st.pdp || "todo") === x[0] ? " on" : "") + '" data-pdp="' + x[0] + '">' + x[1] + "</button>"; }).join("") + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><label class="meta">Desde<input class="inp" type="date" id="pd-d" value="' + esc(st.pdd || "") + '"></label><label class="meta">Hasta<input class="inp" type="date" id="pd-h" value="' + esc(st.pdh || "") + '"></label></div></div>' +
       '<div class="chips">' + FILS.map(function (f) { var n = f[0] === "todos" ? base.length : f[0] === "apr" ? base.filter(function (p) { return p.ap && !p.cc && !p.cl; }).length : (cnt[f[0]] || 0); return '<button class="chip' + (st.fil === f[0] ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "<b>" + n + "</b></button>"; }).join("") + "</div>";
@@ -522,7 +522,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var old = p[campo], oldcc = p.cc; p[campo] = valor; if (campo === "te") p.cc = valor; render(true);
     return api("setPedido", { r: r, id: p.id, campo: campo, valor: valor }).then(function (j) {
       if (!j || !j.ok) { p[campo] = old; p.cc = oldcc; render(true); toast(j && j.msg || "No se pudo guardar"); return; }
-      for (var k in j.p) p[k] = j.p[k]; render(true);
+      for (var k in j.p) p[k] = j.p[k]; render(true); try { actLog(({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] ? ({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] + " · " + p.nombre : "Editó " + campo + " · " + p.nombre, p.id); } catch (x) {}
     }).catch(function () { p[campo] = old; p.cc = oldcc; render(true); toast("No se pudo guardar"); });
   }
 
@@ -1467,7 +1467,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function msAct() {
     var v = st.v, n = msCount(), a = [];
     var del = '<button class="red" data-msdel="1">Eliminar (' + n + ")</button>";
-    if (v === "pedidos") a = ['<button data-msact="next">Pasar al siguiente estado</button>', del];
+    if (v === "pedidos") a = ['<button data-msact="pAp">Aprobar</button>', '<button data-msact="pHe">Hecho</button>', '<button data-msact="pEn">Entregado</button>', '<button data-msact="pNx">Siguiente</button>', '<button data-msact="pCc">Cancelar</button>', del];
     else if (v === "stock" || v === "proveedores" || v === "recetas") a = [del];
     else if (v === "packs") a = ['<button data-msact="on">Activar</button>', '<button data-msact="off">Pausar</button>', del];
     else if (v === "cupones") a = ['<button data-msact="on">Activar</button>', '<button data-msact="off">Pausar</button>', del];
@@ -1877,12 +1877,34 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     if (v === "recetas") { msRunSeq(ks, function (nm) { return api("delReceta", { nombre: nm }); }, function () { api("recetas2").then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; } st.loaded.productos = false; msFinish("Eliminadas: " + n); }).catch(function () { msFinish(); }); }); return; }
     if (v === "suscripciones" && st.sut === "envios") { var E = st.su.envios.filter(function (e) { return MS.keys[e.id]; }).sort(function (a, b) { return b.r - a.r; }); var last = null; msRunSeq(E, function (e) { return api("delSuscEnvio", { r: e.r, id: e.id }).then(function (j) { if (j && j.ok) last = j; }); }, function () { if (last) st.su = last; msFinish("Eliminados: " + E.length); }); return; }
   }
+  var ACT = { pAp: "Aprobado", pHe: "Hecho", pEn: "Entregado", pNx: "Siguiente estado", pCc: "Cancelado" };
+  function actLog(txt, id) { try { var L = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]"); L.unshift({ t: Date.now(), x: txt, id: id || "" }); localStorage.setItem("uovo_adm_act", JSON.stringify(L.slice(0, 400))); } catch (e) {} }
+  function pedSet(p, o) { var ks = ["ap", "he", "en", "te"], b = {}; ks.forEach(function (k) { b[k] = !!p[k]; }); var cc = !!p.cc; var q = Promise.resolve(); ks.forEach(function (k) { if (k in o && !!p[k] !== !!o[k]) q = q.then(function () { return api("setPedido", { r: p.r, id: p.id, campo: k, valor: !!o[k] }).then(function (j) { if (j && j.ok && j.p) for (var z in j.p) p[z] = j.p[z]; else p[k] = !!o[k]; }); }); }); return q; }
+  function pedBulk(L, a) {
+    if (!L.length) return; var prev = L.map(function (p) { return { p: p, ap: !!p.ap, he: !!p.he, en: !!p.en, te: !!p.te }; }), n = 0, nm = ACT[a] || "";
+    toast("Trabajando…");
+    var q = Promise.resolve();
+    L.forEach(function (p) {
+      var o = {}; if (a === "pAp") o = { te: false, ap: true }; else if (a === "pHe") o = { ap: true, he: true }; else if (a === "pEn") o = { ap: true, he: true, en: true }; else if (a === "pCc") o = { te: true }; else { if (p.cc || p.cl) return; o = !p.ap ? { ap: true } : !p.he ? { he: true } : !p.en ? { en: true } : null; if (!o) return; }
+      n++; q = q.then(function () { return pedSet(p, o); }).then(function () { actLog((a === "pNx" ? "Avanzó" : nm) + " · " + p.nombre, p.id); });
+    });
+    q.then(function () { render(true); undoToast(n + " pedido" + (n === 1 ? "" : "s") + ": " + (nm || "actualizados"), function () { var q2 = Promise.resolve(); prev.forEach(function (x) { q2 = q2.then(function () { return pedSet(x.p, { ap: x.ap, he: x.he, en: x.en, te: x.te }); }); }); q2.then(function () { actLog("Deshizo cambio masivo (" + prev.length + ")"); store("uovo_c_pedidos", null); render(true); toast("Deshecho ✓"); }); }); });
+  }
+  function undoToast(m, fn) { var t = $("toast"); t.innerHTML = esc(m) + ' <button id="undo-b" style="margin-left:10px;border:0;background:#fff;color:var(--blue);font-weight:800;border-radius:10px;padding:6px 12px">Deshacer</button>'; t.hidden = false; clearTimeout(tt); tt = setTimeout(function () { t.hidden = true; }, 8000); $("undo-b").onclick = function () { t.hidden = true; fn(); }; }
+  function gesHoy() {
+    var hoy = isoD(new Date()), d = popBase("gesh", 460), now = new Date(), sd = function (ts) { return isoD(new Date(ts)) === hoy; }, P = st.pedidos || [], L = [];
+    try { L = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]").filter(function (x) { return sd(x.t); }); } catch (e) {}
+    var enviados = P.filter(function (p) { return p.ev && p.fev === hoy && !p.cc && !p.cl; }), nuevos = P.filter(function (p) { return pf(p.fecha) && isoD(new Date(pf(p.fecha))) === hoy; });
+    var an = [];
+    P.forEach(function (p) { if (p.cc || p.cl || p.te) return; if (p.ev && !p.he) an.push("🚚 " + p.nombre + ": enviado sin estar hecho"); if (p.en && !p.ap) an.push("⚠️ " + p.nombre + ": entregado sin aprobar"); if (p.he && !p.ap) an.push("⚠️ " + p.nombre + ": hecho sin aprobar"); if (p.en && !p.he) an.push("⚠️ " + p.nombre + ": entregado sin estar hecho"); });
+    var sec = function (t, a, em) { return '<div class="nm" style="margin:10px 2px 4px">' + t + ' <span class="badge o">' + a.length + "</span></div>" + (a.length ? a.map(function (x) { return '<div class="frow" style="padding:6px 0"><span>' + x + "</span></div>"; }).join("") : '<div class="meta">' + em + "</div>"); };
+    d.innerHTML = popHead("📋 Gestionados hoy") + '<div style="padding:0 14px 14px">' + sec("🆕 Pedidos nuevos", nuevos.map(function (p) { return esc(p.nombre) + " · " + money(p.total); }), "Ninguno") + sec("🚚 Enviados", enviados.map(function (p) { return esc(p.nombre); }), "Ninguno") + sec("⚠️ Anomalías", an.map(esc), "Sin anomalías ✓") + sec("🕘 Actividad de hoy", L.map(function (x) { var t = new Date(x.t); return '<span class="meta">' + ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2) + "</span> " + esc(x.x); }), "Sin movimientos registrados") + "</div>";
+  }
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-ghoy]"); if (b) { e.stopPropagation(); gesHoy(); } }, true);
   function msAction(a) {
     var v = st.v, ks = Object.keys(MS.keys);
     if (v === "pedidos") {
-      var L = st.pedidos.filter(function (p) { return MS.keys[p.r]; });
-      msRunSeq(L, function (p) { var c = !p.ap ? "ap" : !p.he ? "he" : !p.en ? "en" : null; if (!c) return null; return api("setPedido", { r: p.r, id: p.id, campo: c, valor: true }); }, function () { store("uovo_c_pedidos", null); api("pedidos").then(function (k) { if (k && k.ok) st.pedidos = k.pedidos; msFinish("Estados actualizados ✓"); }).catch(function () { msFinish(); }); });
-      return;
+      var L = st.pedidos.filter(function (p) { return MS.keys[p.r]; }); pedBulk(L, a); msStop(); return;
     }
     if (v === "packs") { var on = a === "on"; var P2 = st.packs.filter(function (p) { return MS.keys[p.r]; }); msRunSeq(P2, function (p) { return api("setPack", { r: p.r, nombre: p.nombre, campo: "ac", valor: on }).then(function (j) { if (j && j.ok) p.ac = on; }); }, function () { msFinish(on ? "Activados ✓" : "Pausados ✓"); }); return; }
     if (v === "cupones") { var on2 = a === "on"; var C2 = st.cupones.filter(function (c) { return MS.keys[c.r]; }); msRunSeq(C2, function (c) { c.activo = on2; return api("saveCupon", { r: c.r, activo: on2, nombre: c.nombre, pct: Number(c.pct) || 0, n: Number(c.n) || 1, min: Number(c.min) || 0, texto: c.texto || "" }); }, function () { api("cupones").then(function (j) { if (j && j.ok) st.cupones = j.cupones; msFinish(on2 ? "Activados ✓" : "Pausados ✓"); }).catch(function () { msFinish(); }); }); return; }
@@ -3283,7 +3305,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var sent = st.pedidos.filter(function (p) { return p.ev && p.fev === hoy && !p.cc && !p.cl; });
     var cnt = {}; PDK.forEach(function (k) { cnt[k[0]] = st.pedidos.filter(function (p) { return pdMatch(p, k[0]); }).length; });
     var L = act.filter(function (p) { return !f || pdMatch(p, f); }).sort(function (a, b) { return (pf(a.fecha) || 0) - (pf(b.fecha) || 0); });
-    var h = '<button class="card" data-pdhoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>🚚 Hoy enviaste ' + sent.length + '</b><span class="meta">' + (sent.length ? "ver ›" : "") + "</span></button>" +
+    var h = '<button class="card" data-ghoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>📋 Gestionados hoy</b><span class="meta">ver ›</span></button><button class="card" data-pdhoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>🚚 Hoy enviaste ' + sent.length + '</b><span class="meta">' + (sent.length ? "ver ›" : "") + "</span></button>" +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + PDK.map(function (k) { var on = f === k[0], bad = (k[0] === "dem" || k[0] === "sin") && cnt[k[0]] > 0; return '<button class="kpi" data-pdf="' + k[0] + '" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid ' + (on ? "var(--blue)" : "#E3E8D6") + ";background:" + (on ? "var(--blue)" : "#fff") + ";color:" + (on ? "#fff" : bad ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[1] + '</span><b style="font-size:1.7rem">' + cnt[k[0]] + "</b></button>"; }).join("") + "</div>" +
       '<div class="nm" style="margin:4px 2px 8px">' + (f ? PDK.filter(function (k) { return k[0] === f; })[0][1] : "Todo lo que está en curso") + ' <span class="badge o">' + L.length + '</span>' + (f ? ' <button class="sm" data-pdf="" style="margin-left:6px">Ver todo</button>' : "") + "</div>" +
       (L.length ? '<div class="card" style="padding:4px 12px">' + pdRows(L) + "</div>" : '<div class="card todo ok"><b>✅ Nada por acá</b></div>') +
@@ -3325,6 +3347,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       var P = [];
       if ((k === "proveedores" || k === "stock") && !st.prov) P.push(api("proveedores").then(function (j) { if (j && j.ok) st.prov = j.proveedores; }));
       if ((k === "stock") && !st.stock) P.push(api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; } }));
+      if ((k === "recetas" || k === "packs") && !st.loaded.productos) P.push(api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; } }));
       if (k === "recetas" && (!st.recetas || !st.recetas.length)) P.push(api("recetas2").then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; } }));
       if (k === "packs" && !st.loaded.packs) P.push(api("packs2").then(function (j) { if (j && j.ok) { st.packs = j.packs; st.loaded.packs = true; } }));
       if (k === "cupones" && !(st.cupones && st.cupones.length)) P.push(api("cupones").then(function (j) { if (j && j.ok) st.cupones = j.cupones; }));
@@ -3334,6 +3357,10 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     }
     function readF() { d.__f = d.__f || {}; d.querySelectorAll("[data-f]").forEach(function (e) { d.__f[e.getAttribute("data-f")] = e.value; }); d.__rows = d.__rows || []; d.querySelectorAll("[data-fr]").forEach(function (e) { var p = e.getAttribute("data-fr").split("|"), i = Number(p[0]); d.__rows[i] = d.__rows[i] || {}; d.__rows[i][p[1]] = e.value; }); }
     function fv(n) { return esc((d.__f && d.__f[n]) || ""); }
+    function prodChips() {
+      var q = nrm((d.__f && d.__f.nombre) || ""), P = st.productos || [], M = P.filter(function (x) { return !q || nrm(x.nombre).indexOf(q) >= 0; }).slice(0, 8), ex = P.some(function (x) { return nrm(x.nombre) === q; });
+      return M.map(function (x) { return '<button class="chip' + (nrm(x.nombre) === q ? " on" : "") + '" data-sc-pp="' + esc(x.nombre) + '">' + esc(x.nombre) + "</button>"; }).join("") + (q && !ex ? '<button class="chip on" data-sc-pp="' + esc(d.__f.nombre.trim()) + '">＋ Producto nuevo «' + esc(d.__f.nombre.trim()) + "»</button>" : "");
+    }
     function addForm() {
       var h = '<div class="add"><div class="nm">' + ({ recetas: "Nueva receta", packs: "Nuevo " + ((d.__f && d.__f.tipo) === "Combo" ? "combo" : "pack"), cupones: "Nuevo cupón", suscripciones: "Nuevo suscriptor" })[k] + "</div>";
       if (k === "cupones") h += '<input class="inp" data-f="nombre" placeholder="Nombre / código (ej. BIENVENIDA)" value="' + fv("nombre") + '"><div style="display:flex;gap:8px"><input class="inp" data-f="pct" inputmode="decimal" placeholder="% descuento" value="' + fv("pct") + '"><input class="inp" data-f="n" inputmode="numeric" placeholder="Cada N pedidos" value="' + fv("n") + '"></div><input class="inp" data-f="min" inputmode="numeric" placeholder="Compra mínima $ (opcional)" value="' + fv("min") + '"><input class="inp" data-f="texto" placeholder="Texto para el cliente (opcional)" value="' + fv("texto") + '">';
@@ -3347,7 +3374,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       }
       if (k === "recetas") {
         d.__rows = d.__rows && d.__rows.length ? d.__rows : [{}]; var IN = st.insumos || [];
-        h += '<select class="inp" data-f="nombre"><option value="">Elegí el producto</option>' + (st.productos || []).map(function (x) { return "<option" + (fv("nombre") === esc(x.nombre) ? " selected" : "") + ">" + esc(x.nombre) + "</option>"; }).join("") + '</select><input class="inp" data-f="y" inputmode="numeric" placeholder="Cuántos frascos rinde la tanda" value="' + fv("y") + '"><div class="meta">Ingredientes de toda la tanda (cantidad en la unidad del insumo)</div>' +
+        h += '<input class="inp" data-f="nombre" placeholder="Producto (escribí para buscar o crear)" autocomplete="off" value="' + fv("nombre") + '"><div id="rp-s" class="chips" style="flex-wrap:wrap">' + prodChips() + '</div>' + '<input class="inp" data-f="y" inputmode="numeric" placeholder="Cuántos frascos rinde la tanda" value="' + fv("y") + '"><div class="meta">Ingredientes de toda la tanda (cantidad en la unidad del insumo)</div>' +
           d.__rows.map(function (r, i) { var u = (IN.filter(function (z) { return z.n === r.n; })[0] || {}).u; return '<div style="display:flex;gap:6px;align-items:center"><select class="inp" data-fr="' + i + '|n" style="flex:2;min-width:0"><option value="">Insumo</option>' + IN.map(function (z) { return "<option" + (r.n === z.n ? " selected" : "") + ">" + esc(z.n) + "</option>"; }).join("") + '</select><input class="inp" data-fr="' + i + '|q" inputmode="decimal" placeholder="Cant." value="' + esc(r.q || "") + '" style="flex:1;min-width:0"><span class="meta" style="flex:none;min-width:24px">' + esc(u || "") + '</span><button class="sm red" data-sc-rx="' + i + '" style="flex:none">×</button></div>'; }).join("") + '<button class="sm" data-sc-ri="1">＋ Ingrediente</button>';
       }
       return h + '<div style="display:flex;gap:8px;margin-top:4px"><button class="btn" data-sc-sv="1">Guardar</button><button class="sm" data-sc-back="1">Cancelar</button></div></div>';
@@ -3372,9 +3399,9 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         }).join("");
       }
       if (k === "recetas") {
-        if (!q) return '<div class="empty" style="padding:18px 0">Escribí arriba para buscar una receta.</div>'; var Rr = (st.recetas || []).filter(function (r) { return nrm(r.nombre).indexOf(q) >= 0; });
-        if (!Rr.length) return '<div class="empty">Sin resultados.</div>';
-        return Rr.map(function (r) { var o = d.__x === r.nombre; return '<div class="frow" style="padding:10px 0;flex-wrap:wrap"><button data-sc-x="' + esc(r.nombre) + '" style="flex:1;text-align:left;border:0;background:none;font:inherit;padding:0;color:inherit"><b>' + esc(r.nombre) + '</b><div class="meta">Rinde ' + (r.y || r.q || "?") + " frascos" + (r.costo ? " · costo $" + fm(r.costo) + " c/u" : "") + "</div></button><span class=\"meta\">" + (o ? "▴" : "▾") + "</span>" + (o ? '<div style="width:100%;margin-top:6px">' + ((r.items || []).map(function (i) { var sh = st.blp && st.blp.short[nrm(i.n)]; return '<div class="frow" style="padding:4px 0"><span>' + esc(i.n) + '</span><span class="' + (sh ? "rd" : "meta") + '">' + fm(i.q) + " " + esc(i.u || "") + (sh ? " ⚠️ sin stock" : "") + "</span></div>"; }).join("") || '<div class="meta">Sin ingredientes cargados.</div>') + '<button class="sm" data-go="recetas" style="margin-top:6px" data-pclose="1">Editar receta completa ›</button></div>' : "") + "</div>"; }).join("");
+        if (!q) return '<div class="empty" style="padding:18px 0">Escribí arriba para buscar una receta.</div>'; var Rr = (st.recetas || []).filter(function (r) { return nrm(r.nombre).indexOf(q) >= 0; }), Sr = (st.productos || []).filter(function (x) { return nrm(x.nombre).indexOf(q) >= 0 && !(st.recetas || []).some(function (r) { return nrm(r.nombre) === nrm(x.nombre); }); }), noR = Sr.slice(0, 8).map(function (x) { return '<div class="frow" style="padding:10px 0"><div style="flex:1"><b>' + esc(x.nombre) + '</b><div class="meta">Sin receta</div></div><button class="sm" data-sc-np="' + esc(x.nombre) + '">＋ Crear receta</button></div>'; }).join("") + (Sr.some(function (x) { return nrm(x.nombre) === q; }) ? "" : '<button class="sm" data-sc-np="' + esc(d.__q.trim()) + '" style="margin-top:6px">＋ Receta de producto nuevo «' + esc(d.__q.trim()) + "»</button>");
+        if (!Rr.length) return noR;
+        return noR + Rr.map(function (r) { var o = d.__x === r.nombre; return '<div class="frow" style="padding:10px 0;flex-wrap:wrap"><button data-sc-x="' + esc(r.nombre) + '" style="flex:1;text-align:left;border:0;background:none;font:inherit;padding:0;color:inherit"><b>' + esc(r.nombre) + '</b><div class="meta">Rinde ' + (r.y || r.q || "?") + " frascos" + (r.costo ? " · costo $" + fm(r.costo) + " c/u" : "") + "</div></button><span class=\"meta\">" + (o ? "▴" : "▾") + "</span>" + (o ? '<div style="width:100%;margin-top:6px">' + ((r.items || []).map(function (i) { var sh = st.blp && st.blp.short[nrm(i.n)]; return '<div class="frow" style="padding:4px 0"><span>' + esc(i.n) + '</span><span class="' + (sh ? "rd" : "meta") + '">' + fm(i.q) + " " + esc(i.u || "") + (sh ? " ⚠️ sin stock" : "") + "</span></div>"; }).join("") || '<div class="meta">Sin ingredientes cargados.</div>') + '<button class="sm" data-go="recetas" style="margin-top:6px" data-pclose="1">Editar receta completa ›</button></div>' : "") + "</div>"; }).join("");
       }
       if (k === "packs") {
         var Pk = (st.packs || []).filter(function (p) { return !q || nrm(p.nombre || "pack " + p.q).indexOf(q) >= 0; });
@@ -3398,7 +3425,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         return pl + h2 + (rows || '<div class="empty">Sin suscriptores.</div>') + '<button class="sm" data-go="suscripciones" data-pclose="1" style="margin-top:10px">Abrir suscripciones ›</button>';
       }
       if (k === "textos") {
-        var tt = "", sec = "", n = 0; if (!q) return '<div class="empty" style="padding:18px 0">Escribí arriba qué texto buscás (ej. «envío», «portada»).</div>';
+        var tt = "", sec = "", n = 0; if (!q) { var oldN = (st.cfg || []).filter(function (x) { return x.sec == null && /encurtidos\s+facu/i.test(x.v || ""); }).length, facuN = (st.cfg || []).filter(function (x) { return x.sec == null && /facu/i.test(x.v || ""); }).length; return '<div class="empty" style="padding:12px 0">Escribí arriba qué texto buscás (ej. «envío», «portada»).</div>' + (oldN ? '<button class="btn" data-sc-ren="1">🔄 Cambiar «Encurtidos Facu» por «πKDA» (' + oldN + ' textos)</button>' : "") + (facuN ? '<button class="sm" data-sc-qf="1" style="margin-top:8px">Ver textos que nombran a «Facu» (' + facuN + ')</button>' : ""); }
         (st.cfg || []).forEach(function (x) { if (x.sec != null) { sec = x.sec; return; } if (!q || nrm(x.k + " " + x.v + " " + x.d + " " + sec).indexOf(q) < 0) return; if (!q && n >= 0 && n > 6) return; if (n > 12) return; n++; tt += '<div style="margin-bottom:10px" data-r="' + x.r + '" data-k="' + esc(x.k) + '"><div class="meta" style="font-weight:700">' + esc(human(x.k)) + '</div><textarea class="inp" rows="' + Math.min(5, Math.max(1, Math.ceil(String(x.v).length / 38))) + '" data-sc-cfg="1">' + esc(x.v) + "</textarea></div>"; });
         return (tt || '<div class="empty">Sin resultados.</div>') + (!q ? '<div class="meta">Buscá un texto para editarlo (ej. «envío», «portada»).</div>' : "");
       }
@@ -3411,7 +3438,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       d.__c.scrollTop = sp;
     }
     d.__draw = draw; draw(); need().then(function () { if ($("scm") === d) draw(); });
-    d.addEventListener("input", function (e) { if (e.target.id === "sc-q") { d.__q = e.target.value; d.__x = null; $("sc-l").innerHTML = list(); } });
+    d.addEventListener("input", function (e) { if (d.__add && k === "recetas" && e.target.getAttribute("data-f") === "nombre") { d.__f = d.__f || {}; d.__f.nombre = e.target.value; var rs = $("rp-s"); if (rs) rs.innerHTML = prodChips(); return; } if (e.target.id === "sc-q") { d.__q = e.target.value; d.__x = null; $("sc-l").innerHTML = list(); } });
     d.addEventListener("change", function (e) {
       var t = e.target, c;
       if (d.__add && t.matches("[data-fr]") && k === "recetas") { readF(); $("sc-l").innerHTML = list(); return; }
@@ -3452,6 +3479,10 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         }).catch(function () { toast("No se pudo guardar"); b.disabled = false; }); return;
       }
       if ((b = t.closest("[data-sc-pt]"))) { readF(); d.__f.tipo = b.getAttribute("data-sc-pt"); d.__rows = []; $("sc-l").innerHTML = list(); return; }
+      if (t.closest("[data-sc-qf]")) { d.__q = "facu"; $("sc-q").value = "facu"; $("sc-l").innerHTML = list(); return; }
+      if (t.closest("[data-sc-ren]")) { var RL = (st.cfg || []).filter(function (x) { return x.sec == null && /encurtidos\s+facu/i.test(x.v || ""); }), ri = 0; toast("Cambiando…"); (function nx() { if (ri >= RL.length) { toast("Listo ✓ " + RL.length + " textos"); $("sc-l").innerHTML = list(); actLog("Cambió nombre viejo en " + RL.length + " textos"); return; } var x = RL[ri++], nv = x.v.replace(/encurtidos\s+facu/gi, "πKDA"); (DEMO ? Promise.resolve({ ok: true }) : api("setConfig", { r: x.r, k: x.k, valor: nv })).then(function (j) { if (j && j.ok) x.v = nv; }).catch(function () {}).then(nx); })(); return; }
+      if ((b = t.closest("[data-sc-pp]"))) { readF(); d.__f.nombre = b.getAttribute("data-sc-pp"); $("sc-l").innerHTML = list(); return; }
+      if ((b = t.closest("[data-sc-np]"))) { d.__add = true; d.__f = { nombre: b.getAttribute("data-sc-np") }; d.__rows = null; draw(); return; }
       if (t.closest("[data-sc-ri]")) { readF(); d.__rows.push({}); $("sc-l").innerHTML = list(); return; }
       if ((b = t.closest("[data-sc-rx]"))) { readF(); d.__rows.splice(Number(b.getAttribute("data-sc-rx")), 1); $("sc-l").innerHTML = list(); return; }
       if (t.closest("[data-sc-sv]")) {
@@ -3461,7 +3492,8 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         if (k === "packs") { var cb2 = F.tipo === "Combo", its = R.map(function (r) { return { n: r.n, c: Number(r.c) || 1 }; }), q2 = cb2 ? its.reduce(function (a, i) { return a + i.c; }, 0) : Number(F.q) || 0; if (cb2 && (!F.nombre || !its.length)) return bad("Poné el nombre y al menos un producto"); if (!cb2 && !(q2 > 0)) return bad("Poné la cantidad de frascos"); if (!(Number(F.precio) > 0)) return bad("Poné el precio final");
           api("savePack", { r: 0, orig: "", tipo: cb2 ? "Combo" : "Pack", nombre: cb2 ? F.nombre : "", q: q2, precio: Number(F.precio) || 0, lim: Number(F.lim) || 0, vence: "", texto: "", items: cb2 ? its : [], vars: [] }).then(function (j) { fin2(j, (cb2 ? "Combo" : "Pack") + " creado ✓", function (j2) { st.packs = j2.packs; }); }).catch(function () { toast("No se pudo guardar"); }); return; }
         if (k === "recetas") { if (!F.nombre) return bad("Elegí el producto"); if (!(Number(F.y) > 0)) return bad("Poné cuántos frascos rinde"); if (!R.length) return bad("Agregá al menos un ingrediente");
-          api("saveReceta", { nombre: F.nombre, y: Number(F.y), items: R.map(function (r) { return [r.n, parseAR(r.q) || 0]; }) }).then(function (j) { fin2(j, "Receta guardada ✓", function (j2) { st.recetas = j2.recetas; st.insumos = j2.insumos; st.loaded.productos = false; }); }).catch(function () { toast("No se pudo guardar"); }); return; }
+          var nmx = F.nombre.trim(), pex = (st.productos || []).some(function (x) { return nrm(x.nombre) === nrm(nmx); });
+          (pex ? Promise.resolve(1) : api("addProducto", { nombre: nmx, desc: "", precio: 0, cat: "", ing: "" }).then(function (a) { if (a && a.ok) { st.productos = a.catalogo; st.loaded.productos = true; } })).then(function () { return api("saveReceta", { nombre: nmx, y: Number(F.y), items: R.map(function (r) { return [r.n, parseAR(r.q) || 0]; }) }); }).then(function (j) { fin2(j, "Receta guardada ✓", function (j2) { st.recetas = j2.recetas; st.insumos = j2.insumos; st.loaded.productos = false; }); }).catch(function () { toast("No se pudo guardar"); }); return; }
         return;
       }
       if ((b = t.closest("[data-sc-pksw]"))) { var rp = Number(b.getAttribute("data-sc-pksw")), pk = st.packs.filter(function (z) { return z.r === rp; })[0]; patchPack(rp, "ac", !pk.ac); setTimeout(draw, 30); return; }
