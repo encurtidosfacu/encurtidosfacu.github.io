@@ -287,7 +287,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     if (DEMO) return new Promise(function (res) { setTimeout(function () {
       var d = JSON.parse(JSON.stringify(demo));
       if (op === "me") return res({ ok: true, email: "demo@uovo.com", nombre: "Demo", rol: (location.search.match(/rol=([\w,]+)/) || [])[1] || "Dueño" });
-      if (op === "addPedido") { var nid = "U-" + Math.random().toString(36).slice(2, 6).toUpperCase(), tot = 0, cks = 0, ptx = []; (extra.items || []).forEach(function (it) { var pz = d.productos.filter(function (z) { return z.nombre === it.nombre; })[0]; tot += (pz ? pz.precio : 0) * it.cantidad; cks += it.cantidad; ptx.push(it.cantidad + " x " + it.nombre); }); demo.pedidos.unshift({ r: 90 + demo.pedidos.length, id: nid, fecha: "13/10/2026 01:40", nombre: extra.nombre, tel: extra.telefono || "", mail: "", pedido: ptx.join(", "), cant: cks, total: extra.total || tot, entrega: extra.entrega, pago: extra.pago || "", ap: !!extra.aprobado, he: false, en: false, notas: "Cargado a mano", cc: false, cl: false, cupon: "", estado: "" }); return res({ ok: true, id: nid }); }
+      if (op === "addPedido") { var nid = "U-" + Math.random().toString(36).slice(2, 6).toUpperCase(), tot = 0, cks = 0, ptx = []; (extra.items || []).forEach(function (it) { var pz = d.productos.filter(function (z) { return z.nombre === it.nombre; })[0]; tot += (pz ? pz.precio : 0) * it.cantidad; cks += it.cantidad; ptx.push(it.cantidad + " x " + it.nombre); }); demo.pedidos.unshift({ r: 90 + demo.pedidos.length, id: nid, fecha: "13/10/2026 01:40", nombre: extra.nombre, tel: extra.telefono || "", mail: extra.email || "", pedido: ptx.join(", "), cant: cks, total: extra.total || tot, entrega: extra.entrega, pago: extra.pago || "", ap: !!extra.aprobado, he: false, en: false, notas: "Cargado a mano", cc: false, cl: false, cupon: "", estado: "" }); return res({ ok: true, id: nid, vinc: extra.email || "" }); }
       if (op === "session") return res({ ok: true, session: "S1.demo" });
       if (op === "pedidos") return res({ ok: true, pedidos: d.pedidos });
       if (op === "productos") return res({ ok: true, productos: d.productos });
@@ -466,10 +466,29 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     }).join("");
     return h;
   }
+  function pedClientes() {
+    var m = {}; (st.pedidos || []).forEach(function (p) { if (!p.nombre) return; var k = (p.mail || "").toLowerCase() || String(p.tel || "").replace(/\D/g, "").slice(-8) || p.nombre.toLowerCase(); if (!m[k]) m[k] = { nombre: p.nombre, tel: p.tel || "", mail: p.mail || "" }; else { if (!m[k].tel && p.tel) m[k].tel = p.tel; if (!m[k].mail && p.mail) m[k].mail = p.mail; } });
+    return Object.keys(m).map(function (k) { return m[k]; });
+  }
+  function pedHint(src) {
+    var n = $("pn-n"), t = $("pn-t"), e = $("pn-mail"), h = $("pn-hint"); if (!n || !h) return;
+    var dg = function (x) { return String(x || "").replace(/\D/g, "").slice(-8); }, C = pedClientes(), c = null;
+    if (src === "n") c = C.filter(function (x) { return x.nombre.toLowerCase() === n.value.trim().toLowerCase(); })[0];
+    else if (src === "t" && dg(t.value).length >= 8) c = C.filter(function (x) { return dg(x.tel) === dg(t.value); })[0];
+    else if (src === "m" && e.value.indexOf("@") > 0) c = C.filter(function (x) { return x.mail && x.mail.toLowerCase() === e.value.trim().toLowerCase(); })[0];
+    if (c) { if (src !== "n" || !n.value.trim()) n.value = c.nombre; if (!t.value) t.value = c.tel; if (!e.value) e.value = c.mail; }
+    var tel = dg(t.value), mail = e.value.trim().toLowerCase(), k = C.filter(function (x) { return (mail && x.mail.toLowerCase() === mail) || (tel.length >= 8 && dg(x.tel) === tel); })[0];
+    h.hidden = !k; if (k) h.textContent = "✓ Cliente existente: " + k.nombre + (k.mail ? (!mail || mail === k.mail.toLowerCase() ? " · se vincula a su cuenta (" + k.mail + ")" : " · se usará el email que escribiste") : " · sin email registrado");
+  }
+  function pedTotal() {
+    var el = $("pn-tot"); if (!el) return; var tot = 0, n = 0, pr = {}; (st.productos || []).forEach(function (x) { pr[x.nombre] = x.precio || 0; });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pnq]"), function (i) { var c = Math.floor(Number(i.value) || 0); if (c > 0) { n += c; tot += c * (pr[i.getAttribute("data-pnq")] || 0); } });
+    el.textContent = n ? n + " frascos · aprox. $" + fm(tot) : "";
+  }
   function pedForm() {
     var pr = (st.productos || []).filter(function (x) { return x.nombre; }), n = st.pnf || {};
-    var h = '<div class="card" id="pn-form"><div class="nm" style="margin-bottom:8px">Nuevo pedido</div><div class="add"><input class="inp" id="pn-n" placeholder="Nombre del cliente" value="' + esc(n.n || "") + '"><input class="inp" id="pn-t" inputmode="tel" placeholder="Teléfono (opcional)" value="' + esc(n.t || "") + '">';
-    h += '<div class="meta">Frascos (cantidad de cada una)</div>' + (pr.length ? pr.map(function (x, i) { return '<div class="rl" style="display:flex;gap:8px;align-items:center"><span style="flex:1">' + esc(x.nombre) + ' <small class="meta">$' + fm(x.precio || 0) + '</small></span><input class="inp" type="number" min="0" inputmode="numeric" data-pnq="' + esc(x.nombre) + '" placeholder="0" style="max-width:80px" value="' + esc((n.q || {})[x.nombre] || "") + '"></div>'; }).join("") : '<div class="meta">Cargando productos…</div>');
+    var h = '<div class="card" id="pn-form"><div class="nm" style="margin-bottom:8px">Nuevo pedido</div><div class="add"><datalist id="pn-dl">' + pedClientes().map(function (c) { return '<option value="' + esc(c.nombre) + '">'; }).join("") + '</datalist><input class="inp" id="pn-n" list="pn-dl" autocomplete="off" placeholder="Nombre del cliente" value="' + esc(n.n || "") + '"><input class="inp" id="pn-t" inputmode="tel" placeholder="Teléfono (opcional)" value="' + esc(n.t || "") + '"><input class="inp" id="pn-mail" type="email" inputmode="email" autocapitalize="off" placeholder="Email (opcional) — así lo ve en su cuenta" value="' + esc(n.mail || "") + '"><div class="meta" id="pn-hint" hidden style="color:var(--ok);font-weight:700"></div>';
+    h += '<div class="meta">Frascos (cantidad de cada una)</div>' + (pr.length ? pr.map(function (x, i) { return '<div class="rl" style="display:flex;gap:8px;align-items:center"><span style="flex:1">' + esc(x.nombre) + ' <small class="meta">$' + fm(x.precio || 0) + '</small></span><button class="sm" data-pnstep="-1" aria-label="Menos" style="min-width:40px;min-height:40px">−</button><input class="inp" type="number" min="0" inputmode="numeric" data-pnq="' + esc(x.nombre) + '" placeholder="0" style="max-width:64px;text-align:center" value="' + esc((n.q || {})[x.nombre] || "") + '"><button class="sm" data-pnstep="1" aria-label="Más" style="min-width:40px;min-height:40px">＋</button></div>'; }).join("") + '<div class="nm" id="pn-tot" style="text-align:right"></div>' : '<div class="meta">Cargando productos…</div>');
     h += '<label class="meta">Entrega<input class="inp" type="date" id="pn-e" value="' + esc(n.e || "") + '"></label><select class="inp" id="pn-p"><option value="">Medio de pago</option>' + ["Efectivo", "Transferencia", "Pago full"].map(function (o) { return "<option" + (n.p === o ? " selected" : "") + ">" + o + "</option>"; }).join("") + '</select><input class="inp" id="pn-m" inputmode="numeric" placeholder="Total $ (vacío = lo calculo yo)" value="' + esc(n.m || "") + '"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pn-a"' + (n.a ? " checked" : "") + '> Ya está aprobado</label><button class="btn" data-pcreate="1">Crear pedido</button></div></div>';
     return h;
   }
@@ -632,7 +651,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   }
   /* ---------- Recetas ---------- */
   function renderRecetas() {
-    var h = BACK + '<div class="rhd"><button class="btn" id="rnew" data-rnew="1">＋ Nueva receta</button><button class="rfab g" data-pnew="1" aria-label="Nuevo producto">＋</button><button class="rfab b" data-rref="1" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg></button></div>';
+    var h = BACK + '<div class="rhd"><button class="btn" id="rnew" data-rnew="1">＋ Nueva receta</button><button class="rfab g" data-prodnew="1" aria-label="Nuevo producto">＋</button><button class="rfab b" data-rref="1" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg></button></div>';
     if (st.rd && !st.rd.orig) h += '<div class="card" id="rd-ed">' + editorR() + "</div>";
     if (!st.recetas.length && !st.rd) return h + '<div class="empty">Todavía no hay recetas.</div>';
     return h + '<div class="help">Cuánto rinde cada preparación y qué insumos lleva. Los costos están en Finanzas › Costos.</div>' + st.recetas.map(function (x) {
@@ -2219,7 +2238,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     }
   });
   document.addEventListener("input", function (e) {
-    if (e.target.closest && e.target.closest("#pn-form")) { var q0 = {}; Array.prototype.forEach.call(document.querySelectorAll("[data-pnq]"), function (i) { if (i.value) q0[i.getAttribute("data-pnq")] = i.value; }); st.pnf = { n: $("pn-n").value, t: $("pn-t").value, q: q0, e: $("pn-e").value, p: $("pn-p").value, m: $("pn-m").value, a: $("pn-a").checked }; return; }
+    if (e.target.closest && e.target.closest("#pn-form")) { var q0 = {}; Array.prototype.forEach.call(document.querySelectorAll("[data-pnq]"), function (i) { if (i.value) q0[i.getAttribute("data-pnq")] = i.value; }); st.pnf = { n: $("pn-n").value, t: $("pn-t").value, mail: $("pn-mail").value, q: q0, e: $("pn-e").value, p: $("pn-p").value, m: $("pn-m").value, a: $("pn-a").checked }; var pid = e.target.id; if (pid === "pn-n" || pid === "pn-t" || pid === "pn-mail") { pedHint(pid === "pn-n" ? "n" : pid === "pn-t" ? "t" : "m"); st.pnf.n = $("pn-n").value; st.pnf.t = $("pn-t").value; st.pnf.mail = $("pn-mail").value; } pedTotal(); return; }
     var el = e.target; if (!st.rv || !el.matches || !el.matches("[data-rvf]")) return; st.rv[el.getAttribute("data-rvf")] = el.value;
   });
 
@@ -2241,7 +2260,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         else if (ux === "por") { var n = num(val); u.base = n > 0 ? (/^(g|ml)$/i.test(up.uni) ? 1000 : 1) / n : 0; }
       }); return;
     }
-    if (e.target.closest && e.target.closest("#pn-form")) { var q1 = {}; Array.prototype.forEach.call(document.querySelectorAll("[data-pnq]"), function (i) { if (i.value) q1[i.getAttribute("data-pnq")] = i.value; }); st.pnf = { n: $("pn-n").value, t: $("pn-t").value, q: q1, e: $("pn-e").value, p: $("pn-p").value, m: $("pn-m").value, a: $("pn-a").checked }; return; }
+    if (e.target.closest && e.target.closest("#pn-form")) { var q1 = {}; Array.prototype.forEach.call(document.querySelectorAll("[data-pnq]"), function (i) { if (i.value) q1[i.getAttribute("data-pnq")] = i.value; }); st.pnf = { n: $("pn-n").value, t: $("pn-t").value, mail: $("pn-mail").value, q: q1, e: $("pn-e").value, p: $("pn-p").value, m: $("pn-m").value, a: $("pn-a").checked }; var pid = e.target.id; if (pid === "pn-n" || pid === "pn-t" || pid === "pn-mail") { pedHint(pid === "pn-n" ? "n" : pid === "pn-t" ? "t" : "m"); st.pnf.n = $("pn-n").value; st.pnf.t = $("pn-t").value; st.pnf.mail = $("pn-mail").value; } pedTotal(); return; }
     if (e.target.id === "pd-d" || e.target.id === "pd-h") { if (e.target.id === "pd-d") st.pdd = e.target.value; else st.pdh = e.target.value; st.pdp = "rng"; render(true); return; }
     if (e.target.id === "fin-d" || e.target.id === "fin-h") { if (e.target.value) { if (e.target.id === "fin-d") st.fd = e.target.value; else st.fh = e.target.value; st.fp = ""; render(true); } return; }
     var c = e.target.closest(".card"); if (!c && !e.target.closest("#pk-ed")) return;
@@ -2306,7 +2325,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         return;
       }
     }
-    if (t.closest("[data-pnew]")) { prodNew(); return; }
+    if (t.closest("[data-prodnew]")) { prodNew(); return; }
     if (t.closest("[data-rref]")) { recRefresh(t.closest("[data-rref]")); return; }
     if (t.closest("[data-rnew]")) { st.rd = { orig: "", nombre: "", y: 0, items: [{ n: "", q: "", u: "" }] }; render(true); return; }
     if (t.closest("[data-redit]")) { var rn = t.closest(".card").getAttribute("data-rn"), rx = st.recetas.filter(function (x) { return x.nombre === rn; })[0]; st.rd = st.rd && st.rd.orig === rn ? null : { orig: rn, nombre: rn, y: rx.y, items: rx.items.map(function (i) { return { n: i.n, q: i.q, u: insU(i.n) }; }) }; render(true); return; }
@@ -2412,7 +2431,8 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       api("addAcceso", { email: em, nota: nt, permisos: st.npm.join(",") }).then(function (j) { if (j && j.ok) { st.accesos = j.accesos; render(); toast("Acceso otorgado a " + em); } else { toast(j && j.msg || "No se pudo"); render(); } }).catch(function () { render(); });
       return;
     }
-    var pnw = t.closest("[data-pnew]"); if (pnw && st.v === "pedidos") { st.pnew = !st.pnew; st.pnf = st.pnf || {}; render(true); return; }
+    var pst = t.closest("[data-pnstep]"); if (pst) { var qi = pst.parentNode.querySelector("[data-pnq]"); qi.value = Math.max(0, (Math.floor(Number(qi.value)) || 0) + Number(pst.getAttribute("data-pnstep"))) || ""; pedTotal(); return; }
+    var pnw = t.closest("[data-pnew]"); if (pnw && st.v === "pedidos") { st.pnew = !st.pnew; st.pnf = st.pnf || {}; render(true); setTimeout(pedTotal, 0); return; }
     if (t.closest("[data-pdtog]")) { st.pdo = !st.pdo; render(true); return; }
     var pdpb = t.closest("[data-pdp]"); if (pdpb && st.v === "pedidos") { st.pdp = pdpb.getAttribute("data-pdp"); if (st.pdp !== "rng") { st.pdd = ""; st.pdh = ""; } render(true); return; }
     var pcr = t.closest("[data-pcreate]"); if (pcr && st.v === "pedidos") {
@@ -2420,10 +2440,10 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       if (!nm) { toast("Poné el nombre"); return; } if (!its.length) { toast("Elegí al menos un frasco"); return; }
       var ed = $("pn-e").value, edt = ""; if (ed) { var xx = ed.split("-"); edt = new Date(+xx[0], +xx[1] - 1, +xx[2]).toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }); }
       pcr.disabled = true; pcr.textContent = "Creando…";
-      api("addPedido", { nombre: nm, telefono: $("pn-t").value.trim(), items: its, entrega: edt, pago: $("pn-p").value, total: parseAR($("pn-m").value) || 0, aprobado: $("pn-a").checked }).then(function (j) {
+      api("addPedido", { nombre: nm, telefono: $("pn-t").value.trim(), email: $("pn-mail").value.trim(), items: its, entrega: edt, pago: $("pn-p").value, total: parseAR($("pn-m").value) || 0, aprobado: $("pn-a").checked }).then(function (j) {
         if (!j || !j.ok) { toast(j && j.msg || "No se pudo crear"); render(true); return; }
-        st.pnew = false; st.pnf = {}; store("uovo_c_pedidos", null);
-        api("pedidos").then(function (k) { if (k && k.ok) st.pedidos = k.pedidos; st.fil = "todos"; render(); toast("Pedido creado ✓ " + j.id); });
+        st.pnew = false; st.pnf = {}; store("uovo_c_pedidos", null); st.pvinc = j.vinc || "";
+        api("pedidos").then(function (k) { if (k && k.ok) st.pedidos = k.pedidos; st.fil = "todos"; render(); toast("Pedido creado ✓ " + j.id + (st.pvinc ? " · vinculado a " + st.pvinc : "")); });
       }).catch(function () { render(true); toast("No se pudo crear"); }); return;
     }
     var tl = t.closest("[data-dlote]"); if (tl && st.v === "pedidos") {
