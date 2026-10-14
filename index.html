@@ -644,6 +644,14 @@ body.has-obar footer{padding-bottom:90px}
 .cgrid .stepper .lbl{display:none}
 .cgrid .ctrl button{width:38px;height:38px;font-size:1.4rem}
 .cgrid .ctrl output{min-width:28px;font-size:1.1rem}
+
+.cat-h{cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.cat-h::after{content:"▾";font:700 1rem var(--font-body);color:var(--blue);margin-left:auto;align-self:center}
+.catdd{position:absolute;z-index:40;top:100%;left:0;right:0;margin-top:6px;max-width:340px;background:#fff;border:2px solid var(--sky-line);border-radius:16px;box-shadow:0 12px 30px rgba(43,42,30,.22);padding:6px;max-height:60vh;overflow:auto}
+.catdd button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 1rem var(--font-body);color:var(--ink);text-align:left;cursor:pointer}
+.catdd button:hover,.catdd button.on{background:var(--sky)}
+.catdd .n{font-size:.8rem;background:var(--sky-line);border-radius:999px;padding:1px 9px}
+.catdd .sep{font:700 .72rem var(--font-body);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);padding:8px 14px 2px}
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -2132,4 +2140,28 @@ var DEFAULTS = {
   setPortada(DEFAULTS.config);
   load();
 })();
+</script><script>
+(function () {
+  function closeDD() { var o = document.querySelector(".catdd"); if (o) o.remove(); }
+  document.addEventListener("click", function (e) {
+    var h = e.target.closest && e.target.closest(".cat-h");
+    if (!h) { if (!(e.target.closest && e.target.closest(".catdd"))) closeDD(); return; }
+    var had = h.querySelector(".catdd"); closeDD(); if (had) return;
+    var cur = h.parentNode.getAttribute("data-cat"), src = document.querySelectorAll("#cats-in button[data-cat]"), dd = document.createElement("div"); dd.className = "catdd";
+    var html = "", more = false;
+    Array.prototype.forEach.call(src, function (b) {
+      var c = b.getAttribute("data-cat"); if (!c) return;
+      var special = c.indexOf("__") === 0; if (special && !more) { html += '<div class="sep">Más</div>'; more = true; }
+      var n = b.querySelector(".n");
+      html += '<button type="button" data-ddc="' + c.replace(/"/g, "&quot;") + '"' + (c === cur ? ' class="on"' : "") + "><span>" + b.querySelector("span").innerHTML + "</span>" + (n ? '<span class="n">' + n.textContent + "</span>" : "") + "</button>";
+    });
+    if (!html) return; dd.innerHTML = html; h.appendChild(dd);
+    dd.addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-ddc]"); if (!b) return; ev.stopPropagation();
+      var c = b.getAttribute("data-ddc"), t = document.querySelector('#cats-in button[data-cat="' + c.replace(/"/g, '\\"') + '"]'); closeDD(); if (t) t.click();
+    });
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDD(); });
+})();
 </script>
+
