@@ -1765,6 +1765,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var c = p.cc || p.cl, wa = waLink(p.tel), d = document.createElement("div"); d.className = "modal"; d.id = "pedmodal";
     d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto;position:relative"><button class="sh-x" data-pm="x" aria-label="Cerrar" style="position:absolute;top:10px;right:10px;border:0;background:#EEF2E6;width:34px;height:34px;border-radius:50%;color:#3E5B30">✕</button>' +
       '<div class="nm" style="padding-right:40px">' + esc(p.nombre) + '</div><div class="meta">' + esc(p.id) + " · " + (Number(p.cant) || 0) + " frascos · <b>" + money(p.total) + "</b></div>" +
+      '<div class="add" style="margin-top:10px"><datalist id="pm-dl">' + pedClientes().map(function (z) { return '<option value="' + esc(z.nombre) + '">'; }).join("") + '</datalist><input class="inp" id="pm-nom" list="pm-dl" autocomplete="off" value="' + esc(p.nombre) + '" placeholder="Nombre"><input class="inp" id="pm-tel" inputmode="tel" value="' + esc(p.tel) + '" placeholder="Teléfono"><input class="inp" id="pm-mail" type="email" inputmode="email" autocapitalize="off" value="' + esc(p.mail) + '" placeholder="Email"></div><div class="meta" id="pm-hist" style="margin-top:6px;font-weight:700"></div>' +
       '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" +
       '<div class="meta" style="margin-top:6px">' + esc(p.fecha) + (p.entrega ? " · Entrega " + esc(p.entrega) : "") + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
       (wa ? '<a class="sm" target="_blank" rel="noopener" href="' + wa + '" style="margin-top:8px">💬 ' + esc(p.tel) + "</a>" : "") +
@@ -1773,13 +1774,45 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
         '<div class="tgl"><button class="tg' + (p.ap ? " on" : "") + '" data-pm="ap">' + (p.ap ? "✓ " : "") + 'Aprobado</button><button class="tg' + (p.he ? " on" : "") + '" data-pm="he">' + (p.he ? "✓ " : "") + 'Hecho</button><button class="tg' + (p.en ? " on" : "") + '" data-pm="en">' + (p.en ? "✓ " : "") + "Entregado</button></div>") +
       '<div class="row" style="margin-top:12px;align-items:center"><button class="sm red" data-pm="del">Eliminar pedido</button>' + (p.cl ? "" : (p.cc ? '<button class="sm" data-pm="react">Reactivar</button>' : '<button class="sm red" data-pm="cc">Cancelar pedido</button>')) + "</div></div>";
     document.body.appendChild(d);
+    function dg(x) { return String(x || "").replace(/\D/g, "").slice(-8); }
+    function same(q) { var m = d.querySelector("#pm-mail").value.trim().toLowerCase(), t = dg(d.querySelector("#pm-tel").value), n = d.querySelector("#pm-nom").value.trim().toLowerCase();
+      return (m && String(q.mail || "").toLowerCase() === m) || (t.length >= 8 && dg(q.tel) === t) || (!m && t.length < 8 && n && String(q.nombre).toLowerCase() === n); }
+    function hist() {
+      var el = d.querySelector("#pm-hist"), O = st.pedidos.filter(function (q) { return q.r !== p.r && !q.cc && !q.cl && !q.te && same(q); });
+      if (!O.length) { el.style.color = "var(--soft)"; el.textContent = "Cliente nuevo: es su primer pedido."; return; }
+      var tot = O.reduce(function (a, q) { return a + (Number(q.total) || 0); }, 0), fr = O.reduce(function (a, q) { return a + (Number(q.cant) || 0); }, 0);
+      el.style.color = "var(--ok)"; el.textContent = "⭐ Cliente recurrente: " + O.length + (O.length === 1 ? " pedido anterior" : " pedidos anteriores") + " · " + fr + " frascos · " + money(tot) + " · último " + String(O[0].fecha).slice(0, 10);
+    }
+    function fill(src) {
+      var C = pedClientes(), nm = d.querySelector("#pm-nom"), tl = d.querySelector("#pm-tel"), ml = d.querySelector("#pm-mail"), c = null;
+      if (src === "n") c = C.filter(function (x) { return x.nombre.toLowerCase() === nm.value.trim().toLowerCase() && x.nombre !== p.nombre; })[0];
+      else if (src === "t" && dg(tl.value).length >= 8) c = C.filter(function (x) { return dg(x.tel) === dg(tl.value); })[0];
+      else if (src === "m" && ml.value.indexOf("@") > 0) c = C.filter(function (x) { return x.mail && x.mail.toLowerCase() === ml.value.trim().toLowerCase(); })[0];
+      if (c) { if (!tl.value) tl.value = c.tel; if (!ml.value) ml.value = c.mail; if (src !== "n" && !nm.value.trim()) nm.value = c.nombre; }
+      hist();
+    }
+    hist();
+    ["nom", "tel", "mail"].forEach(function (k) { var i = d.querySelector("#pm-" + k); i.addEventListener("input", function () { fill(k === "nom" ? "n" : k === "tel" ? "t" : "m"); }); i.addEventListener("change", saveData); });
+    function saveData() {
+      var nv = { nombre: d.querySelector("#pm-nom").value.trim(), tel: d.querySelector("#pm-tel").value.trim(), mail: d.querySelector("#pm-mail").value.trim().toLowerCase() };
+      if (!nv.nombre) { d.querySelector("#pm-nom").value = p.nombre; return Promise.resolve(); }
+      var ch = Promise.resolve(), linked = 0;
+      ["nombre", "tel", "mail"].forEach(function (k) { if (nv[k] !== String(p[k] || "")) ch = ch.then(function () { return patchPedido(r, k, nv[k]); }); });
+      ch = ch.then(function () {
+        var dd = dg(nv.tel); st.pedidos.forEach(function (q) { if (q.r === p.r || q.cc || q.cl) return;
+          if (nv.mail && !q.mail && dd.length >= 8 && dg(q.tel) === dd) { linked++; ch = ch.then(function () { return patchPedido(q.r, "mail", nv.mail); }); }
+          else if (nv.tel && !q.tel && q.mail && q.mail.toLowerCase() === nv.mail) { linked++; ch = ch.then(function () { return patchPedido(q.r, "tel", nv.tel); }); } });
+        return ch;
+      }).then(function () { if (linked) toast("Datos vinculados a " + linked + (linked === 1 ? " pedido anterior" : " pedidos anteriores") + " ✓"); });
+      return ch;
+    }
     function saveNote() { var v = d.querySelector("#pm-n").value; if (v !== (p.notas || "")) patchPedido(r, "notas", v); }
-    function close() { saveNote(); d.remove(); }
+    function close() { saveNote(); saveData(); d.remove(); }
     d.addEventListener("click", function (e) {
       if (e.target === d) { close(); return; }
       var b = e.target.closest("[data-pm]"); if (!b) return; var a = b.getAttribute("data-pm");
       if (a === "x") { close(); return; }
-      if (a === "ap" || a === "he" || a === "en") { saveNote(); patchPedido(r, a, !p[a]); d.remove(); toast("Actualizado ✓"); return; }
+      if (a === "ap" || a === "he" || a === "en") { saveNote(); saveData(); patchPedido(r, a, !p[a]); d.remove(); toast("Actualizado ✓"); return; }
       if (a === "react") { saveNote(); patchPedido(r, "cc", false); d.remove(); toast("Pedido reactivado"); return; }
       if (a === "cc" || a === "del") {
         if (!b.classList.contains("arm")) { b.classList.add("arm"); b.textContent = "¿Seguro? Tocá de nuevo"; clearTimeout(armTimer); armTimer = setTimeout(function () { b.classList.remove("arm"); b.textContent = a === "cc" ? "Cancelar pedido" : "Eliminar pedido"; }, 3000); return; }
