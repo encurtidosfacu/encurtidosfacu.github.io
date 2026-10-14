@@ -708,7 +708,7 @@ body.has-obar footer{padding-bottom:90px}
 </section>
 
 
-<div class="obar" id="obar" hidden><div class="ob-t"><b id="ob-n"></b><span id="ob-s"></span></div><button type="button" id="ob-go">Ver mi pedido</button></div>
+<div class="obar" id="obar" hidden><div class="ob-t"><b id="ob-n"></b><span id="ob-s"></span></div><button type="button" id="ob-go">Ver mi antojo</button></div>
 <div class="smodal" id="spmodal" hidden role="dialog" aria-modal="true"><div class="sbox spb"><button type="button" class="dx" id="sp-x" aria-label="Cerrar">×</button><h3 id="t-susc">Suscribite</h3><p class="sm-p" id="x-susc"></p><div class="splans" id="splans"></div></div></div>
 <button type="button" class="sfab" id="sfab" hidden aria-label="Suscripción mensual"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><i id="sfab-n" hidden></i></button>
 <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Zona o dirección de entrega<input id="sm-z"></label><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
@@ -1094,7 +1094,7 @@ var DEFAULTS = {
     $("m-title").textContent = c.titulo_confirmar;
     $("confirm").textContent = c.boton_confirmar;
     $("done-title").textContent = c.gracias_titulo;
-    $("cart-lbl").textContent = c.texto_boton_carrito; $("cart-btn").setAttribute("aria-label", c.texto_boton_carrito);
+    $("cart-lbl").textContent = c.texto_boton_carrito; $("cart-btn").setAttribute("aria-label", c.texto_boton_carrito); $("ob-go").textContent = "Ver " + String(c.texto_boton_carrito).replace(/^Ver\s+/i, "").replace(/^Mi\s/i, "mi ").replace(/[^\w\sáéíóúñ]+/g, "").trim().replace(/^(\w)/, function (m) { return m.toLowerCase(); });
     $("done-pay").textContent = c.gracias_texto;
     $("done-pay").hidden = !c.gracias_texto;
     $("mail-field").hidden = false;
