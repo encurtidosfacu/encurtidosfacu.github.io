@@ -199,7 +199,7 @@ body.sh-open{overflow:hidden}
 .ssw>.ssc{margin:0;position:relative;transition:transform .2s;touch-action:pan-y;background:#fff}.ssw .sa button.txt{font-size:.8rem}.ssw.pw .sa.l{width:84px}.ssw.pw.ol>.ssc,.ssw.pw.ol>article{transform:translateX(84px)}.ssw.pw .sa.r{width:168px}.ssw.pw.one .sa.r{width:84px}.ssw.pw.one.or>.ssc,.ssw.pw.one.or>article{transform:translateX(-84px)}.ssw.pw .trow.ssc{padding:10px 4px;border-bottom:1px solid #EEF0E4}.ssw.pw{margin-bottom:0;border-radius:0}.ssw.pw:has(>article){margin-bottom:12px;border-radius:16px}
 .cjp{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}.cjp .sm{grid-row:1/3;grid-column:2}.tcard{box-sizing:border-box;border:calc(var(--mm)*.6) solid;border-radius:calc(var(--mm)*3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--mm)*2);padding:calc(var(--mm)*3);text-align:center;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.15;-webkit-print-color-adjust:exact;print-color-adjust:exact}.tcard.rnd{border-radius:50%;padding:calc(var(--mm)*6)}.tcard.row{flex-direction:row;text-align:left}.tcard .tt{display:flex;flex-direction:column;gap:calc(var(--mm)*1);align-items:inherit;min-width:0}.tcard.row .tt{align-items:flex-start;flex:1}.tcard .th{font-weight:800}.tcard .tq{background:#fff;padding:calc(var(--mm)*1.2);border-radius:calc(var(--mm)*1.5);flex:none;box-sizing:content-box}.tcard .tq svg{width:100%;height:100%;display:block}.tjrow{display:flex;gap:10px}.tjc{flex:1;display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--soft)}.tjc input{width:100%;height:42px;border:1px solid #E3E0D0;border-radius:10px;padding:2px;background:#fff}#printSheet{display:none}@media print{body.printing>*:not(#printSheet){display:none !important}body.printing{background:#fff !important;padding:0 !important}body.printing #printSheet{display:flex;flex-wrap:wrap;gap:3mm;align-content:flex-start}@page{size:A4;margin:8mm}}
 .ssw.ol>.ssc{transform:translateX(84px)}.ssw.or>.ssc{transform:translateX(-168px)}.ssw.one .sa.r{width:84px}.ssw.one.or>.ssc{transform:translateX(-84px)}.rhd{display:flex;gap:8px;margin-bottom:12px;align-items:center}.rhd .btn{flex:1;margin:0}.rfab{width:46px;height:46px;border-radius:50%;border:0;color:#fff;font-size:1.5rem;font-weight:700;flex:none;display:grid;place-items:center}.rfab.g{background:#2f9e44}.rfab.b{background:#1c7ed6}.rfab.spin svg{animation:rsp .8s linear infinite}@keyframes rsp{to{transform:rotate(360deg)}}.rl2{background:#fff}.ssw.ri{margin-bottom:6px;border-radius:10px}.ssw.ri .ssc{box-shadow:0 0 0 2px #fff}.ssw.ri .sa.l{width:60px}.ssw.ri .sa.r{width:120px}.ssw.ri.ol>.ssc{transform:translateX(60px)}.ssw.ri.or>.ssc{transform:translateX(-120px)}.ssw.ri .sa button{font-size:1.1rem}
-.ssw.ol>article{transform:translateX(84px)}.ssw.or>article{transform:translateX(-168px)}
+.ssw.ol:has(.sa.l button+button)>.ssc,.ssw.ol:has(.sa.l button+button)>article{transform:translateX(168px)}.ssw .sa.l:has(button+button){width:168px}.ssw.ol>article{transform:translateX(84px)}.ssw.or>article{transform:translateX(-168px)}
 .todo-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:10px 0;font:inherit;color:inherit}
 .card.todo.open .todo-h{border-bottom:1px solid #EEF0E4}
 .tname{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit}
@@ -424,7 +424,7 @@ body.nobadge #bell-n{display:none!important}
     if (v === "voz") { api("vozEstado").then(function (j) { st.vz = !!(j && j.clave); st.loaded.voz = true; if (st.v === "voz") render(); }).catch(function () {}); return; }
     if (v === "inicio" && allowed("proveedores") && !st.stkf) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (st.alertas) api("recetas2").then(function (k) { if (k && k.ok) { st.recetas = k.recetas; st.insumos = k.insumos; if (st.v === "inicio") render(true); } }).catch(function () {}); if (st.v === "inicio") render(true); } }).catch(function () {}); }
     var op = v === "puntos" ? "stock" : v === "inicio" ? "pedidos" : v === "resenas" ? "resenas" : v === "productos" ? "catalogo" : v === "recetas" ? "recetas2" : v === "packs" ? "packs2" : v;
-    if ((v === "recetas" || v === "packs") && !st.loaded.productos) api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; } }).catch(function () {});
+    if ((v === "recetas" || v === "packs") && !st.loaded.productos) api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === v) render(true); } }).catch(function () {});
     if (v === "inicio" && !st.loaded.productos) api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === "inicio") render(true); } }).catch(function () {});
     var ck = "uovo_c_" + op, hit = null; if (!DEMO) { try { hit = JSON.parse(load(ck) || "null"); } catch (e) {} }
     var hnd = function (j, fc) {
@@ -683,10 +683,16 @@ body.nobadge #bell-n{display:none!important}
   function renderRecetas() {
     var h = BACK + '<div class="rhd"><button class="btn" id="rnew" data-rnew="1">＋ Nueva receta</button><button class="rfab g" data-prodnew="1" aria-label="Nuevo producto">＋</button><button class="rfab b" data-rref="1" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg></button></div>';
     if (st.rd && !st.rd.orig) h += '<div class="card" id="rd-ed">' + editorR() + "</div>";
-    if (!st.recetas.length && !st.rd) return h + '<div class="empty">Todavía no hay recetas.</div>';
-    return h + '<div class="help">Cuánto rinde cada preparación y qué insumos lleva. Los costos están en Finanzas › Costos.</div>' + st.recetas.map(function (x) {
-      var ed = st.rd && st.rd.orig === x.nombre;
-      return '<div class="ssw one" data-ssw="r:' + esc(x.nombre) + '"><div class="sa l"><button data-radd="' + esc(x.nombre) + '" aria-label="Agregar insumo">＋</button></div><div class="sa r"><button class="d" data-rdelx="' + esc(x.nombre) + '" aria-label="Eliminar">🗑</button></div><article class="card ssc" data-rn="' + esc(x.nombre) + '"><div class="row"><div><div class="nm">' + esc(x.nombre) + '</div><div class="meta">Una preparación rinde ' + x.y + ' frascos · ' + (x.items ? x.items.length : 0) + ' insumos</div></div></div>' +
+    var PR = st.productos || [], hv = {}; st.recetas.forEach(function (x) { hv[nrm(x.nombre)] = 1; });
+    var pn = {}; PR.forEach(function (p) { pn[nrm(p.nombre)] = 1; });
+    var falta = PR.filter(function (p) { return !hv[nrm(p.nombre)]; });
+    var RL = st.recetas.slice().sort(function (a, b) { return (PR.length && !pn[nrm(a.nombre)] ? 1 : 0) - (PR.length && !pn[nrm(b.nombre)] ? 1 : 0); });
+    if (!RL.length && !falta.length && !st.rd) return h + '<div class="empty">Todavía no hay recetas.</div>';
+    return h + '<div class="help">Cuánto rinde cada preparación y qué insumos lleva. Los costos están en Finanzas › Costos.</div>' + falta.map(function (p) {
+      return '<article class="card"><div class="row"><div><div class="nm">' + esc(p.nombre) + ' <span class="badge o" style="font-size:.7rem">❗ Falta receta</span></div></div><button class="sm" data-recnew="' + esc(p.nombre) + '">Cargar</button></div></article>';
+    }).join("") + RL.map(function (x) {
+      var ed = st.rd && st.rd.orig === x.nombre, orf = PR.length && !pn[nrm(x.nombre)];
+      return '<div class="ssw one" data-ssw="r:' + esc(x.nombre) + '"><div class="sa l"><button data-radd="' + esc(x.nombre) + '" aria-label="Agregar insumo">＋</button></div><div class="sa r"><button class="d" data-rdelx="' + esc(x.nombre) + '" aria-label="Eliminar">🗑</button></div><article class="card ssc" data-rn="' + esc(x.nombre) + '"><div class="row"><div><div class="nm">' + esc(x.nombre) + (orf ? ' <span class="badge" style="font-size:.7rem">sin producto en la tienda</span>' : "") + '</div><div class="meta">Una preparación rinde ' + x.y + ' frascos · ' + (x.items ? x.items.length : 0) + ' insumos</div></div></div>' +
         '<div class="row" style="margin-top:10px"><button class="pen" data-redit="1" aria-label="Editar">' + (ed ? "Cerrar" : PEN) + "</button></div>" + (ed ? editorR() : "") + "</article></div>";
     }).join("");
   }
@@ -1958,7 +1964,7 @@ body.nobadge #bell-n{display:none!important}
       var b = '<article class="card" data-r="' + x.r + '" data-ins="' + esc(x.ins) + '"><div class="row" style="align-items:center;gap:10px"><div style="min-width:0;flex:1"><div class="nm">' + esc(x.ins) + '</div><div class="meta">' + (x.prov ? esc(x.prov) + " · " : "") + c + '</div></div><button class="pen" data-pvx="' + x.r + '" aria-label="Editar">' + PEN + "</button></div>";
       if (open) b += '<div class="add" style="margin-top:10px"><div class="meta" style="margin-bottom:-4px">Nombre</div><input class="inp" data-pvren="1" value="' + esc(x.ins) + '" placeholder="Nombre"><div class="meta" style="margin-bottom:-4px">Unidad (g, kg, ml, l, cm, m, unidad…)</div><input class="inp" data-pv="uni" list="pv-units" value="' + esc(x.uni) + '" placeholder="Unidad"><div class="meta" style="margin-bottom:-4px">Cantidad y precio total de la compra</div><div style="display:flex;gap:8px"><input class="inp" data-pc="cant" type="text" inputmode="decimal" placeholder="Cantidad" style="min-width:0">' + unitSel(x.uni) + '<input class="inp" data-pc="precio" type="text" inputmode="decimal" placeholder="Precio $" style="min-width:0"></div><button class="btn" data-pbuy="1">Registrar compra</button><div class="meta">' + (x.cant ? "Última compra: " + fm(x.cant) + " " + esc(x.uni) + " a $" + fm(x.precio) : "Sin compras cargadas") + '. Deslizá la tarjeta: ＋ suma una compra, − resta.</div><button class="sm red" data-pdel="' + st.pvt + '">Eliminar ' + (st.pvt === "p" ? "packaging" : "insumo") + '</button></div>';
       var so = st.ssw && st.ssw.k === x.ins ? st.ssw.s : "";
-      return '<div class="ssw' + (so ? " o" + so : "") + '" data-ssw="' + esc(x.ins) + '"><div class="sa l"><button data-padd="' + esc(x.ins) + '" aria-label="Sumar compra">＋</button></div><div class="sa r"><button class="m" data-ssub="' + esc(x.ins) + '" aria-label="Restar">−</button><button class="d" data-sdelx="' + esc(x.ins) + '" data-t="' + st.pvt + '" aria-label="Eliminar">🗑</button></div>' + b + "</article></div>";
+      return '<div class="ssw' + (so ? " o" + so : "") + '" data-ssw="' + esc(x.ins) + '"><div class="sa l"><button data-padd="' + esc(x.ins) + '" aria-label="Sumar compra">＋</button><button data-pprice="' + esc(x.ins) + '" aria-label="Cargar precio" style="background:#2f7d4f">$</button></div><div class="sa r"><button class="m" data-ssub="' + esc(x.ins) + '" aria-label="Restar">−</button><button class="d" data-sdelx="' + esc(x.ins) + '" data-t="' + st.pvt + '" aria-label="Eliminar">🗑</button></div>' + b + "</article></div>";
     }).join("");
     return h;
   }
@@ -2064,6 +2070,35 @@ body.nobadge #bell-n{display:none!important}
   $("wand").addEventListener("click", function () { openTour(st.v); });
 
 
+  /* ---------- Punto de pedido rápido (popup) ---------- */
+  function ptoPop() {
+    var d = popBase("ptopop", 440), q = "", sel = null;
+    function list() { return (st.stock || []).filter(function (x) { return !q || nrm(x.ins).indexOf(nrm(q)) >= 0; }); }
+    function draw() {
+      if (!st.stock) { d.__c.innerHTML = popHead("🎯 Punto de pedido") + '<div class="empty">Cargando…</div>'; return; }
+      if (sel) {
+        var x = st.stock.filter(function (z) { return z.ins === sel; })[0] || {};
+        d.__c.innerHTML = popHead("🎯 " + esc(sel)) + '<div class="meta" style="margin-bottom:8px">' + (x.mov ? "Tenés " + fm(x.stock) + " " + esc(x.uni) + ". " : "") + 'Cuando baje de este número te aviso.</div><div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input class="inp" id="pt-v" inputmode="decimal" placeholder="Pedir cuando haya menos de…" value="' + esc(x.min === "" || x.min == null ? "" : String(x.min).replace(".", ",")) + '" style="flex:1"><span class="meta">' + esc(x.uni || "") + '</span></div><div style="display:flex;gap:8px"><button class="btn" data-ptsave="1" style="flex:1">Guardar</button><button class="sm" data-ptback="1">‹ Volver</button></div>';
+        var iv = d.__c.querySelector("#pt-v"); if (iv) iv.focus(); return;
+      }
+      d.__c.innerHTML = popHead("🎯 Punto de pedido") + '<div class="meta" style="margin-bottom:8px">Elegí el insumo y decime cuánto es el mínimo.</div><input class="search" id="pt-q" type="search" placeholder="Buscar insumo…" value="' + esc(q) + '"><div id="pt-l">' + ptRows() + '</div><button class="sm" data-ptall="1" style="margin-top:10px">Ver todos los puntos ›</button>';
+    }
+    function ptRows() { return list().map(function (x) { return '<button class="mi" data-ptsel="' + esc(x.ins) + '" style="width:100%"><i>📦</i><div><b>' + esc(x.ins) + '</b><span>' + (x.min === "" || x.min == null ? "Sin punto de pedido" : "Pedir en " + fm(x.min) + " " + esc(x.uni)) + '</span></div></button>'; }).join("") || '<div class="empty">No hay insumos.</div>'; }
+    d.addEventListener("input", function (e) { if (e.target.id === "pt-q") { q = e.target.value; var l = d.querySelector("#pt-l"); if (l) l.innerHTML = ptRows(); } });
+    d.addEventListener("click", function (e) {
+      var t = e.target, b;
+      if ((b = t.closest("[data-ptsel]"))) { sel = b.getAttribute("data-ptsel"); draw(); return; }
+      if (t.closest("[data-ptback]")) { sel = null; draw(); return; }
+      if (t.closest("[data-ptall]")) { d.remove(); st.v = "puntos"; render(); return; }
+      if (t.closest("[data-ptsave]")) {
+        var mv = d.querySelector("#pt-v").value.trim(), bt = t.closest("[data-ptsave]"); bt.disabled = true; bt.textContent = "Guardando…";
+        (DEMO ? Promise.resolve({ ok: true, stock: st.stock.map(function (z) { if (z.ins === sel) z.min = mv === "" ? "" : parseAR(mv); return z; }) }) : api("setMin", { ins: sel, min: mv === "" ? "" : parseAR(mv) })).then(function (j) { if (j && j.ok) { st.stock = j.stock; render(true); toast(mv === "" ? "Punto de pedido quitado" : "Alerta creada ✓"); sel = null; draw(); } else { toast(j && j.msg || "No se pudo"); bt.disabled = false; bt.textContent = "Guardar"; } }).catch(function () { toast("No se pudo guardar"); bt.disabled = false; bt.textContent = "Guardar"; });
+      }
+    });
+    if (!st.stock) { draw(); api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; } draw(); }).catch(function () {}); } else draw();
+  }
+  document.addEventListener("click", function (e) { var g = e.target.closest && e.target.closest('[data-go="puntos"]'); if (!g || e.target.closest("#ptopop")) return; e.stopPropagation(); e.preventDefault(); ptoPop(); }, true);
+
   /* ---------- Asistente de voz ---------- */
   var VZ = { el: null, prev: "", acc: [], rec: null, listening: false, busy: false };
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2078,6 +2113,11 @@ body.nobadge #bell-n{display:none!important}
 
   /* ---------- Bot de ayuda (sin IA, gratis) ---------- */
   var KB = [
+    { t: "Dictar una receta por voz", k: "receta dictar voz hablar micrófono microfono ingredientes decir", go: "recetas", p: ["Abrí Producción → Recetas (o el producto → Receta).", "Tocá 🎤 Dictar o pegar la receta.", "Hablá: «rinde 12 frascos, 300 gramos de berenjenas, 1 litro de vinagre».", "Tocá Interpretar y cargar y revisá los ingredientes."] },
+    { t: "Fijar un punto de pedido rápido", k: "punto pedido minimo alerta stock avisar rapido", go: "inicio", p: ["Tocá el atajo Puntos de pedido.", "Elegí el insumo.", "Poné el mínimo y Guardar: la alerta queda creada."] },
+    { t: "Cargar o corregir el precio de un insumo sin compra", k: "precio insumo cargar corregir olvide compra signo pesos", go: "proveedores", p: ["Abrí Insumos.", "Deslizá el insumo hacia la derecha.", "Tocá $ y poné el precio. El stock no cambia."] },
+    { t: "Productos sin receta", k: "falta receta productos sin receta", go: "recetas", p: ["En Recetas, los productos sin receta aparecen con ❗ Falta receta.", "Tocá Cargar para armarla."] },
+    { t: "Suscripciones: zona, estrella y pase a Premium", k: "suscripcion zona bahia blanca lista espera estrella premium plata oro upgrade", go: "textos", p: ["En Textos de la página buscá susc_zonas (ciudades habilitadas) y susc_upgrade_precio (cuánto más paga un Estándar para pasar a Premium).", "Quien está fuera de zona queda en la hoja Zonas en espera para avisarle."] },
     { t: "Cambiar el precio de un frasco", k: "precio cambiar cambio modificar subir bajar aumentar frasco producto valor cuanto", go: "productos", p: ["Tocá Productos abajo.", "Buscá el frasco y tocá el número del precio.", "Escribí el precio nuevo y salí del campo: se guarda solo y se ve en la tienda."] },
     { t: "Marcar un frasco como agotada", k: "agotada agotado stock sin quedan terminada acabo apagar", go: "productos", p: ["Tocá Productos.", "En el frasco, tocá el interruptor Agotada.", "En la tienda se ve apagada y no se puede pedir. Volvé a tocarlo cuando haya stock."] },
     { t: "Ocultar o mostrar un frasco en la tienda", k: "ocultar esconder mostrar visible aparece tienda sacar", go: "productos", p: ["Tocá Productos.", "Usá el interruptor Visible del frasco.", "Apagado = no aparece en la tienda."] },
@@ -2682,6 +2722,14 @@ body.nobadge #bell-n{display:none!important}
       d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("#by-x")) d.remove(); else if (e.target.closest("#by-ok")) go(); });
       d.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
     }
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("[data-pprice]"); if (!b) return; e.stopPropagation(); e.preventDefault(); var w = b.closest(".ssw"); if (w) { w.classList.remove("ol", "or"); st.ssw = null; }
+      var nm = b.getAttribute("data-pprice"), row = ((st.prov && st.prov[st.pvt]) || []).filter(function (z) { return z.ins === nm; })[0]; if (!row) return;
+      textAsk("Precio de " + nm + (row.cant ? " (por " + fm(row.cant) + " " + (row.uni || "") + ")" : ""), row.precio ? String(row.precio).replace(".", ",") : "", function (v) {
+        var prc = parseAR(v); if (!(prc > 0)) { toast("Poné un precio válido"); return; }
+        (DEMO ? Promise.resolve({ ok: true }) : api("setProveedor", { t: st.pvt, r: row.r, ins: nm, campo: "precio", valor: String(prc) })).then(function (j) { if (j && j.ok) { if (DEMO) { row.precio = prc; row.costo = row.cant ? prc / row.cant : row.costo; } else st.prov = j.proveedores; render(true); toast("Precio guardado ✓"); } else toast(j && j.msg || "No se pudo"); }).catch(function () { toast("No se pudo guardar"); });
+      });
+    }, true);
     document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-padd]"); if (!b) return; e.stopPropagation(); e.preventDefault(); var w = b.closest(".ssw"); if (w) { w.classList.remove("ol", "or"); st.ssw = null; } buyAsk(b.getAttribute("data-padd")); }, true);
     document.addEventListener("change", function (e) {
       var t = e.target; if (!t || !t.matches) return;
@@ -2846,10 +2894,31 @@ body.nobadge #bell-n{display:none!important}
     var y = R ? String(R.y || R.q || "") : "";
     var d = popBase("recm", 460);
     function uOf(n) { var z = (st.insumos || []).filter(function (i) { return i.n === n; })[0]; return z ? z.u : ""; }
+    var dt = "", dtOpen = false, dtRec = null;
+    function dictar() {
+      var W = { un: 1, una: 1, uno: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10, doce: 12, medio: 0.5, media: 0.5 };
+      function num(x) { x = String(x).toLowerCase(); return W[x] != null ? W[x] : parseFloat(x.replace(",", ".")); }
+      var t = " " + dt.replace(/\n/g, ", ") + " ", ym = /(?:rinde|rinden|salen|sale|hace|hacen|para)\s+(\d+(?:[.,]\d+)?|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|doce)\s*(?:frascos?|unidades?|porciones?)?/i.exec(t);
+      if (ym) { y = String(num(ym[1])).replace(".", ","); t = t.replace(ym[0], ","); }
+      var miss = [], n0 = rows.length;
+      t.split(/[,;.]|\s+y\s+(?=\d|un\s|una\s|medio|media)/).forEach(function (c) {
+        c = c.trim(); if (!c) return;
+        var m = /^(?:con\s+|mas\s+|más\s+)?(\d+(?:[.,]\d+)?|medio|media|un|una|uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|doce)\s*(kilos?|kg|gramos?|gr|g|litros?|lts?|l|mililitros?|ml|cc|cucharadas?|cucharaditas?|unidades?|u|dientes?)?\s*(?:de\s+|del\s+)?(.+)$/i.exec(c);
+        if (!m) return;
+        var q = num(m[1]), un = (m[2] || "").toLowerCase(), nm = m[3].trim().replace(/^(las?|los?|el)\s+/i, ""), ins = fnd(st.insumos || [], nm, function (i) { return i.n; }), base = ins ? String(ins.u || "").toLowerCase() : "";
+        if (/^kil|^kg/.test(un)) { un = "kg"; } else if (/^gr|^g$/.test(un)) { un = "g"; } else if (/^lit|^lt|^l$/.test(un)) { un = "l"; } else if (/^mili|^ml|^cc/.test(un)) { un = "ml"; }
+        if (base === "g" && un === "kg") q *= 1000; else if (base === "kg" && un === "g") q /= 1000; else if (base === "ml" && un === "l") q *= 1000; else if (base === "l" && un === "ml") q /= 1000;
+        if (!ins) miss.push(nm);
+        rows.push({ n: ins ? ins.n : nm, q: String(Math.round(q * 1000) / 1000).replace(".", ","), u: base });
+      });
+      return { added: rows.length - n0, miss: miss };
+    }
     function draw() {
       var opts = (st.insumos || []).map(function (i) { return '<option value="' + esc(i.n) + '">'; }).join("");
       d.__c.innerHTML = popHead("🥒 Receta · " + esc(nombre)) +
         '<datalist id="rec-ins">' + opts + "</datalist>" +
+        '<button class="sm" data-xdt="1" style="margin-bottom:10px">🎤 Dictar o pegar la receta</button>' +
+        (dtOpen ? '<div class="card" style="margin-bottom:12px"><div class="meta" style="margin-bottom:6px">Decí por ejemplo: "rinde 12 frascos, 300 gramos de berenjenas, 1 litro de vinagre, 2 dientes de ajo". Podés editar el texto.</div><textarea class="inp" id="rec-dt" rows="3" style="width:100%" placeholder="Tocá el micrófono y hablá…">' + esc(dt) + '</textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="sm" data-xmic="1" id="rec-mic">' + (dtRec ? "⏹ Parar" : "🎤 Hablar") + '</button><button class="btn" data-xint="1" style="flex:1">Interpretar y cargar</button></div></div>' : "") +
         '<div class="meta" style="margin-bottom:8px">Cantidades para toda la tanda. Rinde:</div>' +
         '<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input class="inp" id="rec-y" inputmode="decimal" value="' + esc(y) + '" style="width:90px"><span class="meta">frascos / unidades</span></div>' +
         rows.map(function (r, i) { return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input class="inp" list="rec-ins" data-xn="' + i + '" value="' + esc(r.n) + '" placeholder="Insumo" style="flex:1;min-width:0"><input class="inp" inputmode="decimal" data-xq="' + i + '" value="' + esc(r.q) + '" style="width:76px"><span class="meta" style="width:30px">' + esc(r.u || uOf(r.n)) + '</span><button class="sm red" data-xrm="' + i + '" aria-label="Quitar">✕</button></div>'; }).join("") +
@@ -2857,9 +2926,22 @@ body.nobadge #bell-n{display:none!important}
         '<button class="sm" data-xadd="1" style="margin:4px 0 14px">＋ Ingrediente</button>' +
         '<div style="display:flex;gap:8px"><button class="btn" data-xsave="1" style="flex:1">Guardar receta</button><button class="sm" data-pclose="1">Cancelar</button></div>';
     }
-    function sync() { var yy = d.querySelector("#rec-y"); if (yy) y = yy.value; d.querySelectorAll("[data-xn]").forEach(function (e) { var r = rows[+e.getAttribute("data-xn")]; r.n = e.value.trim(); r.u = uOf(r.n) || r.u; }); d.querySelectorAll("[data-xq]").forEach(function (e) { rows[+e.getAttribute("data-xq")].q = e.value; }); }
+    function sync() { var yy = d.querySelector("#rec-y"); if (yy) y = yy.value; var dd = d.querySelector("#rec-dt"); if (dd) dt = dd.value; d.querySelectorAll("[data-xn]").forEach(function (e) { var r = rows[+e.getAttribute("data-xn")]; r.n = e.value.trim(); r.u = uOf(r.n) || r.u; }); d.querySelectorAll("[data-xq]").forEach(function (e) { rows[+e.getAttribute("data-xq")].q = e.value; }); }
     d.addEventListener("click", function (e) {
       var t = e.target;
+      if (t.closest("[data-xdt]")) { sync(); dtOpen = !dtOpen; draw(); return; }
+      if (t.closest("[data-xmic]")) {
+        sync();
+        if (dtRec) { try { dtRec.stop(); } catch (e1) {} dtRec = null; draw(); return; }
+        if (!SR) { toast("Tu navegador no dicta: escribí el texto"); return; }
+        var r = new SR(); r.lang = "es-AR"; r.continuous = true; r.interimResults = false; dtRec = r;
+        r.onresult = function (ev) { var tx = ""; for (var i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) tx += ev.results[i][0].transcript + ", "; if (tx) { var dd = d.querySelector("#rec-dt"); dt = ((dd ? dd.value : dt).replace(/[,\s]*$/, "") + (dt || (dd && dd.value) ? ", " : "") + tx).replace(/,\s*$/, ""); if (dd) dd.value = dt; } };
+        r.onend = function () { dtRec = null; if (d.isConnected) draw(); };
+        r.onerror = function () { dtRec = null; if (d.isConnected) draw(); };
+        try { r.start(); } catch (e2) { dtRec = null; }
+        draw(); return;
+      }
+      if (t.closest("[data-xint]")) { sync(); if (dtRec) { try { dtRec.stop(); } catch (e3) {} dtRec = null; } var R2 = dictar(); dt = ""; dtOpen = false; draw(); toast(R2.added ? R2.added + " ingredientes cargados" + (R2.miss.length ? " · revisá: " + R2.miss.join(", ") : "") : "No entendí ingredientes: probá con 'cantidad + unidad + de + nombre'"); return; }
       if (t.closest("[data-xadd]")) { sync(); rows.push({ n: "", q: "", u: "" }); draw(); var l = d.querySelectorAll("[data-xn]"); if (l.length) l[l.length - 1].focus(); return; }
       var x = t.closest("[data-xrm]"); if (x) { sync(); rows.splice(+x.getAttribute("data-xrm"), 1); draw(); return; }
       if (t.closest("[data-xsave]")) {
@@ -2879,6 +2961,7 @@ body.nobadge #bell-n{display:none!important}
     });
     draw();
   }
+  document.addEventListener("click", function (e) { var rn0 = e.target.closest && e.target.closest("[data-recnew]"); if (rn0) { e.stopPropagation(); recEdit(rn0.getAttribute("data-recnew")); return; } });
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-recp]"); if (!b) return; e.stopPropagation(); var c = b.closest("[data-r]"), r = c && Number(c.getAttribute("data-r")), p = st.productos.filter(function (x) { return x.r === r; })[0]; if (!p) return; if (!st.recetas || !st.recetas.length) { api("recetas2").then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; } recEdit(p.nombre); }).catch(function () { recEdit(p.nombre); }); } else recEdit(p.nombre); }, true);
   function popHead(t, extra) { return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;position:sticky;top:-14px;background:#fff;padding:2px 0 6px;z-index:2"><div class="nm" style="flex:1;font-size:1.05rem">' + t + "</div>" + (extra || "") + '<button class="ibtn" data-pclose="1" aria-label="Cerrar" style="background:var(--line);color:var(--ink);width:36px;height:36px">✕</button></div>'; }
   /* campanita */
@@ -3404,6 +3487,8 @@ body.nobadge #bell-n{display:none!important}
     if (m === "gen") h += cfCard("Reglas", cfChips("Abrir la app en", "open", [["", "Inicio"], ["pedidos", "Pedidos"]], UI.open || "") + cfChips("Fechas iniciales de Pedidos", "pdp", [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]], UI.pdp || "todo") + cfRow("Medios de pago", '<button class="cf-go" data-cf="pay">Editar</button>', esc(payList().join(" · "))));
     h += cfCard("Avisos", cfRow("Ventana al abrir con lo que hay que hacer", cfSw(!!UI.ow, 'data-cf="ow"'), "Un resumen de pedidos por preparar cada vez que entrás") + cfRow("Numerito rojo en la campanita", cfSw(UI.badge !== false, 'data-cf="badge"')) + cfRow("Gestionados hoy", '<button class="cf-go" data-cf="ghoy">Ver</button>', "Lo que se movió hoy y anomalías") + cfRow("Registro de actividad", '<button class="cf-go" data-cf="act">Ver</button>', "Quién cambió qué y cuándo"));
     h += cfCard("Nombre y color del módulo", cfRow("Nombre", '<button class="cf-go" data-cf="name">' + esc(u.name || MODS[m][1]) + " ✏️</button>") + '<div class="cf-row col" data-cf-t="color"><div class="cf-l">Color</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">' + UICOL.map(function (c) { return '<button data-cf="col|' + c + '" style="width:40px;height:40px;border-radius:50%;border:3px solid ' + ((u.color || MODC[m]) === c ? "#233018" : "#fff") + ";background:" + c + ';box-shadow:0 0 0 1px #D9E2CC" aria-label="Color"></button>'; }).join("") + "</div></div>");
+    if (allowed("accesos")) h += cfCard("Acceso de otras personas", cfRow("Quién entra y qué ve", '<button class="cf-go" data-cf="go|accesos">Gestionar</button>', "Sumá gente y elegí qué módulos puede usar"), "acceso");
+    h += cfCard("Mi mail", cfRow("Mail de esta cuenta", '<span class="cf-go" style="pointer-events:none">' + esc((st.me && st.me.email) || "—") + "</span>", "Acá llegan tus avisos de stock"), "mail");
     h += cfCard("Cuenta y datos", cfRow("Guía paso a paso de la app", '<button class="cf-go dark" data-cf="guide">▶ Ver guía</button>') + cfRow("Actualizar los datos ahora", '<button class="cf-go" data-cf="refresh">↻ Actualizar</button>') + cfRow("Restablecer ajustes de este módulo", '<button class="cf-go" data-cf="reset">Restablecer</button>') + cfRow("Cerrar sesión en este dispositivo", '<button class="cf-go" data-cf="logout">Salir</button>'));
     return h + "</div>";
   }
