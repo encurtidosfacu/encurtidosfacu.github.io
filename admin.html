@@ -578,7 +578,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     })();
     var al = [];
     if (viejos) al.push(["⏰ " + viejos + (viejos === 1 ? " pedido sin aprobar hace más de 24 h" : " pedidos sin aprobar hace más de 24 h"), "pedidos", "pend"]);
-    if (ag) al.push(["🚫 " + ag + (ag === 1 ? " frasco agotado" : " frascos agotados"), "__agot", ""]);
+    if (ag) al.push(["🚫 " + ag + (ag === 1 ? " producto agotado" : " productos agotados"), "__agot", ""]);
     stkAlertLines().forEach(function (x) { al.push(x); });
     if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" ' + (x[1] === "__agot" ? 'data-agot="1"' : 'data-go="' + x[1] + '" data-fil="' + x[2] + '"') + ' style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
@@ -1720,17 +1720,30 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       toast(kind === "ap" ? "Aprobado ✓" : kind === "he" ? "Listo ✓" : kind === "en" ? "Entregado ✓" : kind === "cc" ? "Pedido cancelado" : "Pedido reactivado");
     });
   }
+  function agFalta(nombre) {
+    var rec = (st.recetas || []).filter(function (r) { return nrm(r.nombre) === nrm(nombre); })[0];
+    if (!st.stock || (!st.recetas.length && !st.recf2)) return '<div class="meta">Calculando qué falta…</div>';
+    if (!rec || !rec.items || !rec.items.length) return '<div class="meta">Sin receta cargada: no puedo saber qué falta.</div>';
+    var miss = [], sin = [];
+    rec.items.forEach(function (x) { var s0 = (st.stock || []).filter(function (z) { return nrm(z.ins) === nrm(x.n); })[0]; if (!s0 || !s0.mov) { sin.push(x.n); return; } if (s0.stock + 1e-9 < x.q) miss.push(x.n + " (tenés " + fm(Math.max(0, s0.stock)) + ", necesitás " + fm(x.q) + " " + (x.u || s0.uni || "") + ")"); });
+    var h = miss.length ? '<div class="meta" style="color:var(--err);font-weight:700">Te falta: ' + miss.map(esc).join(" · ") + "</div>" : (sin.length ? "" : '<div class="meta" style="color:var(--ok);font-weight:700">Tenés insumos para una tanda ✓</div>');
+    if (sin.length) h += '<div class="meta">Sin stock cargado: ' + sin.map(esc).join(", ") + "</div>";
+    return h;
+  }
   function agotModal() {
+    if (!st.stock || !st.recetas.length) {
+      if (!st.agl) { st.agl = 1; Promise.all([st.stock ? 0 : api("stock").then(function (j) { if (j && j.ok) st.stock = j.stock; }), st.recetas.length ? 0 : api("recetas2").then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; } })]).catch(function () {}).then(function () { st.agl = 0; st.recf2 = 1; if (!st.stock) st.stock = []; var m = document.getElementById("agotm"); if (m && m.__draw) m.__draw(); }); }
+    } else st.recf2 = 1;
     var old = document.getElementById("agotm"); if (old) old.remove();
     var L = (st.productos || []).filter(function (p) { return p.ag; }).map(function (p) { return p.r; });
     var d = document.createElement("div"); d.className = "modal"; d.id = "agotm";
     function draw() {
       var P = L.map(function (r) { return st.productos.filter(function (x) { return x.r === r; })[0]; }).filter(Boolean);
-      d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm" style="margin-bottom:2px">Frascos agotados</div><div class="meta" style="margin-bottom:10px">Apagá "Agotada" cuando vuelva el stock.</div>' +
-        P.map(function (p) { return '<div class="trow"><div class="tname"><div class="nm" style="font-size:.98rem">' + esc(p.nombre) + '</div></div><button class="sw warn' + (p.ag ? " on" : "") + '" data-ar="' + p.r + '" data-c="ag" style="border:0;background:none;padding:0"><i></i>Agotada</button><button class="sw' + (p.vi ? " on" : "") + '" data-ar="' + p.r + '" data-c="vi" style="border:0;background:none;padding:0"><i></i>Visible</button></div>'; }).join("") +
+      d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm" style="margin-bottom:2px">Productos agotados</div><div class="meta" style="margin-bottom:10px">Apagá "Agotada" cuando vuelva el stock.</div>' +
+        P.map(function (p) { return '<div style="border-bottom:1px solid var(--line);padding:8px 0"><div class="trow" style="border:0"><div class="tname"><div class="nm" style="font-size:.98rem">' + esc(p.nombre) + '</div></div><button class="sw warn' + (p.ag ? " on" : "") + '" data-ar="' + p.r + '" data-c="ag" style="border:0;background:none;padding:0"><i></i>Agotada</button><button class="sw' + (p.vi ? " on" : "") + '" data-ar="' + p.r + '" data-c="vi" style="border:0;background:none;padding:0"><i></i>Visible</button></div>' + agFalta(p.nombre) + "</div>"; }).join("") +
         '<button class="btn" id="ag-x" style="margin-top:12px">Listo</button></div>';
     }
-    draw(); document.body.appendChild(d);
+    d.__draw = draw; draw(); document.body.appendChild(d);
     d.addEventListener("click", function (e) {
       if (e.target === d || e.target.closest("#ag-x")) { d.remove(); render(true); return; }
       var b = e.target.closest("[data-ar]"); if (!b) return;
