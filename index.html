@@ -1342,9 +1342,9 @@ var DEFAULTS = {
   function updNav() { cookieLoop.refresh(); }
 
   function slideHtml(m, name, first) {
-    if (m.t === "video") return '<div class="slide"><video src="' + esc(m.src) + '" controls playsinline preload="metadata" aria-label="Video de ' + esc(name) + '"></video></div>';
-    if (m.t === "frame") return '<div class="slide"><iframe src="' + esc(m.src) + '" loading="lazy" allowfullscreen title="Video de ' + esc(name) + '"></iframe></div>';
-    return '<div class="slide"><img src="' + esc(m.src) + '" alt="Frasco ' + esc(name) + '"' + (first ? "" : ' loading="lazy"') + '></div>';
+    if (m.t === "video") return '<div class="slide"><video src="' + esc(vsrc(m.src)) + '" controls playsinline preload="metadata" aria-label="Video de ' + esc(name) + '"></video></div>';
+    if (m.t === "frame") return '<div class="slide"><iframe src="' + esc(vsrc(m.src)) + '" loading="lazy" allowfullscreen title="Video de ' + esc(name) + '"></iframe></div>';
+    return '<div class="slide"><img src="' + esc(vsrc(m.src)) + '" alt="Frasco ' + esc(name) + '"' + (first ? "" : ' loading="lazy"') + '></div>';
   }
 
   var _ring = null, _rt = null, _rp = 0, _rbusy = false;
@@ -1645,6 +1645,7 @@ var DEFAULTS = {
     el.textContent = "⭐ " + avg.toFixed(1).replace(".", ",") + " · " + L.length + (L.length === 1 ? " reseña" : " reseñas"); el.hidden = false;
   }
   $("tr-rev").addEventListener("click", function () { var r = $("reviews"); if (r && !r.hidden) smoothTo(r); });
+  function vsrc(u) { u = String(u || ""); return /^\.\/[^?]+\.(jpg|png)$/i.test(u) ? u + "?v=2" : u; }
   var sPlan = null, sSel = null;
   function zNrm(x) { return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim(); }
   function zonasOk() { return String((data && data.config && data.config.susc_zonas) || "Bahía Blanca").split(",").map(function (z) { return z.trim(); }).filter(Boolean); }
@@ -2043,7 +2044,7 @@ var DEFAULTS = {
     var t = pkTotal(), full = t >= pkTier.q;
     $("pk-list").innerHTML = pkAllowed().map(function (p) {
       var i = data.productos.indexOf(p), m = p.medios.filter(function (z) { return z.t === "img"; })[0], q = pkSel[p.nombre] || 0;
-      return '<li><div class="cimg">' + (m ? '<img src="' + esc(m.src) + '" alt="" referrerpolicy="no-referrer">' : "") + '</div><div><b>' + esc(p.nombre) + "</b>" + (p.descripcion ? "<small>" + esc(p.descripcion.length > 60 ? p.descripcion.slice(0, 58) + "…" : p.descripcion) + "</small>" : "") + '</div><span class="ctrl"><button type="button" data-pi="' + i + '" data-d="-1"' + (q ? "" : " disabled") + ' aria-label="Quitar una">−</button><output>' + q + '</output><button type="button" data-pi="' + i + '" data-d="1"' + (full ? " disabled" : "") + ' aria-label="Sumar una">+</button></span></li>';
+      return '<li><div class="cimg">' + (m ? '<img src="' + esc(vsrc(m.src)) + '" alt="" referrerpolicy="no-referrer">' : "") + '</div><div><b>' + esc(p.nombre) + "</b>" + (p.descripcion ? "<small>" + esc(p.descripcion.length > 60 ? p.descripcion.slice(0, 58) + "…" : p.descripcion) + "</small>" : "") + '</div><span class="ctrl"><button type="button" data-pi="' + i + '" data-d="-1"' + (q ? "" : " disabled") + ' aria-label="Quitar una">−</button><output>' + q + '</output><button type="button" data-pi="' + i + '" data-d="1"' + (full ? " disabled" : "") + ' aria-label="Sumar una">+</button></span></li>';
     }).join("");
     $("pk-count").textContent = fill(data.config.popup_pack_contador, { x: t, n: pkTier.q });
     $("pk-go").disabled = t !== pkTier.q;
@@ -2075,7 +2076,7 @@ var DEFAULTS = {
       var i = data.productos.indexOf(p), q = qty[p.nombre];
       if (!ctl) return '<li><span class="nm">' + esc(p.nombre) + "<small>" + money(p.precio) + " c/u</small></span><span>× " + q + "</span><span>" + money(q * p.precio) + "</span></li>";
       var m = p.medios.filter(function (z) { return z.t === "img"; })[0];
-      return '<li class="ci"><div class="cimg">' + (m ? '<img src="' + esc(m.src) + '" alt="" referrerpolicy="no-referrer">' : "") + '</div><div class="cinfo"><b>' + esc(p.nombre) + "</b><small>" + money(p.precio) + ' c/u</small><span class="ctrl"><button type="button" data-ci="' + i + '" data-d="-1" aria-label="Quitar una">−</button><output>' + q + '</output><button type="button" data-ci="' + i + '" data-d="1" aria-label="Sumar una">+</button></span></div>' +
+      return '<li class="ci"><div class="cimg">' + (m ? '<img src="' + esc(vsrc(m.src)) + '" alt="" referrerpolicy="no-referrer">' : "") + '</div><div class="cinfo"><b>' + esc(p.nombre) + "</b><small>" + money(p.precio) + ' c/u</small><span class="ctrl"><button type="button" data-ci="' + i + '" data-d="-1" aria-label="Quitar una">−</button><output>' + q + '</output><button type="button" data-ci="' + i + '" data-d="1" aria-label="Sumar una">+</button></span></div>' +
         '<div class="cside"><button type="button" class="ctrash" data-ci="' + i + '" data-d="-99" aria-label="Quitar ' + esc(p.nombre) + '">' + TRASH + '</button><span class="cprice">' + money(q * p.precio) + "</span></div></li>";
     }).join("");
     var x = totals();
