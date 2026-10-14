@@ -666,6 +666,9 @@ body.has-obar footer{padding-bottom:90px}
 .sban u{color:#F3D27A;font-weight:700;text-decoration:none!important;border:1px solid rgba(243,210,122,.7);border-radius:999px;padding:1px 10px;margin:0 1px}
 .sban u:hover{background:#E0B04A;color:#2a2000}
 .sban .sx{color:#F7F4EA;opacity:.7}
+.pmos{background:transparent!important;gap:0!important}.pmos img{mix-blend-mode:multiply;opacity:.9;-webkit-mask-image:radial-gradient(ellipse at center,#000 52%,transparent 98%);mask-image:radial-gradient(ellipse at center,#000 52%,transparent 98%)}.pcard{background:rgba(255,255,255,.4)!important}
+.star{background:linear-gradient(135deg,#F2F2F2,#B9BFC6)!important;color:#2d3238!important;box-shadow:0 0 0 2px #fff,0 0 10px rgba(150,160,170,.7)}.star.prem{background:linear-gradient(135deg,#F3D27A,#E0B04A)!important;color:#3b2b00!important;box-shadow:0 0 0 2px #fff,0 0 12px rgba(224,176,74,.7)}
+.sbox.sdone label,.sbox.sdone #sm-go,.sbox.sdone #sm-h{display:none}.sbox .sh{font-size:.8rem;color:var(--ink-soft);margin-top:-4px}.sbox .sthx{text-align:center;padding:6px 0}.sbox .sthx b{display:block;font:600 1.3rem var(--font-display);color:var(--blue-deep)}
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -744,7 +747,7 @@ body.has-obar footer{padding-bottom:90px}
 <div class="obar" id="obar" hidden><div class="ob-t"><b id="ob-n"></b><span id="ob-s"></span></div><button type="button" id="ob-go">Ver mi antojo</button></div>
 <div class="smodal" id="spmodal" hidden role="dialog" aria-modal="true"><div class="sbox spb"><button type="button" class="dx" id="sp-x" aria-label="Cerrar">×</button><h3 id="t-susc">Suscribite</h3><p class="sm-p" id="x-susc"></p><div class="splans" id="splans"></div></div></div>
 <button type="button" class="sfab" id="sfab" hidden aria-label="Suscripción mensual"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><i id="sfab-n" hidden></i></button>
-<div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Zona o dirección de entrega<input id="sm-z"></label><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
+<div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Ciudad<input id="sm-c" autocomplete="address-level2"></label><label>Dirección de entrega<input id="sm-z" autocomplete="street-address"></label><p class="sh" id="sm-h"></p><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
 
 <section class="offers" id="offers" hidden aria-label="Ofertas"><div class="oh"><b>🔥 Ofertas y combos</b></div><div class="otrack" id="otrack"></div></section>
 <div class="sban" id="sban" role="button" tabindex="0" hidden><span id="sban-t"></span><button type="button" class="sx" id="sban-x" aria-label="Minimizar" title="Minimizar">—</button></div>
@@ -1643,6 +1646,10 @@ var DEFAULTS = {
   }
   $("tr-rev").addEventListener("click", function () { var r = $("reviews"); if (r && !r.hidden) smoothTo(r); });
   var sPlan = null, sSel = null;
+  function zNrm(x) { return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim(); }
+  function zonasOk() { return String((data && data.config && data.config.susc_zonas) || "Bahía Blanca").split(",").map(function (z) { return z.trim(); }).filter(Boolean); }
+  function zonaOk(c) { var v = zNrm(c); return zonasOk().some(function (z) { return v.indexOf(zNrm(z)) >= 0; }); }
+  function hasSus() { return typeof mySus !== "undefined" && mySus && mySus.length > 0; }
   function suscList() { return (data.susc && data.susc.planes) || []; }
   function sCount(a) { var m = String(a || "").match(/^(\d{4})-(\d{2})-(\d{2})/); if (!m) return null; var t = new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59).getTime() - Date.now(); return t > 0 ? t : null; }
   function sFmt(t) { var d = Math.floor(t / 864e5), h = Math.floor(t % 864e5 / 36e5), mi = Math.floor(t % 36e5 / 6e4), s = Math.floor(t % 6e4 / 1e3), z = function (n) { return ("0" + n).slice(-2); }; return (d ? d + " d " : "") + z(h) + ":" + z(mi) + ":" + z(s); }
@@ -1655,9 +1662,15 @@ var DEFAULTS = {
     n.hidden = !lowAny; n.className = "dot"; n.textContent = "";
     var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.length > 0, gone = false;
     gone = !!window.__banMin;
-    ban.hidden = !(near && !gone);
+    ban.hidden = !(near && !gone && !hasSus());
     if (near) $("sban-t").innerHTML = "<b>Tu caja mensual</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
     if (!S.length) { $("spmodal").hidden = true; return; }
+    if (hasSus()) {
+      var cur = mySus[0] || {}, pm = S.filter(function (p) { return /prem/i.test(p.plan); })[0], isP = mySus.some(function (x) { return /prem/i.test(x.plan); }), up = Number(String(data.config.susc_upgrade_precio || "").replace(/[^\d.]/g, "")) || (pm && cur.precio ? Math.max(0, pm.precio - cur.precio) : (pm ? pm.precio : 0));
+      $("x-susc").textContent = "";
+      $("splans").innerHTML = '<div class="sthx"><b>' + (isP ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(cur.plan || "")) + "</b><p>¡Gracias por confiar en nosotros! 💚</p></div>" + (!isP && pm ? '<article class="splan prem"><h3>Pasate a ' + esc(pm.plan) + ' ✨</h3><div class="sprice">' + (up > 0 ? money(up) + " <small>por mes más</small>" : "") + '</div>' + (pm.desc ? "<p>" + esc(pm.desc) + "</p>" : "") + '<button type="button" class="btn" data-supg="1">Quiero pasarme a Premium</button></article>' : "");
+      return;
+    }
     $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
     if (sSel == null || !S[sSel]) {
       var cdp = S.filter(function (p) { return sCount(p.ajuste); }).sort(function (a, b) { return sCount(a.ajuste) - sCount(b.ajuste); })[0];
@@ -1684,19 +1697,26 @@ var DEFAULTS = {
     if (T && (T.closest("#sp-x") || T === $("spmodal"))) { $("spmodal").hidden = true; return; }
     var spt = T && T.closest("[data-spt]"); if (spt) { sSel = Number(spt.getAttribute("data-spt")); renderSusc(); return; }
     if (T && T.closest("[data-spb]")) { sSel = null; renderSusc(); return; }
+    if (T && T.closest("[data-supg]")) { var pm2 = ((data.susc && data.susc.planes) || []).filter(function (p) { return /prem/i.test(p.plan); })[0], cu2 = mySus[0] || {}, up2 = Number(String(data.config.susc_upgrade_precio || "").replace(/[^\d.]/g, "")) || (pm2 ? Math.max(0, pm2.precio - (cu2.precio || 0)) : 0), w2 = digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp); window.open("https://wa.me/" + w2 + "?text=" + encodeURIComponent("¡Hola! Quiero pasar mi suscripción " + (cu2.plan || "") + " a Premium" + (up2 > 0 ? " (" + money(up2) + " por mes más)" : "") + "."), "_blank"); return; }
     var b = e.target.closest && e.target.closest("[data-splan]");
-    if (b) { $("spmodal").hidden = true; sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + "Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = ""; $("smodal").hidden = false; return; }
+    if (b) { $("spmodal").hidden = true; sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + "Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = ""; $("sm-go").disabled = false; $("sm-go").textContent = "Quiero anotarme"; $("smodal").querySelector(".sbox").classList.remove("sdone"); $("sm-c").value = zonasOk()[0] || ""; $("sm-h").textContent = "📍 Entregamos en " + zonasOk().join(" y ") + " (por ahora)"; $("smodal").hidden = false; return; }
     if (e.target.closest && (e.target.closest("#sm-x") || e.target === $("smodal"))) { $("smodal").hidden = true; return; }
     if (e.target.closest && e.target.closest("#sm-go")) {
-      var n = $("sm-n").value.trim(), w = $("sm-w").value.trim();
+      var n = $("sm-n").value.trim(), w = $("sm-w").value.trim(), ci = $("sm-c").value.trim(), box = $("smodal").querySelector(".sbox");
       if (!n || w.replace(/\D/g, "").length < 8) { $("sm-f").textContent = "Poné tu nombre y tu WhatsApp."; return; }
-      try { fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify({ accion: "suscribir", plan: sPlan.plan, nombre: n, tel: w, email: $("sm-m").value.trim(), zona: $("sm-z").value.trim() }) }).catch(function () {}); } catch (err) {}
+      if (!ci) { $("sm-f").textContent = "Poné tu ciudad."; return; }
+      var okz = zonaOk(ci);
+      var pl = { accion: okz ? "suscribir" : "listaespera", plan: sPlan.plan, nombre: n, tel: w, email: $("sm-m").value.trim(), zona: ($("sm-z").value.trim() + " · " + ci).replace(/^ · /, ""), ciudad: ci };
+      try { fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify(pl) }).catch(function () {}); } catch (err) {}
+      $("sm-go").disabled = true; box.classList.add("sdone");
+      if (!okz) { $("sm-t").textContent = "¡Gracias! Te vamos a avisar 💚"; $("sm-p").textContent = "Cuando lleguemos a " + ci + " te escribimos por WhatsApp."; $("sm-f").textContent = ""; return; }
       var wa = String(data.config.whatsapp || "").replace(/\D/g, "");
       var txt = "¡Hola! Quiero suscribirme al plan " + sPlan.plan + (sPlan.precio > 0 ? " (" + money(sPlan.precio) + " por mes)" : "") + ". Soy " + n + ".";
+      $("sm-t").textContent = "¡Gracias por suscribirte! 💚"; $("sm-p").textContent = "Ya te anotamos. Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = "";
       if (wa) window.open("https://wa.me/" + wa + "?text=" + encodeURIComponent(txt), "_blank");
-      $("sm-f").textContent = "¡Listo! Te anotamos. Te escribimos por WhatsApp para confirmar."; $("sm-go").disabled = true;
     }
   });
+  document.addEventListener("input", function (e) { if (e.target && e.target.id === "sm-c") { var v = e.target.value.trim(), ok = !v || zonaOk(v); $("sm-go").textContent = ok ? "Quiero anotarme" : "Avisarme cuando lleguen"; $("sm-f").textContent = ok ? "" : "Aún no llegamos a tu zona. Dejanos tu contacto y te avisamos cuando lleguemos."; } });
   function applyData(raw) {
     data = normalize(raw);
     loadCart();
@@ -1911,17 +1931,21 @@ var DEFAULTS = {
   function isPrem(x) { return /premium/i.test(x.plan); }
   function loadSus() {
     var st0 = $("star"); if (!st0) return;
-    if (!ENDPOINT || !memToken) { mySus = []; st0.hidden = true; return; }
+    if (!ENDPOINT || !memToken) return;
     fetch(ENDPOINT + "?misusc=1&token=" + encodeURIComponent(memToken)).then(function (r) { return r.json(); }).then(function (j) {
-      mySus = (j && j.susc) || []; var pr = mySus.some(isPrem);
-      st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = (pr ? "★" : "☆") + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
+      if (!j || j.error || !j.susc) return; mySus = j.susc; try { localStorage.setItem("pk-sus", JSON.stringify(mySus)); } catch (e) {} paintStar(); try { if (data) renderSusc(); } catch (e2) {}
     }).catch(function () {});
   }
+  function paintStar() {
+    var st0 = $("star"); if (!st0) return; var pr = mySus.some(isPrem);
+    st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = (pr ? "★" : "☆") + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
+  }
+  try { var _cs = JSON.parse(localStorage.getItem("pk-sus") || "null"); if (_cs && _cs.length) { mySus = _cs; paintStar(); } } catch (e5) {}
   function starOpen() {
     var pr = mySus.some(isPrem), sb = mySus[0] || {}, m = $("starm"), wa = "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=";
     if (!m) { m = document.createElement("div"); m.id = "starm"; m.className = "smodal"; document.body.appendChild(m); }
     m.hidden = false;
-    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><h3>' + (pr ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p">' + esc(sb.estado === "Pendiente de pago" ? "Tu suscripción está pendiente de pago." : "Tu suscripción está activa" + (sb.pagado ? " · pagado: " + sb.pagado : "") + ".") + '</p><a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">Renovar mi suscripción</a>' + (pr ? "" : '<a class="btn" style="margin-top:8px;background:#E0B04A;color:#3b2b00" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">⭐ Pasar a Premium</a>') + "</div>";
+    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><h3>' + (pr ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p">' + esc(sb.estado === "Pendiente de pago" ? "Tu suscripción está pendiente de pago." : "Tu suscripción está activa" + (sb.pagado ? " · pagado: " + sb.pagado : "") + ".") + '</p><a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">Renovar mi suscripción</a>' + (pr ? "" : '<a class="btn" style="margin-top:8px;background:#E0B04A;color:#3b2b00" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">⭐ Pasar a Premium'+(Number(data.config.susc_upgrade_precio)>0?" por "+money(Number(data.config.susc_upgrade_precio))+" más":"")+'</a>') + "</div>";
   }
   function loadCupones() {
     try { loadSus(); } catch (e9) {}
@@ -1930,7 +1954,7 @@ var DEFAULTS = {
       cupones = (j && j.cupones) || []; if (data) { refresh(); if ($("drawer").classList.contains("open")) renderCart(); }
     }).catch(function () {});
   }
-  $("acct-out").addEventListener("click", function () { mySus = []; if ($("star")) $("star").hidden = true; memToken = ""; tokExp = 0; cupones = []; try { localStorage.removeItem("encurtidos-facu-tok"); } catch (e) {} if (data) refresh(); });
+  $("acct-out").addEventListener("click", function () { mySus = []; try { localStorage.removeItem("pk-sus"); } catch (e6) {} if ($("star")) $("star").hidden = true; memToken = ""; tokExp = 0; cupones = []; try { localStorage.removeItem("encurtidos-facu-tok"); } catch (e) {} if (data) refresh(); });
 
   /* Mis pedidos */
   var ordData = null, ordAsk = "", ordLogin = false;
