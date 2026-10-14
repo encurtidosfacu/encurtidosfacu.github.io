@@ -182,6 +182,7 @@ button { cursor:pointer; }
 body.sh-open{overflow:hidden}
 @keyframes shu{from{transform:translateY(-46%) scale(.97);opacity:.4}to{transform:translateY(-50%);opacity:1}}
 @keyframes shf{from{opacity:0}to{opacity:1}}
+.cdot{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;font:800 .68rem/1 sans-serif;font-style:normal;flex:none}.pchip{display:inline-flex;align-items:center;gap:6px;border:1px solid #E3E8D6;background:#fff;border-radius:999px;padding:4px 10px 4px 4px;font:inherit;font-size:.82rem;font-weight:700;color:inherit}
 .hpv{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin-top:12px;border:0;border-radius:12px;background:rgba(255,255,255,.18);color:#fff;font:inherit;font-weight:600;padding:10px 12px;text-align:left}.hpv b{font-weight:800;display:inline;font-size:inherit;margin:0}.hpv span:last-child{white-space:nowrap;opacity:.9}
 .atj{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.at{background:#fff;border:1px solid #E3E8D6;border-radius:16px;height:84px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;font:inherit;color:inherit}.at i{font-style:normal;font-size:1.45rem;line-height:1.2}.at span{font-size:.68rem;line-height:1.15;color:#445;text-align:center;display:flex;align-items:center;justify-content:center;flex:1;max-width:100%}
 .sec-h{font:700 .74rem var(--fd);letter-spacing:.08em;text-transform:uppercase;color:#6B7A5C;margin:18px 4px 8px}
@@ -442,7 +443,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   }
   function pedCard(p) {
       var c = p.cc || p.cl, wa = waLink(p.tel), e = estadoDe(p), sb = ESTL[e], open = st.pdx === p.r;
-      var b = '<article class="card pc' + (c ? " dim" : "") + '" data-r="' + p.r + '"><button class="row" data-pdx="' + p.r + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center;gap:10px"><div style="min-width:0;flex:1"><div class="nm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + (p.notas ? " 📝" : "") + '</div><div class="id">' + esc(p.id) + " · " + (Number(p.cant) || 0) + " frascos" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + ((e === "pend" || e === "coc") ? blBadge(p) : "") + '</div><div style="text-align:right"><div class="tot" style="font-size:1rem">' + money(p.total) + '</div><span style="display:inline-block;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:999px;background:' + sb[1] + ";color:" + sb[2] + '">' + sb[0] + '</span></div><span class="pen">' + PEN + "</span></button>";
+      var b = '<article class="card pc' + (c ? " dim" : "") + '" data-r="' + p.r + '"><button class="row" data-pdx="' + p.r + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center;gap:10px"><div style="min-width:0;flex:1"><div class="nm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + (p.notas ? " 📝" : "") + '</div><div class="id">' + esc(p.id) + " · " + pedCats(p) + "" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + ((e === "pend" || e === "coc") ? blBadge(p) : "") + '</div><div style="text-align:right"><div class="tot" style="font-size:1rem">' + money(p.total) + '</div><span style="display:inline-block;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:999px;background:' + sb[1] + ";color:" + sb[2] + '">' + sb[0] + '</span></div><span class="pen">' + PEN + "</span></button>";
       if (open) {
         b += '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" +
           '<div class="meta">' + esc(p.fecha) + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
@@ -495,7 +496,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function pedTotal() {
     var el = $("pn-tot"); if (!el) return; var tot = 0, n = 0, pr = {}; (st.productos || []).forEach(function (x) { pr[x.nombre] = x.precio || 0; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-pnq]"), function (i) { var c = Math.floor(Number(i.value) || 0); if (c > 0) { n += c; tot += c * (pr[i.getAttribute("data-pnq")] || 0); } });
-    el.textContent = n ? n + " frascos · aprox. $" + fm(tot) : "";
+    el.textContent = n ? n + (n === 1 ? " unidad" : " unidades") + " · aprox. $" + fm(tot) : "";
   }
   function pedForm() {
     var pr = (st.productos || []).filter(function (x) { return x.nombre; }), n = st.pnf || {};
@@ -572,7 +573,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var nom = st.me && st.me.nombre ? String(st.me.nombre).split(" ")[0] : "";
     var vs = vp > 0 ? Math.round((vm - vp) / vp * 100) : null;
     var MN = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-    var h = '<div class="hero" id="hero"><small>Hola' + (nom ? ", " + esc(nom) : "") + ' 👋 · vendido en ' + MN[cm] + ' ' + cy + ' (pedidos entregados)</small><b>' + money(vm) + "</b>" + (pm > 0 ? "<small>" + pm + (pm === 1 ? " pedido" : " pedidos") + " · " + ck + (ck === 1 ? " frasco" : " frascos") + (vs != null ? " · " + (vs >= 0 ? "▲ " : "▼ ") + Math.abs(vs) + "% vs mes anterior" : "") + "</small>" : "") +
+    var h = '<div class="hero" id="hero"><small>Hola' + (nom ? ", " + esc(nom) : "") + ' 👋 · vendido en ' + MN[cm] + ' ' + cy + ' (pedidos entregados)</small><b>' + money(vm) + "</b>" + (pm > 0 ? "<small>" + pm + (pm === 1 ? " pedido" : " pedidos") + " · " + ck + (ck === 1 ? " unidad" : " unidades") + (vs != null ? " · " + (vs >= 0 ? "▲ " : "▼ ") + Math.abs(vs) + "% vs mes anterior" : "") + "</small>" : "") +
       (npv > 0 ? '<button class="hpv" data-popk="venir"><span>Por venir <b>' + money(vpv) + '</b></span><span>' + npv + (npv === 1 ? " pedido" : " pedidos") + " ›</span></button>" : '<button class="hpv" data-go="finanzas"><span>Sin pedidos por venir</span><span>Finanzas ›</span></button>') + "</div>" +
       '<div class="kpis" id="kp-ped">' + [["pend", "Pendientes"], ["coc", "A macerar"], ["list", "Para entregar"]].map(function (k) { return '<button class="kpi" data-popk="' + k[0] + '"><b>' + c[k[0]] + "</b><span>" + k[1] + "</span></button>"; }).join("") + "</div>";
     var alH = "", todoH = "";
@@ -585,7 +586,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       todoH = '<div class="card todo' + (st.todoOpen ? " open" : "") + '"><button class="todo-h" data-todo="tog"><div style="flex:1;text-align:left"><div class="nm">Para hacer ahora <span class="badge o">' + T.length + '</span></div><div class="meta">' + sum + '</div></div><span style="color:var(--soft);font-size:1.1rem">' + (st.todoOpen ? "▴" : "▾") + "</span></button>" +
         (st.todoOpen ? T.slice(0, 8).map(function (p) {
           var e = estadoDe(p), a = act[e];
-          return pedSw(p, '<div class="trow ssc"><button class="tname" data-todo-open="' + p.r + '"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl[e] + " · " + (Number(p.cant) || 0) + " frascos" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + (e === "list" ? "" : blBadge(p)) + '</button><span class="meta" style="flex:none">‹ ›</span></div>');
+          return pedSw(p, '<div class="trow ssc"><button class="tname" data-todo-open="' + p.r + '"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl[e] + " · " + pedCats(p) + "" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + (e === "list" ? "" : blBadge(p)) + '</button><span class="meta" style="flex:none">‹ ›</span></div>');
         }).join("") + (T.length > 8 ? '<button class="sm" data-go="pedidos" data-fil="todos" style="margin-top:8px">Ver los ' + T.length + " pedidos ›</button>" : "") : "") + "</div>";
     })();
     var al = [];
@@ -594,7 +595,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     stkAlertLines().forEach(function (x) { al.push(x); });
     if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" ' + (x[1] === "__agot" ? 'data-agot="1"' : 'data-go="' + x[1] + '" data-fil="' + x[2] + '"') + ' style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
-    if (ks.length) h += '<button class="card" id="entregas" data-prep="1" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px"><div><div class="nm">🥒 Qué tengo que preparar</div><div class="meta">Tocá para ver el detalle</div></div><span class="meta">›</span></button>';
+    if (ks.length) { var PA = catsOf(prepAll()), PK = catOrder(PA); h += '<div class="card" id="entregas" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px"><div style="min-width:0;flex:1"><button data-prep="1" style="border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;width:100%"><div class="nm">🥒 Qué tengo que preparar</div></button><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + (PK.length ? PK.map(function (k) { return '<button class="pchip" data-pcat="' + esc(k) + '">' + catDot(k) + PA[k].tot + " " + esc(k) + "</button>"; }).join("") : '<span class="meta">Tocá para ver el detalle</span>') + '</div></div><button data-prep="1" aria-label="Ver todo" style="border:0;background:none;font-size:1.4rem;color:var(--soft);padding:0 4px">›</button></div>'; }
     h += '<div class="nm" style="margin:6px 2px 8px">Atajos <span class="meta" style="font-weight:400">· acciones rápidas</span></div><div class="atj" id="atajos">' + [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["suscripciones", "📬", "Suscripciones"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["compras", "🛒", "Lista de compras"]].filter(function (x) { return x[0] === "compras" ? allowed("proveedores") : allowed(x[0]); }).map(function (x) { return '<button class="at" data-sc="' + x[0] + '"><i>' + x[1] + "</i><span>" + x[2] + "</span></button>"; }).join("") + "</div>";
     return todoH + h;
   }
@@ -1719,7 +1720,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var old = document.getElementById("peddec"); if (old) old.remove();
     var L = { ap: ["Aprobar pedido", "Aprobar", 0], he: ["Marcar como hecho", "Listo", 0], en: ["Marcar como entregado", "Entregado", 0], cc: ["Cancelar pedido", "Cancelar pedido", 1], del: ["Eliminar pedido", "Eliminar pedido", 1], react: ["Reactivar pedido", "Reactivar", 0] }[kind]; if (!L) return;
     var wa = waLink(p.tel), d = document.createElement("div"); d.className = "modal"; d.id = "peddec";
-    d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm">' + L[0] + '</div><div class="meta" style="margin-bottom:8px">' + esc(p.nombre) + " · " + esc(p.id) + " · " + (Number(p.cant) || 0) + " frascos · <b>" + money(p.total) + "</b></div>" +
+    d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm">' + L[0] + '</div><div class="meta" style="margin-bottom:8px">' + esc(p.nombre) + " · " + esc(p.id) + " · " + pedCats(p) + " · <b>" + money(p.total) + "</b></div>" +
       '<div class="items">' + esc(p.pedido) + '</div><div class="meta" style="margin-top:6px">' + esc(p.fecha) + (p.entrega ? " · Entrega " + esc(p.entrega) : "") + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
       (wa ? '<a class="sm" target="_blank" rel="noopener" href="' + wa + '" style="margin-top:8px">💬 ' + esc(p.tel) + "</a>" : "") +
       (kind === "del" ? "" : '<textarea class="inp" rows="2" id="pd-n" placeholder="Nota del pedido (opcional)…" style="margin-top:8px">' + esc(p.notas) + "</textarea>") +
@@ -1771,7 +1772,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var old = document.getElementById("pedmodal"); if (old) old.remove();
     var c = p.cc || p.cl, wa = waLink(p.tel), d = document.createElement("div"); d.className = "modal"; d.id = "pedmodal";
     d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto;position:relative"><button class="sh-x" data-pm="x" aria-label="Cerrar" style="position:absolute;top:10px;right:10px;border:0;background:#EEF2E6;width:34px;height:34px;border-radius:50%;color:#3E5B30">✕</button>' +
-      '<div class="nm" style="padding-right:40px">' + esc(p.nombre) + '</div><div class="meta">' + esc(p.id) + " · " + (Number(p.cant) || 0) + " frascos · <b>" + money(p.total) + "</b></div>" +
+      '<div class="nm" style="padding-right:40px">' + esc(p.nombre) + '</div><div class="meta">' + esc(p.id) + " · " + pedCats(p) + " · <b>" + money(p.total) + "</b></div>" +
       '<div class="add" style="margin-top:10px"><datalist id="pm-dl">' + pedClientes().map(function (z) { return '<option value="' + esc(z.nombre) + '">'; }).join("") + '</datalist><input class="inp" id="pm-nom" list="pm-dl" autocomplete="off" value="' + esc(p.nombre) + '" placeholder="Nombre"><input class="inp" id="pm-tel" inputmode="tel" value="' + esc(p.tel) + '" placeholder="Teléfono"><input class="inp" id="pm-mail" type="email" inputmode="email" autocapitalize="off" value="' + esc(p.mail) + '" placeholder="Email"></div><div class="meta" id="pm-hist" style="margin-top:6px;font-weight:700"></div>' + ((estadoDe(p) === "pend" || estadoDe(p) === "coc") ? blDetail(p) : "") +
       '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" +
       '<div class="meta" style="margin-top:6px">' + esc(p.fecha) + (p.entrega ? " · Entrega " + esc(p.entrega) : "") + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
@@ -2592,12 +2593,18 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       var G = {}, tot = {}, order = [];
       (st.pedidos || []).forEach(function (p) { var e = estadoDe(p); if (e === "ent" || e === "canc" || e === "test") return; var k = p.entrega || "Sin fecha"; if (!G[k]) { G[k] = {}; order.push(k); } var it = pedItems(p); Object.keys(it.frascos).forEach(function (n) { G[k][n] = (G[k][n] || 0) + it.frascos[n]; tot[n] = (tot[n] || 0) + it.frascos[n]; }); });
       order.sort(function (a, b) { return (a === "Sin fecha") - (b === "Sin fecha"); });
-      function lst(o) { var ks = Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }); return ks.length ? ks.map(function (n) { var sh = blShort(n); return '<div class="frow"><span>' + esc(n) + "</span><b>" + o[n] + "</b></div>" + (sh.length ? '<div style="background:#FBE9E7;color:#B3261E;border-radius:10px;padding:6px 10px;margin:2px 0 6px;font-size:.85rem;font-weight:700">⚠️ Sin stock: ' + sh.map(esc).join(", ") + "</div>" : ""); }).join("") : '<div class="meta">Nada para preparar.</div>'; }
+      function lst(o) { var C = catsOf(o), K = catOrder(C); return K.length ? K.map(function (c) { return '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-weight:800">' + catDot(c) + esc(c) + ' <span class="badge o">' + C[c].tot + "</span></div>" + Object.keys(C[c].prods).sort(function (a, b) { return C[c].prods[b] - C[c].prods[a]; }).map(function (n) { var sh = blShort(n); return '<div class="frow"><span>' + esc(n) + "</span><b>" + C[c].prods[n] + "</b></div>" + (sh.length ? '<div style="background:#FBE9E7;color:#B3261E;border-radius:10px;padding:6px 10px;margin:2px 0 6px;font-size:.85rem;font-weight:700">⚠️ Sin stock: ' + sh.map(esc).join(", ") + "</div>" : ""); }).join(""); }).join("") : '<div class="meta">Nada para preparar.</div>'; }
       var d = document.createElement("div"); d.className = "modal"; d.id = "prepm";
       d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm" style="margin-bottom:8px">🥒 Qué tengo que preparar</div>' + (order.length ? '<div class="meta" style="font-weight:700">Todo junto</div>' + lst(tot) + order.map(function (k) { return '<div class="meta" style="margin-top:12px;font-weight:700">' + esc(k) + "</div>" + lst(G[k]); }).join("") : '<div class="empty">No hay nada pendiente 🎉</div>') + '<button class="btn" id="prep-x" style="margin-top:12px">Listo</button></div>';
       document.body.appendChild(d); d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("#prep-x")) d.remove(); });
     }
     document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-prep]"); if (!b) return; e.stopPropagation(); e.preventDefault(); prepModal(); }, true);
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("[data-pcat]"); if (!b) return; e.stopPropagation(); e.preventDefault();
+      var c = b.getAttribute("data-pcat"), C = catsOf(prepAll()), o = C[c]; if (!o) return;
+      var d = popBase("catm", 400);
+      d.__c.innerHTML = popHead(catDot(c) + " " + esc(c) + ' <span class="badge o">' + o.tot + "</span>") + Object.keys(o.prods).sort(function (x, y) { return o.prods[y] - o.prods[x]; }).map(function (n) { var sh = blShort(n); return '<div class="frow" style="padding:10px 0"><span>' + esc(n) + "</span><b>" + o.prods[n] + "</b></div>" + (sh.length ? '<div style="background:#FBE9E7;color:#B3261E;border-radius:10px;padding:6px 10px;margin:0 0 6px;font-size:.85rem;font-weight:700">⚠️ Sin stock: ' + sh.map(esc).join(", ") + "</div>" : ""); }).join("") + '<button class="sm" id="cat-all" style="margin-top:10px">Ver todo por categoría ›</button>'; d.querySelector("#cat-all").onclick = function () { d.remove(); prepModal(); };
+    }, true);
     document.addEventListener("click", function (e) {
       var cr = e.target.closest && e.target.closest("[data-crumb]"), open = document.querySelector(".crdd");
       if (open && !(e.target.closest && e.target.closest(".crdd"))) open.remove();
@@ -2678,6 +2685,15 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     }, true);
   })();
 
+  /* ---------- Categorías de producto ---------- */
+  var CCOL = ["#4A6B3A", "#C26A00", "#7B3F98", "#1F6FA8", "#B3261E", "#00796B", "#8D6E63", "#5C6BC0"];
+  function catOf(name) { var p = (st.productos || []).filter(function (x) { return nrm(x.nombre) === nrm(name); })[0]; return p && String(p.cat || "").trim() ? String(p.cat).trim() : "Otros"; }
+  function catCol(c) { var L = []; (st.productos || []).forEach(function (x) { var k = String(x.cat || "").trim(); if (k && L.indexOf(k) < 0) L.push(k); }); var i = L.indexOf(c); return i < 0 ? "#78837a" : CCOL[i % CCOL.length]; }
+  function catDot(c) { return '<i class="cdot" style="background:' + catCol(c) + '">' + esc(String(c).charAt(0).toUpperCase()) + "</i>"; }
+  function catsOf(items) { var o = {}; Object.keys(items).forEach(function (n) { var c = catOf(n); o[c] = o[c] || { tot: 0, prods: {} }; o[c].tot += items[n]; o[c].prods[n] = (o[c].prods[n] || 0) + items[n]; }); return o; }
+  function catOrder(o) { return Object.keys(o).sort(function (a, b) { return (a === "Otros") - (b === "Otros") || o[b].tot - o[a].tot; }); }
+  function pedCats(p) { var C = catsOf(pedItems(p).frascos), K = catOrder(C); return K.length ? K.map(function (k) { return C[k].tot + " " + k; }).join(" · ") : (Number(p.cant) || 0) + " productos"; }
+  function prepAll() { var tot = {}; (st.pedidos || []).forEach(function (p) { var e = estadoDe(p); if (e === "ent" || e === "canc" || e === "test") return; var it = pedItems(p); Object.keys(it.frascos).forEach(function (n) { tot[n] = (tot[n] || 0) + it.frascos[n]; }); }); return tot; }
   /* ---------- Campanita, preparación, carritos y atajos ---------- */
   var RKEY = "uovo_adm_read", BKEY = "uovo_adm_buyx", CKEY = "uovo_adm_carts";
   function blRd(k) { try { return JSON.parse(load(k) || "{}") || {}; } catch (e) { return {}; } }
