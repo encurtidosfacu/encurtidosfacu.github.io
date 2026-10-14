@@ -47,9 +47,16 @@ input.n{text-align:right;width:92px}
 .sw{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .help{background:var(--sky);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--gd);margin:8px 0}
 .pill{font-size:12px;color:var(--soft)}
+.tour{position:fixed;inset:0;z-index:50;touch-action:none}
+.tour .hole{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(10,20,40,.68);border:2px solid #fff;transition:all .25s;pointer-events:none}
+.tour .tcard{position:absolute;background:#fff;border-radius:18px;padding:16px 16px 12px;box-shadow:0 10px 40px rgba(0,0,0,.35);width:min(340px,calc(100vw - 24px));left:50%;transform:translateX(-50%)}
+.tour .tcard h3{margin:0 0 6px;font-size:1.05rem;color:#4A6B3A}.tour .tcard p{margin:0 0 12px;line-height:1.4;color:#333;font-size:.94rem}
+.tour .dots{display:flex;gap:6px;justify-content:center;margin-bottom:10px}.tour .dots i{width:7px;height:7px;border-radius:50%;background:#CBD3BE}.tour .dots i.on{background:#4A6B3A}
+.tour .trow{display:flex;gap:8px}.tour .trow button{flex:1;padding:11px;border-radius:12px;border:1px solid #4A6B3A;background:#fff;color:#4A6B3A;font:inherit;font-weight:700}
+.tour .trow button.pri{background:#4A6B3A;color:#fff}.tour .skip{display:block;margin:8px auto 0;border:0;background:none;color:#777;font:inherit;font-size:.82rem}
 </style></head><body>
 <div class="demo" id="demo" hidden>MODO DEMO · datos de ejemplo, lo que cargues queda solo en este navegador</div>
-<header><b>πKDA · Finanzas</b><button class="chip" id="hq" style="padding:5px 12px">❓ Ayuda</button><a href="admin.html" id="bk">← Admin</a></header>
+<header><b>πKDA · Finanzas</b><button class="chip" id="hw" style="padding:5px 12px">🪄 Guía</button><button class="chip" id="hq" style="padding:5px 12px">❓</button><a href="admin.html" id="bk">← Admin</a></header>
 <nav id="nav"></nav>
 <main id="app"></main>
 <script>
@@ -156,7 +163,7 @@ function fdt(d){return d?d.getDate()+"/"+(d.getMonth()+1):"sin datos"}
 var NAV=[["inicio","Inicio"],["er","Estado de Resultados"],["ventas","Ventas"],["precios","Precios"],["gastos","Gastos"],["compras","Compras"],["sistema","Sistema"]];
 function drawNav(){$("nav").innerHTML=NAV.map(function(n){return '<button class="chip'+(ST.v===n[0]?' on':'')+'" data-v="'+n[0]+'">'+n[1]+'</button>'}).join("")}
 function per(){
-  return '<div class="per"><button class="chip" data-pm="-1">◀</button><span class="m">'+MES[ST.m]+" "+ST.y+'</span><button class="chip" data-pm="1">▶</button>'+
+  return '<div class="per" id="t-per"><button class="chip" data-pm="-1">◀</button><span class="m">'+MES[ST.m]+" "+ST.y+'</span><button class="chip" data-pm="1">▶</button>'+
   (enPeriodo(new Date())?'<span class="tag no">En curso</span>':'')+'</div>';
 }
 function revisar(){
@@ -171,21 +178,21 @@ function vInicio(){
   var t=calc(),act=canalesActivos(),rv=revisar();
   var prep=!t.gasTot||Object.keys(t.faltaCosto).length;
   return '<h2>Inicio</h2><div class="sub">Resumen mensual · '+(DEMO?"datos de ejemplo":"datos reales")+'</div>'+per()+
-  '<div class="card"><div class="sub">Ventas del mes</div><div class="big">'+money(t.neto)+'</div><div class="sub">Ventas netas · '+t.n+' ventas · ajustes y envío cobrado incluidos</div>'+
-  '<div class="row" style="margin-top:10px">'+act.map(function(c){var x=calc(c.id);return '<div class="tile"><div class="l"><span class="ini">'+c.i+'</span>'+esc(c.n)+'</div><div class="n">'+money(x.neto)+'</div><div class="mut">Último dato '+fdt(ultimo(c.id))+'</div></div>'}).join("")+'</div></div>'+
-  '<div class="banner"><span class="sub">Resultado económico</span><b>'+(prep?"En preparación":money(t.res))+'</b><span class="sub">'+(prep?"Costos y gastos aún sin conciliar":"Margen "+pct(t.res/(t.neto||1)))+'</span><button class="btn o" data-go="er">Estado de Resultados →</button></div>'+
-  '<div class="row"><div class="tile"><div class="l">Margen bruto</div><div class="n">'+pct((t.neto-t.cmv)/(t.neto||1))+'</div><div class="mut">Ventas netas − CMV</div></div>'+
+  '<div class="card" id="t-hero"><div class="sub">Ventas del mes</div><div class="big">'+money(t.neto)+'</div><div class="sub">Ventas netas · '+t.n+' ventas · ajustes y envío cobrado incluidos</div>'+
+  '<div class="row" id="t-can" style="margin-top:10px">'+act.map(function(c){var x=calc(c.id);return '<div class="tile"><div class="l"><span class="ini">'+c.i+'</span>'+esc(c.n)+'</div><div class="n">'+money(x.neto)+'</div><div class="mut">Último dato '+fdt(ultimo(c.id))+'</div></div>'}).join("")+'</div></div>'+
+  '<div class="banner" id="t-res"><span class="sub">Resultado económico</span><b>'+(prep?"En preparación":money(t.res))+'</b><span class="sub">'+(prep?"Costos y gastos aún sin conciliar":"Margen "+pct(t.res/(t.neto||1)))+'</span><button class="btn o" data-go="er">Estado de Resultados →</button></div>'+
+  '<div class="row" id="t-kpi"><div class="tile"><div class="l">Margen bruto</div><div class="n">'+pct((t.neto-t.cmv)/(t.neto||1))+'</div><div class="mut">Ventas netas − CMV</div></div>'+
   '<div class="tile"><div class="l">Gastos del mes</div><div class="n">'+money(t.gasTot)+'</div><div class="mut">Comerciales, publicidad, operativos, impuestos</div></div>'+
   '<div class="tile"><div class="l">Ticket promedio</div><div class="n">'+money(t.n?t.neto/t.n:0)+'</div><div class="mut">Por venta</div></div></div>'+
-  (rv.length?'<div class="card"><h3>Revisar</h3>'+rv.map(function(x){return '<div class="rev">'+x+'</div>'}).join("")+'</div>':'');
+  (rv.length?'<div class="card" id="t-rev"><h3>Revisar</h3>'+rv.map(function(x){return '<div class="rev">'+x+'</div>'}).join("")+'</div>':'');
 }
 function vER(){
   var act=canalesActivos(),T=calc(),C=act.map(function(c){return calc(c.id)});
   function row(l,f,cls,neg){return '<tr class="'+(cls||"")+'"><td>'+l+'</td><td>'+cell(f(T),neg)+'</td>'+C.map(function(x){return '<td>'+cell(f(x),neg)+'</td>'}).join("")+'</tr>'}
   function cell(v,neg){return (neg&&v?"−":"")+money(Math.abs(v))+'<div class="mut">US$ '+(Math.abs(v)/CFG.usd).toFixed(0)+'</div>'}
   var h='<h2>Estado de Resultados</h2><div class="sub">Corte al día '+new Date().getDate()+' · USD $'+CFG.usd+' (referencia)</div>'+per()+
-  '<div class="row"><div class="tile"><div class="l">Ventas netas</div><div class="n">'+money(T.neto)+'</div></div><div class="tile"><div class="l">CMV</div><div class="n">'+money(T.cmv)+'</div></div><div class="tile"><div class="l">Gastos</div><div class="n">'+money(T.gasTot)+'</div></div><div class="tile"><div class="l">Resultado</div><div class="n '+(T.res<0?"neg":"pos")+'">'+(T.gasTot?money(T.res):"En preparación")+'</div></div></div>'+
-  '<div class="card"><h3>Estado de Resultados por canal</h3><div class="wrap"><table><tr><th>Concepto</th><th>Total</th>'+act.map(function(c){return '<th>'+esc(c.n)+'</th>'}).join("")+'</tr>'+
+  '<div class="row" id="t-erk"><div class="tile"><div class="l">Ventas netas</div><div class="n">'+money(T.neto)+'</div></div><div class="tile"><div class="l">CMV</div><div class="n">'+money(T.cmv)+'</div></div><div class="tile"><div class="l">Gastos</div><div class="n">'+money(T.gasTot)+'</div></div><div class="tile"><div class="l">Resultado</div><div class="n '+(T.res<0?"neg":"pos")+'">'+(T.gasTot?money(T.res):"En preparación")+'</div></div></div>'+
+  '<div class="card" id="t-ert"><h3>Estado de Resultados por canal</h3><div class="wrap"><table><tr><th>Concepto</th><th>Total</th>'+act.map(function(c){return '<th>'+esc(c.n)+'</th>'}).join("")+'</tr>'+
   row("Ventas brutas",function(x){return x.bruto})+
   row("Descuentos, devoluciones y ajustes",function(x){return x.desc},"s",1)+
   row("Envío cobrado",function(x){return x.envio},"s")+
@@ -195,16 +202,16 @@ function vER(){
   CATS.map(function(c){return row(c[1],function(x){return x.gas[c[0]]||0},"s",1)}).join("")+
   row("Resultado",function(x){return x.res},"t")+
   '</table></div><div class="help">Los gastos sin canal se muestran solo en el Total. Cargalos en <b>Gastos</b>.</div></div>';
-  var rv=revisar();if(rv.length)h+='<div class="card"><h3>Revisar</h3>'+rv.map(function(x){return '<div class="rev">'+x+'</div>'}).join("")+'</div>';
+  var rv=revisar();if(rv.length)h+='<div class="card" id="t-rev"><h3>Revisar</h3>'+rv.map(function(x){return '<div class="rev">'+x+'</div>'}).join("")+'</div>';
   return h;
 }
 function vVentas(){
   var V=ventas().filter(function(v){return enPeriodo(v.fecha)&&(ST.ch==="todos"||v.canal===ST.ch)}).sort(function(a,b){return b.fecha-a.fecha});
   var tot=V.reduce(function(s,v){return s+v.bruto-v.desc+v.envio},0);
   return '<h2>Ventas</h2>'+per()+
-  '<div class="per"><button class="chip'+(ST.ch==="todos"?" on":"")+'" data-ch="todos">Todos</button>'+CANALES.map(function(c){return '<button class="chip'+(ST.ch===c.id?" on":"")+'" data-ch="'+c.id+'">'+esc(c.n)+'</button>'}).join("")+'</div>'+
-  '<div class="card"><div class="row"><div><div class="sub">'+V.length+' ventas</div><div class="big">'+money(tot)+'</div></div><div style="text-align:right"><button class="btn" data-vnew="1">＋ Cargar venta</button></div></div></div>'+
-  '<div class="card" style="padding:4px 14px">'+(V.length?V.map(function(v){var c=CANALES.filter(function(c){return c.id===v.canal})[0];
+  '<div class="per" id="t-fil"><button class="chip'+(ST.ch==="todos"?" on":"")+'" data-ch="todos">Todos</button>'+CANALES.map(function(c){return '<button class="chip'+(ST.ch===c.id?" on":"")+'" data-ch="'+c.id+'">'+esc(c.n)+'</button>'}).join("")+'</div>'+
+  '<div class="card" id="t-vt"><div class="row"><div><div class="sub">'+V.length+' ventas</div><div class="big">'+money(tot)+'</div></div><div style="text-align:right"><button class="btn" id="t-vnew" data-vnew="1">＋ Cargar venta</button></div></div></div>'+
+  '<div class="card" id="t-vl" style="padding:4px 14px">'+(V.length?V.map(function(v){var c=CANALES.filter(function(c){return c.id===v.canal})[0];
     return '<div class="sw"><div><b>'+esc(v.txt||"Venta")+'</b><div class="mut">'+fdt(v.fecha)+' · '+esc(c?c.n:v.canal)+(v.man?' · manual':'')+(v.cupon?' · cupón '+esc(v.cupon):'')+'</div></div><div style="text-align:right"><b>'+money(v.bruto-v.desc+v.envio)+'</b>'+(v.man?'<div><button class="chip" data-vdel="'+esc(v.id)+'">Quitar</button></div>':'')+'</div></div>'}).join(""):'<div class="sub" style="padding:14px">Sin ventas en este período.</div>')+'</div>';
 }
 function prodList(){return D.cat.length?D.cat:demoData.cat}
@@ -213,7 +220,7 @@ function vPrecios(){
   var chs=CANALES.filter(function(c){return c.id!=="tn"||true});
   var pr=function(c){var k=p.nombre+"|"+c.id;return CFG.precios[k]!=null?CFG.precios[k]:(p.precio||0)};
   var h='<h2>Precios</h2><div class="sub">Simulá el precio de venta y mirá cuánto te queda por canal. No publica nada.</div>'+
-  '<div class="per" style="margin-top:8px">'+P.map(function(x,i){return '<button class="chip'+(i===ST.prod?" on":"")+'" data-pr="'+i+'">'+esc(x.nombre)+'</button>'}).join("")+'</div>';
+  '<div class="per" id="t-pp" style="margin-top:8px">'+P.map(function(x,i){return '<button class="chip'+(i===ST.prod?" on":"")+'" data-pr="'+i+'">'+esc(x.nombre)+'</button>'}).join("")+'</div>';
   var cmv=p.costo;
   h+='<div class="card"><h3>'+esc(p.nombre)+' · por unidad</h3>'+(cmv==null?'<div class="rev"><b>Datos incompletos:</b> falta el costo en Recetas. La utilidad mostrada no es real.</div>':'')+
   '<div class="wrap"><table><tr><th>Concepto</th>'+chs.map(function(c){return '<th>'+esc(c.n)+'</th>'}).join("")+'</tr>'+
@@ -231,24 +238,24 @@ function vGastos(){
   var G=GAS.filter(function(g){return enPeriodo(new Date(g.fecha+"T12:00:00"))}).sort(function(a,b){return a.fecha<b.fecha?1:-1});
   var by={};G.forEach(function(g){by[g.cat]=(by[g.cat]||0)+(+g.monto||0)});
   return '<h2>Gastos</h2>'+per()+
-  '<div class="row">'+CATS.map(function(c){return '<div class="tile"><div class="l">'+c[1]+'</div><div class="n">'+money(by[c[0]]||0)+'</div></div>'}).join("")+'</div>'+
-  '<div style="margin:10px 0"><button class="btn" data-gnew="1">＋ Cargar gasto</button></div>'+
-  '<div class="card" style="padding:4px 14px">'+(G.length?G.map(function(g){var c=CATS.filter(function(c){return c[0]===g.cat})[0];var ch=CANALES.filter(function(c){return c.id===g.canal})[0];
+  '<div class="row" id="t-gk">'+CATS.map(function(c){return '<div class="tile"><div class="l">'+c[1]+'</div><div class="n">'+money(by[c[0]]||0)+'</div></div>'}).join("")+'</div>'+
+  '<div style="margin:10px 0"><button class="btn" id="t-gnew" data-gnew="1">＋ Cargar gasto</button></div>'+
+  '<div class="card" id="t-gl" style="padding:4px 14px">'+(G.length?G.map(function(g){var c=CATS.filter(function(c){return c[0]===g.cat})[0];var ch=CANALES.filter(function(c){return c.id===g.canal})[0];
     return '<div class="sw"><div><b>'+esc(g.desc||c[1])+'</b><div class="mut">'+g.fecha.split("-").reverse().slice(0,2).join("/")+' · '+c[1]+' · '+(ch?esc(ch.n):'General')+'</div></div><div style="text-align:right"><b>'+money(g.monto)+'</b><div><button class="chip" data-gdel="'+esc(g.id)+'">Quitar</button></div></div></div>'}).join(""):'<div class="sub" style="padding:14px">Sin gastos este mes.</div>')+'</div>';
 }
 function vCompras(){
   var M=D.movs.filter(function(m){return m[2]==="compra"}).map(function(m){return{f:pDate(m[0]),i:m[1],q:m[3],p:m[4]}}).filter(function(m){return m.f&&enPeriodo(m.f)}).sort(function(a,b){return b.f-a.f});
   var tot=M.reduce(function(s,m){return s+(+m.p||0)},0);
   return '<h2>Compras</h2><div class="sub">Insumos comprados (vienen de Stock). Para cargar una compra usá Stock en el Admin.</div>'+per()+
-  '<div class="card"><div class="sub">Total comprado</div><div class="big">'+money(tot)+'</div></div>'+
-  '<div class="card" style="padding:4px 14px">'+(M.length?M.map(function(m){return '<div class="sw"><div><b>'+esc(m.i)+'</b><div class="mut">'+fdt(m.f)+' · cant. '+m.q+'</div></div><b>'+money(m.p)+'</b></div>'}).join(""):'<div class="sub" style="padding:14px">Sin compras este mes.</div>')+'</div>';
+  '<div class="card" id="t-ct"><div class="sub">Total comprado</div><div class="big">'+money(tot)+'</div></div>'+
+  '<div class="card" id="t-cl" style="padding:4px 14px">'+(M.length?M.map(function(m){return '<div class="sw"><div><b>'+esc(m.i)+'</b><div class="mut">'+fdt(m.f)+' · cant. '+m.q+'</div></div><b>'+money(m.p)+'</b></div>'}).join(""):'<div class="sub" style="padding:14px">Sin compras este mes.</div>')+'</div>';
 }
 function vSistema(){
   return '<h2>Sistema</h2>'+
-  '<div class="card"><h3>Fuentes de datos</h3><div class="help">Cada fuente aporta ventas al mismo formato. Sumar una nueva no cambia nada de lo demás.</div>'+
+  '<div class="card" id="t-fu"><h3>Fuentes de datos</h3><div class="help">Cada fuente aporta ventas al mismo formato. Sumar una nueva no cambia nada de lo demás.</div>'+
   SRC.map(function(s){return '<div class="sw"><div><b>'+esc(s.n)+'</b><div class="mut">'+(s.tipo==="auto"?"Automática desde la base de πKDA":s.tipo==="manual"?"Carga manual en Ventas":"Conexión por API (futura)")+'</div></div><span class="tag '+(s.estado==="conectada"?"ok":"no")+'">'+(s.estado==="conectada"?"Conectada":"Pendiente")+'</span></div>'}).join("")+'</div>'+
-  '<div class="card"><h3>Referencias</h3><div class="f"><label>Dólar de referencia ($ por US$ 1)</label><input class="n" style="width:140px" inputmode="decimal" data-usd="1" value="'+CFG.usd+'"></div></div>'+
-  '<div class="card"><h3>De dónde sale cada número</h3><div class="help">Ventas: pedidos de la tienda (sin cancelados) + ventas manuales.<br>CMV: costo de cada producto (Recetas) × unidades vendidas.<br>Gastos: los que cargás en Gastos.<br>Comisiones y envío: se configuran por canal en Precios.<br>Compras: movimientos de Stock.</div></div>'+
+  '<div class="card" id="t-ref"><h3>Referencias</h3><div class="f"><label>Dólar de referencia ($ por US$ 1)</label><input class="n" style="width:140px" inputmode="decimal" data-usd="1" value="'+CFG.usd+'"></div></div>'+
+  '<div class="card" id="t-orig"><h3>De dónde sale cada número</h3><div class="help">Ventas: pedidos de la tienda (sin cancelados) + ventas manuales.<br>CMV: costo de cada producto (Recetas) × unidades vendidas.<br>Gastos: los que cargás en Gastos.<br>Comisiones y envío: se configuran por canal en Precios.<br>Compras: movimientos de Stock.</div></div>'+
   '<div class="card"><h3>Estado</h3><div class="sub">'+(D.err?esc(D.err):D.ok?"Datos leídos correctamente · "+D.pedidos.length+" pedidos, "+D.cat.length+" productos":"Cargando…")+'</div></div>';
 }
 
@@ -262,8 +269,67 @@ compras:["Compras · insumos comprados",["Muestra lo que compraste en el mes y c
 sistema:["Sistema · de dónde salen los datos",["<b>Fuentes:</b> cada lugar que aporta ventas. Verde = conectada; gris = pendiente. Se pueden sumar más sin cambiar nada de lo demás.","<b>Dólar de referencia:</b> para mostrar importes en US$.","<b>De dónde sale cada número:</b> explica cómo se calcula cada cosa.","<b>Para qué sirve:</b> confiar en los números sabiendo de dónde vienen."]]
 };
 function ayuda(k){var a=AYUDA[k],o=pop('<h3>'+a[0]+'</h3>'+a[1].map(function(x){return '<div class="help">'+x+'</div>'}).join("")+'<div class="row"><button class="btn" id="ok">Entendido</button></div>');o.querySelector("#ok").onclick=function(){o.remove()}}
+
+var TOUR={
+inicio:[["#hq","Guía y ayuda","🪄 Guía te lleva paso a paso por cada pantalla. ❓ explica en texto qué significa cada número."],
+["#nav","Las secciones","Inicio es el resumen. Estado de Resultados, Ventas, Precios, Gastos, Compras y Sistema abren cada detalle. Deslizá para ver todas."],
+["#t-per","Mes que estás viendo","Con las flechas cambiás de mes. Todo lo de abajo se recalcula para ese mes."],
+["#t-hero","Ventas del mes","Lo que realmente entró: ventas brutas menos descuentos, más envío cobrado. Es el número que mirás primero."],
+["#t-can","Por canal","Cuánto aportó cada lugar de venta y cuándo fue su último dato. Si la fecha es vieja, ese canal está desactualizado."],
+["#t-res","Resultado económico","Tu ganancia real del mes. Dice «En preparación» hasta que haya costos y gastos cargados, para que no te confíes en un número falso. El botón abre la cuenta completa."],
+["#t-kpi","Indicadores","Margen bruto: de cada $100 cuánto queda tras el costo. Gastos del mes. Ticket promedio por venta. Si el margen baja, algo se encareció."],
+["#t-rev","Revisar","Lo que falta o está raro. Resolver esto vuelve confiables todos los números."]],
+er:[["#t-per","Período","Elegí el mes a analizar."],
+["#t-erk","Resumen rápido","Ventas netas, costo de la mercadería, gastos y resultado en cuatro números."],
+["#t-ert tr:nth-child(2)","Ventas brutas","Todo lo facturado antes de descontar nada."],
+["#t-ert tr:nth-child(3)","Descuentos y ajustes","Cupones, devoluciones y ajustes. Si los cargás en Ventas, bajan las ventas netas."],
+["#t-ert tr:nth-child(5)","Ventas netas","Lo que entró de verdad. Es la base de todo el cálculo."],
+["#t-ert tr:nth-child(6)","CMV","Costo de lo que vendiste: costo de cada producto (Recetas) por unidades vendidas. Si falta un costo, este número queda bajo y la ganancia parece mayor."],
+["#t-ert tr:nth-child(7)","Utilidad bruta","Lo que queda para pagar gastos. Si es chica, el problema está en el precio o el costo."],
+["#t-ert tr:nth-child(8)","Gastos","Comerciales, publicidad, operativos e impuestos. Se cargan en Gastos y restan acá."],
+["#t-ert tr:nth-child(12)","Resultado","Tu ganancia. Compará columnas: ves en qué canal ganás y en cuál solo facturás."]],
+ventas:[["#t-per","Período","Mes de las ventas que ves."],
+["#t-fil","Filtro por canal","Tocá un canal para ver solo sus ventas, o «Todos»."],
+["#t-vt","Total y carga","Suma de lo mostrado. ＋ Cargar venta agrega ventas de otros canales."],
+["#t-vnew","Cargar venta","Elegís canal, fecha, qué vendiste, monto, descuento y envío. Aparece en la lista y suma en Inicio y Estado de Resultados."],
+["#t-vl","Lista de ventas","Las de la tienda entran solas. Las manuales tienen «Quitar»."]],
+precios:[["#t-pp","Producto","Elegí el producto a analizar."],
+["#t-ert, input[data-pp]","Precio de venta","Cambialo y mirá cómo cambian la utilidad y el margen. Es un simulador: no modifica el precio real de la tienda."],
+["input[data-pc]","Comisión del canal","Lo que cobra Mercado Libre o la pasarela de pago. Si la subís, baja tu ganancia en ese canal."],
+["input[data-pe]","Envío por unidad","Lo que ponés vos de logística por cada unidad vendida."],
+["#app table tr.t:nth-last-child(2)","Utilidad neta","Lo que realmente te queda. En rojo, perdés plata en ese canal."],
+["#app table tr.t:last-child","Margen","Porcentaje de ganancia sobre el precio. Sirve para comparar canales entre sí."]],
+gastos:[["#t-per","Período","Mes de los gastos."],
+["#t-gk","Gastos por tipo","Total del mes por categoría."],
+["#t-gnew","Cargar gasto","Elegís tipo, canal (o General), fecha, detalle y monto. Resta en Estado de Resultados."],
+["#t-gl","Lista","Cada gasto cargado. «Quitar» lo elimina."]],
+compras:[["#t-ct","Total comprado","Cuánto gastaste en insumos este mes."],
+["#t-cl","Detalle","Cada compra viene de Stock en el Admin: al cargarla allá, aparece acá."]],
+sistema:[["#t-fu","Fuentes de datos","De dónde llegan las ventas. Verde = conectada, gris = pendiente (Mercado Libre, Tienda Nube)."],
+["#t-ref","Dólar de referencia","Cambialo y todos los importes en US$ se recalculan."],
+["#t-orig","De dónde sale cada número","Resumen de cómo se calcula cada cosa."]]
+};
+function tourSeen(v){return lsG("fz_tour_"+v,0)}
+function openTour(v){
+  var steps=(TOUR[v]||[]).filter(function(s){return document.querySelector(s[0])});
+  if(!steps.length||document.querySelector(".tour"))return;lsS("fz_tour_"+v,1);
+  var i=0,el=document.createElement("div");el.className="tour";el.innerHTML='<div class="hole"></div><div class="tcard"></div>';document.body.appendChild(el);
+  var hole=el.firstChild,card=el.lastChild,tgt=null;
+  ["wheel","touchmove"].forEach(function(ev){el.addEventListener(ev,function(e){e.preventDefault()},{passive:false})});
+  function pos(){var vh=window.innerHeight,ch=card.offsetHeight,r=tgt&&tgt.getBoundingClientRect();
+    if(r&&r.width){hole.style.cssText="left:"+(r.left-6)+"px;top:"+(r.top-6)+"px;width:"+(r.width+12)+"px;height:"+(r.height+12)+"px";
+      var below=vh-(r.bottom+6),top;if(below>=ch+16)top=r.bottom+14;else if(r.top-6>=ch+16)top=r.top-14-ch;else top=vh-ch-12;card.style.top=Math.max(8,top)+"px"}
+    else{hole.style.cssText="left:50%;top:50%;width:0;height:0";card.style.top=Math.max(8,(vh-ch)/2)+"px"}}
+  function paint(){var s=steps[i],last=i===steps.length-1,dots="";for(var k=0;k<steps.length;k++)dots+='<i class="'+(k===i?"on":"")+'"></i>';
+    card.innerHTML="<h3>"+esc(s[1])+"</h3><p>"+esc(s[2])+'</p><div class="dots">'+dots+'</div><div class="trow">'+(i?'<button data-t="b">Atrás</button>':"")+'<button class="pri" data-t="n">'+(last?"Listo":"Siguiente")+"</button></div>"+(last?"":'<button class="skip" data-t="x">Saltar guía</button>');
+    tgt=document.querySelector(s[0]);if(tgt){try{tgt.scrollIntoView({block:"center"})}catch(e){}}pos();setTimeout(pos,350)}
+  el.addEventListener("click",function(e){var t=e.target.getAttribute&&e.target.getAttribute("data-t");
+    if(t==="n"){if(i<steps.length-1){i++;paint()}else close()}else if(t==="b"){i--;paint()}else if(t==="x")close()});
+  function close(){el.remove();window.removeEventListener("resize",pos)}
+  window.addEventListener("resize",pos);paint();
+}
 var VIEWS={inicio:vInicio,er:vER,ventas:vVentas,precios:vPrecios,gastos:vGastos,compras:vCompras,sistema:vSistema};
-function render(){drawNav();$("app").innerHTML=(D.err&&!D.ok?'<div class="card">'+esc(D.err)+'</div>':'<div style="text-align:right;margin-top:6px"><button class="chip" data-ay="1">❓ ¿Qué estoy viendo?</button></div>'+VIEWS[ST.v]())}
+var _lastV=null;function render(){drawNav();$("app").innerHTML=(D.err&&!D.ok?'<div class="card">'+esc(D.err)+'</div>':'<div style="text-align:right;margin-top:6px"><button class="chip" data-ay="1">❓ ¿Qué estoy viendo?</button></div>'+VIEWS[ST.v]());if(D.ok&&_lastV!==ST.v){_lastV=ST.v;if(!tourSeen(ST.v))setTimeout(function(){openTour(ST.v)},400)}}
 function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
 function pop(html){var o=document.createElement("div");o.className="ov";o.innerHTML='<div class="pop">'+html+'</div>';o.addEventListener("click",function(e){if(e.target===o)o.remove()});document.body.appendChild(o);return o}
 function chips(name,arr,sel){return '<div class="per" data-grp="'+name+'">'+arr.map(function(a){return '<button type="button" class="chip'+(a[0]===sel?" on":"")+'" data-sel="'+name+'" data-val="'+a[0]+'">'+a[1]+'</button>'}).join("")+'</div>'}
@@ -271,6 +337,7 @@ function uid(){return "x"+Math.random().toString(36).slice(2,8)}
 
 document.addEventListener("click",function(e){
   var t=e.target.closest("button,[data-sel]");if(!t)return;var d=t.dataset;
+  if(t.id==="hw"){openTour(ST.v);return}
   if(t.id==="hq"||d.ay){ayuda(ST.v);return}
   if(d.v){ST.v=d.v;render();window.scrollTo(0,0);return}
   if(d.go){ST.v=d.go;render();return}
@@ -308,6 +375,6 @@ document.addEventListener("change",function(e){
 });
 render();
 loadAll().then(render);
-if(!lsG("fz_vista",0)){lsS("fz_vista",1);setTimeout(function(){ayuda("inicio")},600)}
+
 })();
 </script></body></html>
