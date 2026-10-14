@@ -209,6 +209,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
 #entregas .frow{gap:8px;align-items:center}#entregas .frow>span:last-child{flex:none;white-space:nowrap;font-size:.85rem}
 #porvenir>div{min-width:0;flex:1}
 .crumb[data-crumb]{cursor:pointer}.crdd{position:absolute;z-index:60;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;min-width:230px;max-height:65vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(32,40,30,.25);padding:6px}.crdd button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 .98rem inherit;font-family:inherit;color:var(--ink,#27301f);text-align:left}.crdd button.on{background:#EDF2E4;color:#4A6B3A}.crdd button:active{background:#EDF2E4}
+.ssw.pw>.ssc,.ssw.pw>article.card{background:var(--ecb)!important;border-left:6px solid var(--ecf);transition:background .25s,border-color .25s}
 </style>
 </head>
 <body>
@@ -431,8 +432,8 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function waLink(t) { var d = String(t || "").replace(/\D/g, ""); if (!d) return ""; if (d.indexOf("54") !== 0) d = "549" + d.replace(/^0+/, ""); return "https://wa.me/" + d; }
   function pedSw(p, inner) {
     var e = estadoDe(p), pos = e === "pend" ? ["ap", "Aprobar"] : e === "coc" ? ["he", "Listo"] : e === "list" ? ["en", "Entregado"] : (p.cc && !p.cl) ? ["react", "Reactivar"] : null;
-    var canc = !(p.cc || p.cl);
-    return '<div class="ssw pw' + (canc ? "" : " one") + '" data-ssw="p:' + p.r + '">' + (pos ? '<div class="sa l"><button class="txt" data-pact="' + p.r + ":" + pos[0] + '">' + pos[1] + "</button></div>" : "") + '<div class="sa r">' + (canc ? '<button class="m" data-pact="' + p.r + ':cc" aria-label="Cancelar pedido">✕</button>' : "") + '<button class="d" data-pact="' + p.r + ':del" aria-label="Eliminar pedido">🗑</button></div>' + inner + "</div>";
+    var canc = !(p.cc || p.cl), ec = ESTL[estadoDe(p)] || ESTL.pend;
+    return '<div class="ssw pw' + (canc ? "" : " one") + '" style="--ecb:' + ec[1] + ';--ecf:' + ec[2] + '" data-ssw="p:' + p.r + '">' + (pos ? '<div class="sa l"><button class="txt" data-pact="' + p.r + ":" + pos[0] + '">' + pos[1] + "</button></div>" : "") + '<div class="sa r">' + (canc ? '<button class="m" data-pact="' + p.r + ':cc" aria-label="Cancelar pedido">✕</button>' : "") + '<button class="d" data-pact="' + p.r + ':del" aria-label="Eliminar pedido">🗑</button></div>' + inner + "</div>";
   }
   function renderPedidos() {
     var base = st.pedidos.filter(dateOk), cnt = {}; base.forEach(function (p) { var e = estadoDe(p); cnt[e] = (cnt[e] || 0) + 1; });
@@ -1597,6 +1598,8 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       if (!el) return; var a = el, w = a.parentNode; el = null; a.style.transition = ""; a.style.transform = "";
       if (dir !== 1) return; msSwiped = Date.now();
       w.classList.remove("ol", "or"); st.ssw = null;
+      var lb = w.querySelector(".sa.l [data-pact]");
+      if (cur > 70 && lb && /:(ap|he|en)$/.test(lb.getAttribute("data-pact"))) { var pq0 = lb.getAttribute("data-pact").split(":"); patchPedido(Number(pq0[0]), pq0[1], true); toast(pq0[1] === "ap" ? "Aprobado ✓" : pq0[1] === "he" ? "Hecho ✓" : "Entregado ✓"); return; }
       if (cur > 40) { w.classList.add("ol"); st.ssw = { k: w.getAttribute("data-ssw"), s: "l" }; } else if (cur < -Math.min(50, RW - 10)) { w.classList.add("or"); st.ssw = { k: w.getAttribute("data-ssw"), s: "r" }; }
     }
     document.addEventListener("touchend", end); document.addEventListener("touchcancel", end);
@@ -2545,7 +2548,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     function prepModal() {
       var old = document.getElementById("prepm"); if (old) old.remove();
       var G = {}, tot = {}, order = [];
-      (st.pedidos || []).forEach(function (p) { var e = estadoDe(p); if (e === "ent" || e === "canc" || e === "test") return; var k = p.entrega || "Sin fecha"; if (!G[k]) { G[k] = {}; order.push(k); } var it = pedItems(p); Object.keys(it.frascos).forEach(function (n) { G[k][n] = (G[k][n] || 0) + it.frascos[n]; tot[n] = (tot[n] || 0) + it.frascos[n]; }); if (it.packs || it.combos) { G[k]["Packs/combos"] = (G[k]["Packs/combos"] || 0) + it.packs + it.combos; } });
+      (st.pedidos || []).forEach(function (p) { var e = estadoDe(p); if (e === "ent" || e === "canc" || e === "test") return; var k = p.entrega || "Sin fecha"; if (!G[k]) { G[k] = {}; order.push(k); } var it = pedItems(p); Object.keys(it.frascos).forEach(function (n) { G[k][n] = (G[k][n] || 0) + it.frascos[n]; tot[n] = (tot[n] || 0) + it.frascos[n]; }); });
       order.sort(function (a, b) { return (a === "Sin fecha") - (b === "Sin fecha"); });
       function lst(o) { var ks = Object.keys(o).sort(function (a, b) { return o[b] - o[a]; }); return ks.length ? ks.map(function (n) { return '<div class="frow"><span>' + esc(n) + "</span><b>" + o[n] + "</b></div>"; }).join("") : '<div class="meta">Nada para preparar.</div>'; }
       var d = document.createElement("div"); d.className = "modal"; d.id = "prepm";
