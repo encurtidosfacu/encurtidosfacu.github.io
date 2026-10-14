@@ -88,13 +88,13 @@ a { color: inherit; }
 .collage img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .collage img:nth-child(3) { grid-column: 1 / -1; }
 .scene.noimg::before, .scene::before { background: rgba(255, 249, 238, .6); }
-.collage { display: none !important; }
-.scene { background-image: radial-gradient(rgba(74,107,58,.09) 1.2px, transparent 1.4px), radial-gradient(rgba(224,176,74,.10) 1.2px, transparent 1.4px) !important; background-size: 26px 26px, 26px 26px !important; background-position: 0 0, 13px 13px !important; background-color: #F4EEDD !important; }
+.collage img { opacity: .7; }
+.scene { background-color: #F4EEDD; }
 
 /* Quiénes somos */
 
 .about { padding-block: 40px 8px; }
-.about .wrap { display: grid; gap: 10px; }
+.about .wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
 .about .wrap > *, .menu-head { }
 .about .in, .menu-head { background: rgba(255, 255, 255, .78); border-radius: 18px; padding: 16px 18px; justify-self: start; backdrop-filter: blur(3px); }
 .about h2 { font-size: 1.6rem; color: var(--blue); }
@@ -651,13 +651,21 @@ body.has-obar footer{padding-bottom:90px}
 .cgrid .ctrl button{width:38px;height:38px;font-size:1.4rem}
 .cgrid .ctrl output{min-width:28px;font-size:1.1rem}
 
-.cat-h{cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
-.cat-h::after{content:"▾";font:700 1rem var(--font-body);color:var(--blue);margin-left:auto;align-self:center}
+.cat-h{cursor:default;position:relative;border-bottom:0 !important;-webkit-tap-highlight-color:transparent}
+
 .catdd{position:absolute;z-index:40;top:100%;left:0;right:0;margin-top:6px;max-width:340px;background:#fff;border:2px solid var(--sky-line);border-radius:16px;box-shadow:0 12px 30px rgba(43,42,30,.22);padding:6px;max-height:60vh;overflow:auto}
 .catdd button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 1rem var(--font-body);color:var(--ink);text-align:left;cursor:pointer}
 .catdd button:hover,.catdd button.on{background:var(--sky)}
 .catdd .n{font-size:.8rem;background:var(--sky-line);border-radius:999px;padding:1px 9px}
 .catdd .sep{font:700 .72rem var(--font-body);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);padding:8px 14px 2px}
+.trust.side{margin:0;padding:14px 16px;flex:1 1 220px;max-width:340px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:9px;background:rgba(255,255,255,.78);border-radius:18px;backdrop-filter:blur(3px);overflow:visible}
+.trust.side span{font-size:.9rem;opacity:.9}
+.sban{position:relative;gap:12px;margin:16px auto 6px;padding:10px 10px 10px 16px;border-radius:16px;background:linear-gradient(120deg,#2f4a24,#4A6B3A 60%,#5b7d49);border:1px solid rgba(224,176,74,.8);color:#F7F4EA;box-shadow:0 8px 24px rgba(35,48,24,.28),inset 0 0 0 1px rgba(255,255,255,.06);font:500 .92rem/1.3 var(--font-body)}
+.sban::before{content:"★";color:#E0B04A;font-size:1.15rem;text-shadow:0 0 10px rgba(224,176,74,.7)}
+.sban b{color:#fff;font-weight:700;letter-spacing:.01em}
+.sban u{color:#F3D27A;font-weight:700;text-decoration:none!important;border:1px solid rgba(243,210,122,.7);border-radius:999px;padding:1px 10px;margin:0 1px}
+.sban u:hover{background:#E0B04A;color:#2a2000}
+.sban .sx{color:#F7F4EA;opacity:.7}
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -724,12 +732,12 @@ body.has-obar footer{padding-bottom:90px}
 
 <div class="stripe"><button type="button" class="stripe-link" id="stripe-promos" hidden></button></div>
 
-<div class="scene noimg" id="scene"><div class="collage" aria-hidden="true"><img src="./pepinos.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./berenjenas.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./cebollas.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./zanahorias.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./pimientos.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"></div>
+<div class="scene noimg" id="scene"><div class="collage" aria-hidden="true"><img src="./bg1.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./bg2.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./bg3.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./bg4.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"><img src="./bg5.jpg" alt="" loading="lazy" referrerpolicy="no-referrer"></div>
 <section class="about" id="about" hidden>
   <div class="wrap"><div class="in">
     <h2 id="t-quienes">Quiénes somos</h2>
     <p id="about-text"></p>
-  </div></div>
+  </div><div class="trust side" id="trust"><span>🚚 Entrega local</span><span>🫙 Hecho artesanalmente</span><span>💬 Pedís y coordinamos por WhatsApp</span><span id="tr-rev" hidden></span></div></div>
 </section>
 
 
@@ -737,8 +745,8 @@ body.has-obar footer{padding-bottom:90px}
 <div class="smodal" id="spmodal" hidden role="dialog" aria-modal="true"><div class="sbox spb"><button type="button" class="dx" id="sp-x" aria-label="Cerrar">×</button><h3 id="t-susc">Suscribite</h3><p class="sm-p" id="x-susc"></p><div class="splans" id="splans"></div></div></div>
 <button type="button" class="sfab" id="sfab" hidden aria-label="Suscripción mensual"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><i id="sfab-n" hidden></i></button>
 <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Zona o dirección de entrega<input id="sm-z"></label><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
-<div class="trust" id="trust"><span>🚚 Entrega local</span><span>🫙 Hecho artesanalmente</span><span>💬 Pedís y coordinamos por WhatsApp</span><span id="tr-rev" hidden></span></div>
-<section class="offers" id="offers" hidden aria-label="Ofertas"><div class="oh"><b>🔥 Ofertas y combos</b><span>tocá para verlas</span></div><div class="otrack" id="otrack"></div></section>
+
+<section class="offers" id="offers" hidden aria-label="Ofertas"><div class="oh"><b>🔥 Ofertas y combos</b></div><div class="otrack" id="otrack"></div></section>
 <div class="sban" id="sban" role="button" tabindex="0" hidden><span id="sban-t"></span><button type="button" class="sx" id="sban-x" aria-label="Minimizar" title="Minimizar">—</button></div>
 <main class="menu wrap" id="catalogo">
   <div class="menu-head">
@@ -1648,7 +1656,7 @@ var DEFAULTS = {
     var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.length > 0, gone = false;
     gone = !!window.__banMin;
     ban.hidden = !(near && !gone);
-    if (near) $("sban-t").innerHTML = "📬 <b>No te pierdas tu suscripción</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
+    if (near) $("sban-t").innerHTML = "<b>Tu caja mensual</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
     if (!S.length) { $("spmodal").hidden = true; return; }
     $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
     if (sSel == null || !S[sSel]) {
