@@ -1626,7 +1626,7 @@ var DEFAULTS = {
     var p = S[sSel], left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
     $("splans").innerHTML = '<button type="button" class="spback" data-spb="1">← Ver los dos caminos</button><article class="splan' + (prem ? " prem" : "") + '"><h3>' + esc(p.plan) + (prem ? " ✨" : "") + '</h3><div class="sprice">' + (p.precio > 0 ? money(p.precio) + " <small>por mes</small>" : "<small>Precio a confirmar</small>") + "</div>" +
       '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : "Cupo completo · anotate en lista de espera") + "</span>" +
-      (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") + (p.contenido ? '<div class="scont"><b>Este mes:</b> ' + esc(p.contenido) + "</div>" : "") +
+      (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") +
       (p.ajuste ? '<div class="sadj">Próximo ajuste de precio: ' + esc(p.ajuste) + "</div>" : "") +
       '<button type="button" class="btn" data-splan="' + sSel + '">' + (left > 0 ? "Quiero suscribirme" : "Anotarme en la lista") + "</button></article>";
   }

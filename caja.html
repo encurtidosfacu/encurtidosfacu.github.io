@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#4A6B3A">
+<title>Tu caja · Encurtidos Facu</title>
+<style>
+:root{--g:#4A6B3A;--gd:#2F4A25;--bg:#F6F2E6;--ink:#26331f;--soft:#6b7560;--card:#fff;--line:#E3E0D0;--star:#E8A400}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:520px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:1.7rem;line-height:1.15;margin:6px 0 4px;color:var(--gd)}
+.sub{color:var(--soft);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.msg{white-space:pre-wrap;line-height:1.5;font-size:1.02rem}
+.hero{text-align:center;padding:26px 8px 10px;font-size:3rem}
+.pn{font-weight:800;font-size:1.1rem;color:var(--gd)}
+.pd{color:var(--soft);margin:4px 0 10px;line-height:1.45;white-space:pre-wrap}
+.stars{display:flex;gap:4px}
+.stars button{border:0;background:none;font-size:2.1rem;line-height:1;padding:2px;color:#d2d0c2;cursor:pointer}
+.stars button.on{color:var(--star)}
+textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;font:inherit;min-height:84px;resize:vertical;background:#fff}
+.btn{display:block;width:100%;border:0;border-radius:999px;background:var(--g);color:#fff;font:inherit;font-weight:800;padding:15px;font-size:1.05rem;margin-top:10px}
+.btn:disabled{opacity:.6}
+.ask{background:#EEF3E6;border-radius:14px;padding:12px 14px;color:var(--gd);font-weight:600;margin:6px 0 14px;line-height:1.4}
+.mus{width:100%;aspect-ratio:16/9;border:0;border-radius:14px;background:#000}
+.lnk{display:block;text-align:center;text-decoration:none;border:1.5px solid var(--g);color:var(--g);border-radius:999px;padding:12px;font-weight:700}
+.err{text-align:center;padding:60px 10px;color:var(--soft)}
+.ok{color:var(--g);font-weight:800;text-align:center;margin-top:12px}
+.foot{text-align:center;color:var(--soft);font-size:.8rem;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="err">Abriendo tu caja…</div></div>
+<script>
+(function () {
+  var API = "https://script.google.com/macros/s/AKfycbzjzJ-TNjGERA9q9IhSTGB1qYPojx9mO78Fw6GL11de_FupMzB8ixAuXdsW_Xdv0uVBRg/exec";
+  var $ = function (id) { return document.getElementById(id); }, app = $("app");
+  var code = (new URLSearchParams(location.search).get("c") || "").replace(/[^a-z0-9]/gi, "");
+  var D = null, V = {};
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function fail() { app.innerHTML = '<div class="err"><div style="font-size:2.4rem">🫙</div><p>No encontramos esta caja.<br>Revisá que hayas escaneado bien la tarjeta.</p></div>'; }
+  function call(extra) { return fetch(API + "?caja=" + encodeURIComponent(code) + (extra || "")).then(function (r) { return r.json(); }); }
+  function yt(u) { var m = String(u || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-]{11})/); return m ? m[1] : ""; }
+  function render() {
+    var h = '<div class="hero">🎁</div><h1>¡Hola' + (D.nombre ? ", " + esc(D.nombre) : "") + '!</h1><p class="sub">Esta es tu caja' + (D.mes ? " de " + esc(D.mes) : "") + (D.plan ? " · plan " + esc(D.plan) : "") + '</p>';
+    if (D.mensaje) h += '<div class="card msg">' + esc(D.mensaje) + "</div>";
+    if (D.musica) { var id = yt(D.musica); h += '<div class="card">' + (id ? '<iframe class="mus" src="https://www.youtube.com/embed/' + id + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>' : '<a class="lnk" href="' + esc(D.musica) + '" target="_blank" rel="noopener">▶ Escuchar la música de tu caja</a>') + "</div>"; }
+    h += '<div class="ask">Contanos qué te pareció cada producto. Así conocemos tu gusto y elegimos mejor tu próxima caja. 💚</div>';
+    (D.productos || []).forEach(function (p, i) {
+      var v = V[p.n] || 0;
+      h += '<div class="card"><div class="pn">' + esc(p.n) + "</div>" + (p.d ? '<div class="pd">' + esc(p.d) + "</div>" : "") + '<div class="stars" data-p="' + i + '">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-n="' + n + '" class="' + (n <= v ? "on" : "") + '" aria-label="' + n + ' estrellas">★</button>'; }).join("") + "</div></div>";
+    });
+    h += '<div class="card"><div class="pn" style="font-size:1rem">¿Algo más que quieras contarnos?</div><textarea id="com" placeholder="Qué te gustó, qué no, qué te gustaría probar…">' + esc(D.comentario || "") + '</textarea></div><button class="btn" id="send">Enviar mi opinión</button><div class="ok" id="okm" hidden>¡Gracias! Ya lo tenemos en cuenta para tu próxima caja 💚</div><div class="foot">Encurtidos Facu</div>';
+    app.innerHTML = h;
+  }
+  app.addEventListener("click", function (e) {
+    var b = e.target.closest(".stars button");
+    if (b) { var i = Number(b.parentNode.getAttribute("data-p")), p = D.productos[i]; V[p.n] = Number(b.getAttribute("data-n")); var bs = b.parentNode.children; for (var k = 0; k < bs.length; k++) bs[k].className = (k + 1) <= V[p.n] ? "on" : ""; return; }
+    if (e.target.closest("#send")) {
+      var s = e.target.closest("#send"); if (!Object.keys(V).length) { s.textContent = "Puntuá al menos un producto ⭐"; setTimeout(function () { s.textContent = "Enviar mi opinión"; }, 2200); return; }
+      s.disabled = true; s.textContent = "Enviando…";
+      call("&rv=" + encodeURIComponent(JSON.stringify(V)) + "&rn=" + encodeURIComponent($("com").value)).then(function (j) { s.disabled = false; s.textContent = "Actualizar mi opinión"; if (j && j.ok) $("okm").hidden = false; else s.textContent = "No se pudo enviar. Probá de nuevo"; }).catch(function () { s.disabled = false; s.textContent = "No se pudo enviar. Probá de nuevo"; });
+    }
+  });
+  if (code.length < 6) { fail(); return; }
+  call().then(function (j) { if (!j || !j.ok) { fail(); return; } D = j; V = j.vals || {}; render(); }).catch(fail);
+})();
+</script>
+</body>
+</html>
