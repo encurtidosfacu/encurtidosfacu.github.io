@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#4A6B3A">
-<title>Tu caja · Encurtidos Facu</title>
+<title>Tu caja · πKDA</title>
 <style>
 :root{--g:#4A6B3A;--gd:#2F4A25;--bg:#F6F2E6;--ink:#26331f;--soft:#6b7560;--card:#fff;--line:#E3E0D0;--star:#E8A400}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -54,7 +54,7 @@ textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12
       var v = V[p.n] || 0;
       h += '<div class="card"><div class="pn">' + esc(p.n) + "</div>" + (p.d ? '<div class="pd">' + esc(p.d) + "</div>" : "") + '<div class="stars" data-p="' + i + '">' + [[5, "😍", "Me encantó"], [3, "🙂", "Está bien"], [1, "👎", "No me gustó"]].map(function (o) { var on = o[0] === 5 ? v >= 4 : o[0] === 3 ? v === 3 : v > 0 && v <= 2; return '<button type="button" data-n="' + o[0] + '" class="' + (on ? "on" : "") + '"><span>' + o[1] + "</span>" + o[2] + "</button>"; }).join("") + "</div></div>";
     });
-    h += '<div class="card"><div class="pn" style="font-size:1rem">¿Algo más que quieras contarnos?</div><textarea id="com" placeholder="Qué te gustó, qué no, qué te gustaría probar…">' + esc(D.comentario || "") + '</textarea></div><button class="btn" id="send">Enviar mi opinión</button><div class="ok" id="okm" hidden>¡Gracias! Ya lo tenemos en cuenta para tu próxima caja 💚</div><div class="foot">Encurtidos Facu</div>';
+    h += '<div class="card"><div class="pn" style="font-size:1rem">¿Algo más que quieras contarnos?</div><textarea id="com" placeholder="Qué te gustó, qué no, qué te gustaría probar…">' + esc(D.comentario || "") + '</textarea></div><button class="btn" id="send">Enviar mi opinión</button><div class="ok" id="okm" hidden>¡Gracias! Ya lo tenemos en cuenta para tu próxima caja 💚</div><div class="foot">πKDA</div>';
     app.innerHTML = h;
   }
   app.addEventListener("click", function (e) {
