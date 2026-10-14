@@ -445,7 +445,7 @@ body.nobadge #bell-n{display:none!important}
   function estadoDe(p) { if (p.cc || p.cl) return "canc"; if (p.en) return "ent"; if (p.he) return "list"; if (p.ap) return "coc"; return "pend"; }
   function pdRange() {
     var k = st.pdp || "todo", t = new Date(), d0 = new Date(t.getFullYear(), t.getMonth(), t.getDate()), a = null, b = null;
-    if (k === "hoy") { a = d0; b = d0; } else if (k === "sem") { a = new Date(d0); a.setDate(a.getDate() - ((a.getDay() + 6) % 7)); b = d0; } else if (k === "mes") { a = new Date(t.getFullYear(), t.getMonth(), 1); b = d0; } else if (k === "anio") { a = new Date(t.getFullYear(), 0, 1); b = d0; }
+    if (k === "hoy") { a = d0; b = d0; } else if (k === "3d") { a = new Date(d0); a.setDate(a.getDate() - 2); b = d0; } else if (k === "sem") { a = new Date(d0); a.setDate(a.getDate() - ((a.getDay() + 6) % 7)); b = d0; } else if (k === "mes") { a = new Date(t.getFullYear(), t.getMonth(), 1); b = d0; } else if (k === "anio") { a = new Date(t.getFullYear(), 0, 1); b = d0; }
     else if (k === "rng") { if (st.pdd) { var x = st.pdd.split("-"); a = new Date(+x[0], +x[1] - 1, +x[2]); } if (st.pdh) { var y = st.pdh.split("-"); b = new Date(+y[0], +y[1] - 1, +y[2]); } }
     return [a, b];
   }
@@ -3598,16 +3598,20 @@ body.nobadge #bell-n{display:none!important}
   }
   function renderPDash() {
     if (!st.loaded.pedidos || !st.plz) { if (!st.mdl) { st.mdl = 1; modLoad(function () { st.mdl = 0; if (st.v === "pdash") render(true); }); } return '<div class="empty">Cargando…</div>'; }
-    var hoy = isoD(new Date()), act = st.pedidos.filter(function (p) { return !p.cc && !p.cl && !p.te && !p.en; }), f = st.pdf || "";
+    var hoy = isoD(new Date()), act = st.pedidos.filter(function (p) { return !p.cc && !p.cl && !p.te && !p.en && dateOk(p); }), f = st.pdf || "";
     var sent = st.pedidos.filter(function (p) { return p.ev && p.fev === hoy && !p.cc && !p.cl; });
-    var cnt = {}; PDK.forEach(function (k) { cnt[k[0]] = st.pedidos.filter(function (p) { return pdMatch(p, k[0]); }).length; });
+    var cnt = {}; PDK.forEach(function (k) { cnt[k[0]] = st.pedidos.filter(function (p) { return dateOk(p) && pdMatch(p, k[0]); }).length; });
     var L = act.filter(function (p) { return !f || pdMatch(p, f); }).sort(function (a, b) { return (pf(a.fecha) || 0) - (pf(b.fecha) || 0); });
     var nuevosH = st.pedidos.filter(function (p) { return pf(p.fecha) && isoD(new Date(pf(p.fecha))) === hoy && !p.cc && !p.cl; }).length, actL = [];
     try { actL = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]").filter(function (x) { return isoD(new Date(x.t)) === hoy; }); } catch (e0) {}
     var gid = {}; actL.forEach(function (x) { if (x.id) gid[x.id] = 1; });
     var G = st.pedidos.filter(function (p) { return !p.cc && !p.cl && (gid[p.id] || (p.ev && p.fev === hoy) || (pf(p.fecha) && isoD(new Date(pf(p.fecha))) === hoy)); });
-    var h = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px"><button class="card" data-pdhoy="1" style="text-align:center;padding:10px 6px;margin:0"><div class="meta">🚚 Enviaste</div><b style="font-size:1.4rem">' + sent.length + '</b></button><div class="card" style="text-align:center;padding:10px 6px;margin:0"><div class="meta">🆕 Nuevos</div><b style="font-size:1.4rem">' + nuevosH + '</b></div><div class="card" style="text-align:center;padding:10px 6px;margin:0"><div class="meta">✅ Gestionados</div><b style="font-size:1.4rem">' + G.length + "</b></div></div>" +
-      '<div class="nm" style="margin:4px 2px 8px">Por proceso</div>' +
+    var CT = {}; sent.forEach(function (p) { var C = catsOf(pedItems(p).frascos); Object.keys(C).forEach(function (k) { CT[k] = (CT[k] || 0) + C[k].tot; }); });
+    var ini = function (k) { return String(k).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ ]/g, "").trim().slice(0, 3).toUpperCase(); };
+    var PL = { hoy: "Hoy", "3d": "Últimos 3 días", sem: "Esta semana", mes: "Este mes", anio: "Este año", todo: "Todo", rng: "Personalizado" }, up = new Date();
+    var h = '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;margin-bottom:10px"><b style="font-size:1.05rem">Hoy enviaste ' + sent.length + '</b><span style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">' + Object.keys(CT).map(function (k) { return '<button data-pdhoy="' + esc(k) + '" style="border:0;background:none;font:inherit;font-weight:700;color:var(--err);padding:0">' + CT[k] + " " + esc(ini(k)) + "</button>"; }).join(" · ") + '</span></div>' +
+      '<button class="card" data-pdper="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;margin-bottom:6px"><span class="meta" style="font-size:1rem">📅 Período</span><b>' + esc(PL[st.pdp || "todo"] || "Todo") + ' ▾</b></button><div class="meta" style="margin:0 4px 10px">Actualizado ' + ("0" + up.getHours()).slice(-2) + ":" + ("0" + up.getMinutes()).slice(-2) + '</div>' +
+      '<div class="nm" style="margin:4px 2px 8px;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)">Por proceso</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + PDK.filter(function (k) { return (UI.kpiHide && UI.kpiHide.ped || []).indexOf(k[0]) < 0; }).map(function (k) { var on = f === k[0], bad = (k[0] === "dem" || k[0] === "sin") && cnt[k[0]] > 0; return '<button class="kpi" data-pdf="' + k[0] + '" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid ' + (on ? "var(--blue)" : "#E3E8D6") + ";background:" + (on ? "var(--blue)" : "#fff") + ";color:" + (on ? "#fff" : bad ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[1] + '</span><b style="font-size:1.7rem">' + cnt[k[0]] + "</b></button>"; }).join("") + "</div>" +
       
       (function () {
@@ -3617,15 +3621,21 @@ body.nobadge #bell-n{display:none!important}
       })() +
       '<div class="atj" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><button class="at" data-go="pedidos" data-fil="todos"><i>📋</i><span>Todos los pedidos</span></button><button class="at" data-mod="prod"><i>🥒</i><span>Producción</span></button><button class="at" data-buy="1"><i>🛒</i><span>Lista de compras</span></button></div>' +
       '<div class="nm" style="margin:18px 2px 6px">Gestionados hoy <span class="badge o">' + G.length + '</span> <button class="sm" data-ghoy="1" style="margin-left:6px">Actividad</button></div><div class="meta" style="margin:0 2px 8px">Todo en verde = todo en orden. Otro color: falta un paso; deslizá para completarlo.</div>' +
-      (G.length ? '<div class="card" style="padding:4px 12px" id="pd-gh">' + pdRows(G, true) + "</div>" : '<div class="card todo"><b>Todavía no gestionaste pedidos hoy</b></div>');
+      (G.length ? '<div class="card" style="padding:4px 12px" id="pd-gh">' + pdRows(G) + "</div>" : '<div class="card todo"><b>Todavía no gestionaste pedidos hoy</b></div>');
     return h;
   }
   document.addEventListener("click", function (e) {
     var t = e.target.closest ? e.target : null; if (!t) return;
     var f = t.closest("[data-pdf]"); if (f) { e.stopPropagation(); st.pdf = st.pdf === f.getAttribute("data-pdf") ? "" : f.getAttribute("data-pdf"); render(true); return; }
+    var pp = t.closest("[data-pdper]"); if (pp) {
+      e.stopPropagation(); var dd = popBase("pdper", 380), O = [["hoy", "Hoy"], ["3d", "Últimos 3 días"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"], ["todo", "Todo"], ["rng", "Fecha personalizada"]], pk = st.pdp || "todo";
+      function dr() { dd.__c.innerHTML = popHead("📅 Período") + '<div class="chips" style="flex-wrap:wrap">' + O.map(function (o) { return '<button class="chip' + (pk === o[0] ? " on" : "") + '" data-ppk="' + o[0] + '">' + o[1] + "</button>"; }).join("") + "</div>" + (pk === "rng" ? '<div style="display:flex;gap:8px;margin:12px 0"><input class="inp" type="date" id="pp-d" value="' + esc(st.pdd || "") + '"><input class="inp" type="date" id="pp-h" value="' + esc(st.pdh || "") + '"></div>' : "") + '<button class="btn" data-ppok="1" style="margin-top:12px">Aplicar</button>'; }
+      dd.addEventListener("click", function (ev) { var k = ev.target.closest("[data-ppk]"); if (k) { pk = k.getAttribute("data-ppk"); dr(); return; } if (ev.target.closest("[data-ppok]")) { if (pk === "rng") { st.pdd = (dd.querySelector("#pp-d") || {}).value || ""; st.pdh = (dd.querySelector("#pp-h") || {}).value || ""; } st.pdp = pk; dd.remove(); render(true); } });
+      dr(); return;
+    }
     var h = t.closest("[data-pdhoy]"); if (h) {
-      e.stopPropagation(); var hoy = isoD(new Date()), S = st.pedidos.filter(function (p) { return p.ev && p.fev === hoy && !p.cc && !p.cl; }); if (!S.length) return;
-      var d = popBase("pdhoy", 400); d.__c.innerHTML = popHead("🚚 Enviados hoy · " + S.length) + S.map(function (p) { return '<div class="frow" style="padding:10px 0"><button data-todo-open="' + p.r + '" style="flex:1;text-align:left;border:0;background:none;font:inherit">' + esc(p.nombre) + '<div class="meta">' + pedCats(p) + '</div></button><span class="meta">' + (p.en ? "Entregado" : "En camino") + "</span></div>"; }).join("");
+      e.stopPropagation(); var hoy = isoD(new Date()), ck = h.getAttribute("data-pdhoy"), S = st.pedidos.filter(function (p) { return p.ev && p.fev === hoy && !p.cc && !p.cl && (!ck || catsOf(pedItems(p).frascos)[ck]); }); if (!S.length) return;
+      var d = popBase("pdhoy", 400); d.__c.innerHTML = popHead("🚚 Enviados hoy" + (ck ? " · " + esc(ck) : "") + " · " + S.length) + S.map(function (p) { return '<div class="frow" style="padding:10px 0"><button data-todo-open="' + p.r + '" style="flex:1;text-align:left;border:0;background:none;font:inherit">' + esc(p.nombre) + '<div class="meta">' + pedCats(p) + '</div></button><span class="meta">' + (p.en ? "Entregado" : "En camino") + "</span></div>"; }).join("");
     }
   }, true);
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-pset=plz]"); if (b) { e.stopPropagation(); plzPop(function () { if (st.v === "pset") render(true); }); } }, true);
