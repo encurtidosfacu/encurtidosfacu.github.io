@@ -54,7 +54,7 @@ input.n{text-align:right;width:92px}
 .tour .trow{display:flex;gap:8px}.tour .trow button{flex:1;padding:11px;border-radius:12px;border:1px solid #4A6B3A;background:#fff;color:#4A6B3A;font:inherit;font-weight:700}
 .tour .trow button.pri{background:#4A6B3A;color:#fff}.tour .skip{display:block;margin:8px auto 0;border:0;background:none;color:#777;font:inherit;font-size:.82rem}
 </style></head><body>
-<div class="demo" id="demo" hidden>MODO DEMO · datos de ejemplo, lo que cargues queda solo en este navegador</div>
+<div class="demo" id="demo" hidden>MODO DEMO · datos de ejemplo, no se guarda nada</div>
 <header class="top"><h1><button id="modbtn" type="button"><span>Finanzas</span> ▾</button></h1><img src="./logo_w.png" alt="πKDA" style="height:32px;width:auto;display:block;justify-self:center"><span style="justify-self:end;display:flex;gap:6px"><button class="ibtn" id="hw" aria-label="Guía"><svg viewBox="0 0 24 24"><path d="M4 20 15 9"/><path d="m14 4 .8 2.2L17 7l-2.2.8L14 10l-.8-2.2L11 7l2.2-.8zM19 12l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/></svg></button><button class="ibtn" id="hq" aria-label="Qué estoy viendo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8"/><path d="M12 17h.01"/></svg></button></span></header>
 <nav id="nav"></nav>
 <main id="app"></main>
@@ -104,15 +104,22 @@ function api(op,extra){
 var D={pedidos:[],cat:[],movs:[],ok:false,err:""};
 function loadAll(){
   if(DEMO){D.pedidos=demoData.pedidos;D.cat=demoData.cat;D.movs=demoData.movs;D.ok=true;return Promise.resolve()}
-  return Promise.all([api("pedidos"),api("catalogo"),api("stockMovs")]).then(function(r){
+  return Promise.all([api("pedidos"),api("catalogo"),api("stockMovs"),api("finData")]).then(function(r){
     if(r[0]&&(r[0].error==="auth"||r[0].error==="denied")){D.err="Sesión vencida: entrá al Admin y volvé.";return}
     D.pedidos=(r[0]&&r[0].pedidos)||[];D.cat=(r[1]&&r[1].catalogo)||[];D.movs=(r[2]&&r[2].movs)||[];D.ok=true;
+    var fd=r[3]&&r[3].ok&&r[3].datos;
+    if(fd){ /* la planilla manda; si está vacía, se sube lo que había en este navegador */
+      if(fd.cfg){CFG=fd.cfg}else persist("cfg",CFG);
+      if(fd.ventas){MAN=fd.ventas}else if(MAN.length)persist("ventas",MAN);
+      if(fd.gastos){GAS=fd.gastos}else if(GAS.length)persist("gastos",GAS);
+    }
   }).catch(function(){D.err="No pude leer los datos."});
 }
 /* config y cargas manuales (v1: en este navegador; luego a la planilla) */
 var CFG=lsG("fz_cfg",{usd:1550,comis:{tienda:3.98,ml:14.3,tn:3.98,dir:0,may:0},envio:{tienda:0,ml:0,tn:0,dir:0,may:0},precios:{}});
 var MAN=lsG("fz_ventas",[]);   /* ventas manuales */
 var GAS=lsG("fz_gastos",[]);   /* {id,fecha:"YYYY-MM-DD",cat,desc,monto,canal} */
+function persist(k,v){lsS("fz_"+k,v);if(!DEMO)api("finSave",{clave:k,valor:v}).catch(function(){})}
 var ST={v:"inicio",y:new Date().getFullYear(),m:new Date().getMonth(),ch:"todos",prod:0,vtab:"all"};
 var CATS=[["com","Gastos comerciales"],["pub","Publicidad"],["ope","Gastos operativos"],["imp","Impuestos"]];
 
@@ -230,7 +237,7 @@ function vPrecios(){
   '<tr class="s"><td>Envío / logística (por unidad)</td>'+chs.map(function(c){return '<td><input class="n" inputmode="decimal" data-pe="'+c.id+'" value="'+(CFG.envio[c.id]||0)+'"></td>'}).join("")+'</tr>'+
   '<tr class="t"><td>Utilidad neta</td>'+chs.map(function(c){var u=pr(c)-(cmv||0)-pr(c)*(CFG.comis[c.id]||0)/100-(CFG.envio[c.id]||0);return '<td class="'+(u<0?"neg":"pos")+'">'+money(u,2)+'</td>'}).join("")+'</tr>'+
   '<tr class="t"><td>Margen</td>'+chs.map(function(c){var u=pr(c)-(cmv||0)-pr(c)*(CFG.comis[c.id]||0)/100-(CFG.envio[c.id]||0);return '<td>'+pct(u/(pr(c)||1))+'</td>'}).join("")+'</tr>'+
-  '</table></div><div class="help">Tocá un precio, comisión o envío y recalcula. Se guarda en este navegador.</div></div>';
+  '</table></div><div class="help">Tocá un precio, comisión o envío y recalcula. Se guarda en la planilla.</div></div>';
   return h;
 }
 function vGastos(){
@@ -346,8 +353,8 @@ document.addEventListener("click",function(e){if(!e.target.closest(".crdd,#modbt
   if(d.ch){ST.ch=d.ch;render();return}
   if(d.pr!=null&&d.pr!==""){ST.prod=+d.pr;render();return}
   if(d.sel){var g=t.parentNode;[].forEach.call(g.children,function(c){c.classList.remove("on")});t.classList.add("on");return}
-  if(d.vdel){MAN=MAN.filter(function(v){return v.id!==d.vdel});lsS("fz_ventas",MAN);render();return}
-  if(d.gdel){GAS=GAS.filter(function(v){return v.id!==d.gdel});lsS("fz_gastos",GAS);render();return}
+  if(d.vdel){MAN=MAN.filter(function(v){return v.id!==d.vdel});persist("ventas",MAN);render();return}
+  if(d.gdel){GAS=GAS.filter(function(v){return v.id!==d.gdel});persist("gastos",GAS);render();return}
   if(d.vnew){
     var o=pop('<h3>Cargar venta</h3><div class="f"><label>Canal</label>'+chips("c",CANALES.map(function(c){return[c.id,esc(c.n)]}),"dir")+
     '<label>Fecha</label><input type="date" id="f1" value="'+today()+'"><label>Qué vendiste (ej: 2 x Zanahorias, 1 x Pepinos)</label><input id="f2" placeholder="2 x Zanahorias">'+
@@ -356,7 +363,7 @@ document.addEventListener("click",function(e){if(!e.target.closest(".crdd,#modbt
     o.querySelector("#no").onclick=function(){o.remove()};
     o.querySelector("#ok").onclick=function(){var c=o.querySelector('[data-sel="c"].on');var b=+o.querySelector("#f3").value.replace(",",".");if(!b)return;
       MAN.push({id:uid(),fecha:o.querySelector("#f1").value,canal:c?c.dataset.val:"dir",items:o.querySelector("#f2").value,bruto:b,desc:+o.querySelector("#f4").value.replace(",",".")||0,envio:+o.querySelector("#f5").value.replace(",",".")||0});
-      lsS("fz_ventas",MAN);o.remove();render()};
+      persist("ventas",MAN);o.remove();render()};
     return}
   if(d.gnew){
     var o2=pop('<h3>Cargar gasto</h3><div class="f"><label>Tipo</label>'+chips("k",CATS.map(function(c){return[c[0],c[1]]}),"ope")+
@@ -366,13 +373,13 @@ document.addEventListener("click",function(e){if(!e.target.closest(".crdd,#modbt
     o2.querySelector("#no").onclick=function(){o2.remove()};
     o2.querySelector("#ok").onclick=function(){var m=+o2.querySelector("#f3").value.replace(",",".");if(!m)return;
       GAS.push({id:uid(),fecha:o2.querySelector("#f1").value,cat:o2.querySelector('[data-sel="k"].on').dataset.val,canal:o2.querySelector('[data-sel="c"].on').dataset.val,desc:o2.querySelector("#f2").value,monto:m});
-      lsS("fz_gastos",GAS);o2.remove();render()};
+      persist("gastos",GAS);o2.remove();render()};
     return}
 });
 document.addEventListener("change",function(e){
   var t=e.target,d=t.dataset,v=+String(t.value).replace(",",".")||0;
   if(d.pp){CFG.precios[d.pp]=v}else if(d.pc){CFG.comis[d.pc]=v}else if(d.pe){CFG.envio[d.pe]=v}else if(d.usd){CFG.usd=v||1}else return;
-  lsS("fz_cfg",CFG);render();
+  persist("cfg",CFG);render();
 });
 render();
 loadAll().then(render);
