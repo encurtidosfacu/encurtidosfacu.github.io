@@ -5,10 +5,9 @@
 :root{--g:#4A6B3A;--gd:#2F4A25;--sky:#EEF3E6;--line:#D9E2CC;--ink:#233018;--soft:#6B7560;--ok:#1B7A3A;--err:#B3261E;--warn:#B26A00;--bg:#F7F4EA;--w:#fff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 "Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
-header{background:var(--gd);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
-header b{font-size:18px;flex:1}header a{color:#fff;opacity:.8;font-size:13px;text-decoration:none}
+header.top{background:#2F6B5E;color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;position:sticky;top:0;z-index:20}header h1{margin:0;font:600 1.15rem "Fredoka","Trebuchet MS",system-ui,sans-serif;justify-self:start;position:relative}#modbtn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}.ibtn{border:0;background:rgba(255,255,255,.18);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer;padding:0}.ibtn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.crdd{position:absolute;z-index:60;top:100%;left:0;margin-top:10px;min-width:230px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(32,40,30,.25);padding:6px}.crdd button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 .98rem inherit;font-family:inherit;color:var(--ink);text-align:left;cursor:pointer}.crdd button.on{background:#EDF2E4;color:#2F6B5E}
 .demo{background:#FFF3CD;color:#8a5a00;text-align:center;font-size:12px;font-weight:700;padding:3px}
-nav{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--bg);position:sticky;top:46px;z-index:4;scrollbar-width:none}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--bg);position:sticky;top:58px;z-index:4;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
 .chip{border:1px solid var(--line);background:#fff;color:var(--soft);border-radius:99px;padding:7px 14px;font:inherit;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer}
 .chip.on{background:var(--g);color:#fff;border-color:var(--g)}
@@ -56,7 +55,7 @@ input.n{text-align:right;width:92px}
 .tour .trow button.pri{background:#4A6B3A;color:#fff}.tour .skip{display:block;margin:8px auto 0;border:0;background:none;color:#777;font:inherit;font-size:.82rem}
 </style></head><body>
 <div class="demo" id="demo" hidden>MODO DEMO · datos de ejemplo, lo que cargues queda solo en este navegador</div>
-<header><b>πKDA · Finanzas</b><button class="chip" id="hw" style="padding:5px 12px">🪄 Guía</button><button class="chip" id="hq" style="padding:5px 12px">❓</button><a href="admin.html" id="bk">← Admin</a></header>
+<header class="top"><h1><button id="modbtn" type="button"><span>Finanzas</span> ▾</button></h1><img src="./logo_w.png" alt="πKDA" style="height:32px;width:auto;display:block;justify-self:center"><span style="justify-self:end;display:flex;gap:6px"><button class="ibtn" id="hw" aria-label="Guía"><svg viewBox="0 0 24 24"><path d="M4 20 15 9"/><path d="m14 4 .8 2.2L17 7l-2.2.8L14 10l-.8-2.2L11 7l2.2-.8zM19 12l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/></svg></button><button class="ibtn" id="hq" aria-label="Qué estoy viendo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.8"/><path d="M12 17h.01"/></svg></button></span></header>
 <nav id="nav"></nav>
 <main id="app"></main>
 <script>
@@ -271,7 +270,7 @@ sistema:["Sistema · de dónde salen los datos",["<b>Fuentes:</b> cada lugar que
 function ayuda(k){var a=AYUDA[k],o=pop('<h3>'+a[0]+'</h3>'+a[1].map(function(x){return '<div class="help">'+x+'</div>'}).join("")+'<div class="row"><button class="btn" id="ok">Entendido</button></div>');o.querySelector("#ok").onclick=function(){o.remove()}}
 
 var TOUR={
-inicio:[["#hq","Guía y ayuda","🪄 Guía te lleva paso a paso por cada pantalla. ❓ explica en texto qué significa cada número."],
+inicio:[["#hq","Guía y ayuda","La varita ✨ te guía paso a paso por cada pantalla. El ? explica en texto qué significa cada número. Desde «Finanzas ▾» volvés al Admin."],
 ["#nav","Las secciones","Inicio es el resumen. Estado de Resultados, Ventas, Precios, Gastos, Compras y Sistema abren cada detalle. Deslizá para ver todas."],
 ["#t-per","Mes que estás viendo","Con las flechas cambiás de mes. Todo lo de abajo se recalcula para ese mes."],
 ["#t-hero","Ventas del mes","Lo que realmente entró: ventas brutas menos descuentos, más envío cobrado. Es el número que mirás primero."],
@@ -329,14 +328,16 @@ function openTour(v){
   window.addEventListener("resize",pos);paint();
 }
 var VIEWS={inicio:vInicio,er:vER,ventas:vVentas,precios:vPrecios,gastos:vGastos,compras:vCompras,sistema:vSistema};
-var _lastV=null;function render(){drawNav();$("app").innerHTML=(D.err&&!D.ok?'<div class="card">'+esc(D.err)+'</div>':'<div style="text-align:right;margin-top:6px"><button class="chip" data-ay="1">❓ ¿Qué estoy viendo?</button></div>'+VIEWS[ST.v]());if(D.ok&&_lastV!==ST.v){_lastV=ST.v;if(!tourSeen(ST.v))setTimeout(function(){openTour(ST.v)},400)}}
+var _lastV=null;function render(){drawNav();$("app").innerHTML=(D.err&&!D.ok?'<div class="card">'+esc(D.err)+'</div>':VIEWS[ST.v]());if(D.ok&&_lastV!==ST.v){_lastV=ST.v;if(!tourSeen(ST.v))setTimeout(function(){openTour(ST.v)},400)}}
 function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
 function pop(html){var o=document.createElement("div");o.className="ov";o.innerHTML='<div class="pop">'+html+'</div>';o.addEventListener("click",function(e){if(e.target===o)o.remove()});document.body.appendChild(o);return o}
 function chips(name,arr,sel){return '<div class="per" data-grp="'+name+'">'+arr.map(function(a){return '<button type="button" class="chip'+(a[0]===sel?" on":"")+'" data-sel="'+name+'" data-val="'+a[0]+'">'+a[1]+'</button>'}).join("")+'</div>'}
 function uid(){return "x"+Math.random().toString(36).slice(2,8)}
 
-document.addEventListener("click",function(e){
+document.addEventListener("click",function(e){if(!e.target.closest(".crdd,#modbtn")){var _o=document.querySelector(".crdd");if(_o)_o.remove()}
   var t=e.target.closest("button,[data-sel]");if(!t)return;var d=t.dataset;
+  if(t.closest("#modbtn")){var old=document.querySelector(".crdd");if(old){old.remove();return}var dd=document.createElement("div");dd.className="crdd";var MM=[["gen","🏠","Admin"],["ped","📋","Pedidos"],["prod","🥒","Producción"],["fin","💰","Finanzas"]];dd.innerHTML=MM.map(function(x){return '<button type="button" data-mod="'+x[0]+'"'+(x[0]==="fin"?' class="on"':"")+'><span>'+x[1]+'</span>'+x[2]+(x[0]==="fin"?" ✓":"")+'</button>'}).join("");document.querySelector("header h1").appendChild(dd);return}
+  if(d.mod){if(d.mod!=="fin"){try{localStorage.setItem("uovo_adm_mod",d.mod)}catch(e){}location.href="admin.html"+(DEMO&&!TOKEN?"?demo=1":"")}else{var o=document.querySelector(".crdd");if(o)o.remove()}return}
   if(t.id==="hw"){openTour(ST.v);return}
   if(t.id==="hq"||d.ay){ayuda(ST.v);return}
   if(d.v){ST.v=d.v;render();window.scrollTo(0,0);return}
