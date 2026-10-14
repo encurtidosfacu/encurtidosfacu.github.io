@@ -87,7 +87,9 @@ a { color: inherit; }
 .collage { position: absolute; inset: 0; z-index: -2; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 0; overflow: hidden; }
 .collage img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .collage img:nth-child(3) { grid-column: 1 / -1; }
-.scene.noimg::before, .scene::before { background: rgba(255, 249, 238, .68); }
+.scene.noimg::before, .scene::before { background: rgba(255, 249, 238, .6); }
+.collage { display: none !important; }
+.scene { background-image: radial-gradient(rgba(74,107,58,.09) 1.2px, transparent 1.4px), radial-gradient(rgba(224,176,74,.10) 1.2px, transparent 1.4px) !important; background-size: 26px 26px, 26px 26px !important; background-position: 0 0, 13px 13px !important; background-color: #F4EEDD !important; }
 
 /* Quiénes somos */
 
@@ -385,7 +387,7 @@ button.scale:hover { background: #F2DFA8; }
 .tiers-h { grid-column: 1 / -1; font: 600 1.15rem var(--font-display); color: var(--blue); background: rgba(255, 255, 255, .78); border-radius: 14px; padding: 6px 14px; justify-self: start; }
 .pmos.three img:first-child { grid-row: span 2; }
 .pgrid::-webkit-scrollbar { display: none; }
-.pcard { display: flex; flex-direction: column; gap: 12px; background: rgba(255, 255, 255, .9); border: 2px solid #DCCFAE; border-radius: 18px; padding: 12px; position: relative; }
+.pcard { display: flex; flex-direction: column; gap: 12px; background: rgba(255, 255, 255, .72); backdrop-filter: blur(3px); border: 2px solid #DCCFAE; border-radius: 18px; padding: 12px; position: relative; }
 .pcard.on { border-color: var(--blue); }
 .pmos { display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 2px; border-radius: 12px; overflow: hidden; background: var(--sky); aspect-ratio: 16 / 10; }
 .pmos img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -708,7 +710,7 @@ body.has-obar footer{padding-bottom:90px}
     <span class="cd" id="cd-close" hidden></span>
   </div>
   <div class="logo">
-    <img src="./logo_w.png" alt="πKDA" width="900" height="400">
+    <img src="./logo_pagina.png" alt="πKDA" width="987" height="641" style="background:#F7F4EA;border-radius:22px;padding:6px">
     <p id="frase" hidden></p>
   </div>
   <div class="hero-art" aria-hidden="true"><img src="./pepinos.jpg" alt=""><img src="./berenjenas.jpg" alt=""><img src="./cebollas.jpg" alt=""></div>
@@ -737,7 +739,7 @@ body.has-obar footer{padding-bottom:90px}
 <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Zona o dirección de entrega<input id="sm-z"></label><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
 <div class="trust" id="trust"><span>🚚 Entrega local</span><span>🫙 Hecho artesanalmente</span><span>💬 Pedís y coordinamos por WhatsApp</span><span id="tr-rev" hidden></span></div>
 <section class="offers" id="offers" hidden aria-label="Ofertas"><div class="oh"><b>🔥 Ofertas y combos</b><span>tocá para verlas</span></div><div class="otrack" id="otrack"></div></section>
-<div class="sban" id="sban" role="button" tabindex="0" hidden><span id="sban-t"></span><button type="button" class="sx" id="sban-x" aria-label="Cerrar">✕</button></div>
+<div class="sban" id="sban" role="button" tabindex="0" hidden><span id="sban-t"></span><button type="button" class="sx" id="sban-x" aria-label="Minimizar" title="Minimizar">—</button></div>
 <main class="menu wrap" id="catalogo">
   <div class="menu-head">
     <h2 id="t-menu">Elegí tus frascos</h2>
@@ -756,7 +758,7 @@ body.has-obar footer{padding-bottom:90px}
 
 <footer>
   <div class="wrap">
-    <img src="./logo_w.png" alt="πKDA" width="900" height="400">
+    <img src="./logo_pagina.png" alt="πKDA" width="987" height="641" style="background:#F7F4EA;border-radius:22px;padding:6px">
     <div class="fcols">
       <div class="fcol"><h3>Medios de contacto</h3><div class="social">
         <a id="wa" href="#" target="_blank" rel="noopener"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><g transform="translate(7.4 7.2) scale(.38)"><path stroke-width="4.6" d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></g></svg></span><span class="tx"><b>WhatsApp</b><span id="wa-num"></span></span></a>
@@ -1644,7 +1646,7 @@ var DEFAULTS = {
     var lowAny = S.some(function (p) { var l = p.cupos - p.usados; return l > 0 && l <= 3; });
     n.hidden = !lowAny; n.className = "dot"; n.textContent = "";
     var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.length > 0, gone = false;
-    try { gone = sessionStorage.getItem("sban-x") === "1"; } catch (e0) {}
+    gone = !!window.__banMin;
     ban.hidden = !(near && !gone);
     if (near) $("sban-t").innerHTML = "📬 <b>No te pierdas tu suscripción</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
     if (!S.length) { $("spmodal").hidden = true; return; }
@@ -1666,7 +1668,7 @@ var DEFAULTS = {
   }
   document.addEventListener("click", function (e) {
     var T = e.target.closest ? e.target : null;
-    if (T && T.closest("#sban-x")) { $("sban").hidden = true; try { sessionStorage.setItem("sban-x", "1"); } catch (e1) {} return; }
+    if (T && T.closest("#sban-x")) { var bn = $("sban"), fb = $("sfab"); window.__banMin = true; if (fb && !fb.hidden) { var r1 = bn.getBoundingClientRect(), r2 = fb.getBoundingClientRect(); bn.style.transition = "transform .55s ease-in, opacity .55s"; bn.style.transformOrigin = "center"; bn.style.transform = "translate(" + (r2.left + 29 - (r1.left + r1.width / 2)) + "px," + (r2.top + 29 - (r1.top + r1.height / 2)) + "px) scale(.08)"; bn.style.opacity = "0"; setTimeout(function () { bn.hidden = true; bn.style.transform = ""; bn.style.opacity = ""; bn.style.transition = ""; fb.animate([{ transform: "scale(1)" }, { transform: "scale(1.35)" }, { transform: "scale(1)" }], { duration: 450 }); }, 560); } else bn.hidden = true; return; }
     var bpx = T && T.closest("[data-bp]"); if (bpx && T.closest("#sban")) { sSel = Number(bpx.getAttribute("data-bp")); renderSusc(); $("spmodal").hidden = false; return; }
     if (T && T.closest("#star")) { starOpen(); return; }
     if (T && T.closest("#star-x")) { $("starm").hidden = true; return; }
@@ -2175,7 +2177,7 @@ var DEFAULTS = {
 (function () {
   function closeDD() { var o = document.querySelector(".catdd"); if (o) o.remove(); }
   document.addEventListener("click", function (e) {
-    var h = e.target.closest && e.target.closest(".cat-h");
+    return; var h = e.target.closest && e.target.closest(".cat-h");
     if (!h) { if (!(e.target.closest && e.target.closest(".catdd"))) closeDD(); return; }
     var had = h.querySelector(".catdd"); closeDD(); if (had) return;
     var cur = h.parentNode.getAttribute("data-cat"), src = document.querySelectorAll("#cats-in button[data-cat]"), dd = document.createElement("div"); dd.className = "catdd";
