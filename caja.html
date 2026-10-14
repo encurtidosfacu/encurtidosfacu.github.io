@@ -19,8 +19,9 @@ h1{font-size:1.7rem;line-height:1.15;margin:6px 0 4px;color:var(--gd)}
 .pn{font-weight:800;font-size:1.1rem;color:var(--gd)}
 .pd{color:var(--soft);margin:4px 0 10px;line-height:1.45;white-space:pre-wrap}
 .stars{display:flex;gap:4px}
-.stars button{border:0;background:none;font-size:2.1rem;line-height:1;padding:2px;color:#d2d0c2;cursor:pointer}
-.stars button.on{color:var(--star)}
+.stars{gap:8px}.stars button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:14px;font:inherit;font-size:.82rem;font-weight:700;padding:10px 4px;color:var(--soft);cursor:pointer;line-height:1.25}
+.stars button span{display:block;font-size:1.7rem;margin-bottom:2px}
+.stars button.on{border-color:var(--g);background:#EEF3E6;color:var(--gd)}
 textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;font:inherit;min-height:84px;resize:vertical;background:#fff}
 .btn{display:block;width:100%;border:0;border-radius:999px;background:var(--g);color:#fff;font:inherit;font-weight:800;padding:15px;font-size:1.05rem;margin-top:10px}
 .btn:disabled{opacity:.6}
@@ -48,19 +49,19 @@ textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12
     var h = '<div class="hero">🎁</div><h1>¡Hola' + (D.nombre ? ", " + esc(D.nombre) : "") + '!</h1><p class="sub">Esta es tu caja' + (D.mes ? " de " + esc(D.mes) : "") + (D.plan ? " · plan " + esc(D.plan) : "") + '</p>';
     if (D.mensaje) h += '<div class="card msg">' + esc(D.mensaje) + "</div>";
     if (D.musica) { var id = yt(D.musica); h += '<div class="card">' + (id ? '<iframe class="mus" src="https://www.youtube.com/embed/' + id + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>' : '<a class="lnk" href="' + esc(D.musica) + '" target="_blank" rel="noopener">▶ Escuchar la música de tu caja</a>') + "</div>"; }
-    h += '<div class="ask">Contanos qué te pareció cada producto. Así conocemos tu gusto y elegimos mejor tu próxima caja. 💚</div>';
+    h += '<div class="ask">Votá cada producto (podés dejar sin votar los que no probaste). Así conocemos tu gusto y elegimos mejor tu próxima caja. 💚</div>';
     (D.productos || []).forEach(function (p, i) {
       var v = V[p.n] || 0;
-      h += '<div class="card"><div class="pn">' + esc(p.n) + "</div>" + (p.d ? '<div class="pd">' + esc(p.d) + "</div>" : "") + '<div class="stars" data-p="' + i + '">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-n="' + n + '" class="' + (n <= v ? "on" : "") + '" aria-label="' + n + ' estrellas">★</button>'; }).join("") + "</div></div>";
+      h += '<div class="card"><div class="pn">' + esc(p.n) + "</div>" + (p.d ? '<div class="pd">' + esc(p.d) + "</div>" : "") + '<div class="stars" data-p="' + i + '">' + [[5, "😍", "Me encantó"], [3, "🙂", "Está bien"], [1, "👎", "No me gustó"]].map(function (o) { var on = o[0] === 5 ? v >= 4 : o[0] === 3 ? v === 3 : v > 0 && v <= 2; return '<button type="button" data-n="' + o[0] + '" class="' + (on ? "on" : "") + '"><span>' + o[1] + "</span>" + o[2] + "</button>"; }).join("") + "</div></div>";
     });
     h += '<div class="card"><div class="pn" style="font-size:1rem">¿Algo más que quieras contarnos?</div><textarea id="com" placeholder="Qué te gustó, qué no, qué te gustaría probar…">' + esc(D.comentario || "") + '</textarea></div><button class="btn" id="send">Enviar mi opinión</button><div class="ok" id="okm" hidden>¡Gracias! Ya lo tenemos en cuenta para tu próxima caja 💚</div><div class="foot">Encurtidos Facu</div>';
     app.innerHTML = h;
   }
   app.addEventListener("click", function (e) {
     var b = e.target.closest(".stars button");
-    if (b) { var i = Number(b.parentNode.getAttribute("data-p")), p = D.productos[i]; V[p.n] = Number(b.getAttribute("data-n")); var bs = b.parentNode.children; for (var k = 0; k < bs.length; k++) bs[k].className = (k + 1) <= V[p.n] ? "on" : ""; return; }
+    if (b) { var i = Number(b.parentNode.getAttribute("data-p")), p = D.productos[i]; V[p.n] = Number(b.getAttribute("data-n")); var bs = b.parentNode.children; for (var k = 0; k < bs.length; k++) bs[k].className = bs[k] === b ? "on" : ""; return; }
     if (e.target.closest("#send")) {
-      var s = e.target.closest("#send"); if (!Object.keys(V).length) { s.textContent = "Puntuá al menos un producto ⭐"; setTimeout(function () { s.textContent = "Enviar mi opinión"; }, 2200); return; }
+      var s = e.target.closest("#send"); if (!Object.keys(V).length) { s.textContent = "Votá al menos un producto 👆"; setTimeout(function () { s.textContent = "Enviar mi opinión"; }, 2200); return; }
       s.disabled = true; s.textContent = "Enviando…";
       call("&rv=" + encodeURIComponent(JSON.stringify(V)) + "&rn=" + encodeURIComponent($("com").value)).then(function (j) { s.disabled = false; s.textContent = "Actualizar mi opinión"; if (j && j.ok) $("okm").hidden = false; else s.textContent = "No se pudo enviar. Probá de nuevo"; }).catch(function () { s.disabled = false; s.textContent = "No se pudo enviar. Probá de nuevo"; });
     }

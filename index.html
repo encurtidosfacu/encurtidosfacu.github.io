@@ -1642,10 +1642,10 @@ var DEFAULTS = {
     var tot = S.reduce(function (a, p) { return a + Math.max(0, p.cupos - p.usados); }, 0), n = $("sfab-n");
     var lowAny = S.some(function (p) { var l = p.cupos - p.usados; return l > 0 && l <= 3; });
     n.hidden = !lowAny; n.className = "dot"; n.textContent = "";
-    var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.some(function (p) { return p.cupos - p.usados <= 6; }), gone = false;
+    var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.length > 0, gone = false;
     try { gone = sessionStorage.getItem("sban-x") === "1"; } catch (e0) {}
     ban.hidden = !(near && !gone);
-    if (near) $("sban-t").innerHTML = "📬 <b>No te pierdas tu suscripción</b> · quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> " + esc(p.plan); }).join(" · ");
+    if (near) $("sban-t").innerHTML = "📬 <b>No te pierdas tu suscripción</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> " + esc(p.plan); }).join(" · ") : "cupos limitados cada mes");
     if (!S.length) { $("spmodal").hidden = true; return; }
     $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
     if (sSel == null || !S[sSel]) {
