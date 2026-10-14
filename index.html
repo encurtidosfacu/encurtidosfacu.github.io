@@ -1585,7 +1585,7 @@ var DEFAULTS = {
       if (custom && custom.t === "img") imgs = [custom.src];
       else cb.items.forEach(function (it) { var u = prodImg(it.n); if (u && imgs.indexOf(u) < 0) imgs.push(u); });
       imgs = imgs.slice(0, 4);
-      var mos = '<div class="pmos' + (imgs.length < 2 ? " one" : imgs.length === 3 ? " three" : "") + '">' + imgs.map(function (u) { return '<img src="' + esc(u) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'; }).join("") + "</div>";
+      var mos = '<div class="pmos' + (imgs.length < 2 ? " one" : imgs.length === 3 ? " three" : "") + '">' + imgs.map(function (u) { return '<img src="' + esc(vsrc(u)) + '" alt="" loading="lazy" referrerpolicy="no-referrer">'; }).join("") + "</div>";
       var comp = cb.items.map(function (it) { return it.c + " " + it.n; }).join(" + ");
       var norm = comboNormal(cb), save = norm - cb.precio;
       var pct = norm > 0 && save > 0 ? Math.round(save * 100 / norm) : 0;
