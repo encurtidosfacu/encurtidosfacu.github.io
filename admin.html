@@ -169,7 +169,7 @@ button { cursor:pointer; }
 #sheet{position:fixed;inset:0;z-index:38}
 #sheet[hidden]{display:none}
 #sheet .sh-bg{position:absolute;inset:0;background:rgba(18,26,16,.5);animation:shf .2s}
-#sheet .sh-p{position:absolute;left:0;right:0;bottom:0;max-height:88vh;background:#FBFAF4;border-radius:22px 22px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:shu .22s ease-out}
+#sheet .sh-p{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);max-width:460px;margin:0 auto;max-height:86vh;background:#FBFAF4;border-radius:22px;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:shu .22s ease-out}
 #sheet .sh-h{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid #E7E4D6}
 #sheet .sh-h b{flex:1;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #sheet .sh-x{border:0;background:#EEF2E6;width:36px;height:36px;border-radius:50%;font-size:1rem;color:#3E5B30}
@@ -178,7 +178,7 @@ button { cursor:pointer; }
 #sheet .sh-b [data-edit],#sheet .sh-b [data-kedit],#sheet .sh-b [data-redit],#sheet .sh-b [data-rvedit],#sheet .sh-b [data-skx],#sheet .sh-b [data-pvx],#sheet .sh-b .pen{display:none}
 .sh-ph{height:70px;margin-bottom:12px}
 body.sh-open{overflow:hidden}
-@keyframes shu{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes shu{from{transform:translateY(-46%) scale(.97);opacity:.4}to{transform:translateY(-50%);opacity:1}}
 @keyframes shf{from{opacity:0}to{opacity:1}}
 .sec-h{font:700 .74rem var(--fd);letter-spacing:.08em;text-transform:uppercase;color:#6B7A5C;margin:18px 4px 8px}
 .card.todo{padding:6px 14px}.card.todo.ok{padding:14px}
@@ -561,9 +561,9 @@ body.sh-open{overflow:hidden}
     var ac = alsw + '<button class="mi" data-act="refresh"><i>↻</i><div><b>Actualizar datos</b><span>Traer lo más nuevo de la planilla</span></div></button><button class="mi" data-act="logout"><i>⎋</i><div><b>Cerrar sesión</b><span>' + esc(st.me && st.me.email || "") + "</span></div></button>";
     function sec(ttl, body) { return body ? '<div class="sec-h">' + ttl + '</div><div class="menu">' + body + "</div>" : ""; }
     function pick(keys) { return neg.filter(function (x) { return keys.indexOf(x[0]) >= 0; }).map(mi).join(""); }
-    return sec("Vender", pick(["packs", "cupones", "suscripciones", "textos"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
-      sec("Producir", pick(["proveedores", "stock", "puntos", "recetas"])) +
-      sec("Cuenta y ajustes", app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
+    return sec("Producir", pick(["proveedores", "stock", "puntos", "recetas"])) +
+      sec("Vender", pick(["packs", "cupones", "suscripciones"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
+      sec("Ajustes", pick(["textos"]) + app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
   }
   var BACK = '<button class="back" data-go="mas">‹ Más</button>';
   /* ---------- Packs ---------- */
@@ -1334,7 +1334,7 @@ body.sh-open{overflow:hidden}
     var q = T.closest("[data-qa]");
     if (q) { e.stopPropagation(); var pr = q.getAttribute("data-qa").split(":"); q.disabled = true; q.textContent = "…"; patchPedido(Number(pr[0]), pr[1], true); toast(pr[1] === "ap" ? "Aprobado ✓" : pr[1] === "he" ? "Listo ✓" : "Entregado ✓"); return; }
     var tg = T.closest("[data-todo=tog]"); if (tg) { e.stopPropagation(); st.todoOpen = !st.todoOpen; render(true); return; }
-    var to = T.closest("[data-todo-open]"); if (to) { e.stopPropagation(); st.pdx = Number(to.getAttribute("data-todo-open")); st.pdp = "todo"; goto("pedidos"); return; }
+    var to = T.closest("[data-todo-open]"); if (to) { e.stopPropagation(); pedModal(Number(to.getAttribute("data-todo-open"))); return; }
     var qc = T.closest("[data-qc]"); if (qc) {
       e.stopPropagation();
       if (qc.classList.contains("arm")) { patchPedido(Number(qc.getAttribute("data-qc")), "cc", true); toast("Pedido cancelado"); }
@@ -1453,6 +1453,35 @@ body.sh-open{overflow:hidden}
     }
     d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("#qa-x")) d.remove(); else if (e.target.closest("#qa-ok")) go(); });
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+  }
+
+  function pedModal(r) {
+    var p = st.pedidos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
+    var old = document.getElementById("pedmodal"); if (old) old.remove();
+    var c = p.cc || p.cl, wa = waLink(p.tel), d = document.createElement("div"); d.className = "modal"; d.id = "pedmodal";
+    d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto;position:relative"><button class="sh-x" data-pm="x" aria-label="Cerrar" style="position:absolute;top:10px;right:10px;border:0;background:#EEF2E6;width:34px;height:34px;border-radius:50%;color:#3E5B30">✕</button>' +
+      '<div class="nm" style="padding-right:40px">' + esc(p.nombre) + '</div><div class="meta">' + esc(p.id) + " · " + (Number(p.cant) || 0) + " frascos · <b>" + money(p.total) + "</b></div>" +
+      '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" +
+      '<div class="meta" style="margin-top:6px">' + esc(p.fecha) + (p.entrega ? " · Entrega " + esc(p.entrega) : "") + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
+      (wa ? '<a class="sm" target="_blank" rel="noopener" href="' + wa + '" style="margin-top:8px">💬 ' + esc(p.tel) + "</a>" : "") +
+      '<textarea class="inp" rows="2" id="pm-n" placeholder="Nota del pedido…" style="margin-top:8px">' + esc(p.notas) + "</textarea>" +
+      (c ? '<div style="margin-top:8px"><span class="badge">' + (p.cl ? "Cancelado por el cliente" : "Cancelado por nosotros") + "</span></div>" :
+        '<div class="tgl"><button class="tg' + (p.ap ? " on" : "") + '" data-pm="ap">' + (p.ap ? "✓ " : "") + 'Aprobado</button><button class="tg' + (p.he ? " on" : "") + '" data-pm="he">' + (p.he ? "✓ " : "") + 'Hecho</button><button class="tg' + (p.en ? " on" : "") + '" data-pm="en">' + (p.en ? "✓ " : "") + "Entregado</button></div>") +
+      '<div class="row" style="margin-top:12px;align-items:center"><button class="sm red" data-pm="del">Eliminar pedido</button>' + (p.cl ? "" : (p.cc ? '<button class="sm" data-pm="react">Reactivar</button>' : '<button class="sm red" data-pm="cc">Cancelar pedido</button>')) + "</div></div>";
+    document.body.appendChild(d);
+    function saveNote() { var v = d.querySelector("#pm-n").value; if (v !== (p.notas || "")) patchPedido(r, "notas", v); }
+    function close() { saveNote(); d.remove(); }
+    d.addEventListener("click", function (e) {
+      if (e.target === d) { close(); return; }
+      var b = e.target.closest("[data-pm]"); if (!b) return; var a = b.getAttribute("data-pm");
+      if (a === "x") { close(); return; }
+      if (a === "ap" || a === "he" || a === "en") { saveNote(); patchPedido(r, a, !p[a]); d.remove(); toast("Actualizado ✓"); return; }
+      if (a === "react") { saveNote(); patchPedido(r, "cc", false); d.remove(); toast("Pedido reactivado"); return; }
+      if (a === "cc" || a === "del") {
+        if (!b.classList.contains("arm")) { b.classList.add("arm"); b.textContent = "¿Seguro? Tocá de nuevo"; clearTimeout(armTimer); armTimer = setTimeout(function () { b.classList.remove("arm"); b.textContent = a === "cc" ? "Cancelar pedido" : "Eliminar pedido"; }, 3000); return; }
+        if (a === "cc") { patchPedido(r, "cc", true); d.remove(); toast("Pedido cancelado"); } else { d.remove(); delPedidos([{ r: p.r, id: p.id }]); }
+      }
+    });
   }
   function msApply() {
     if (MS.on && MS.v !== st.v + (st.v === "suscripciones" ? st.sut : "")) { MS.on = false; MS.keys = {}; }
