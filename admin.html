@@ -3592,9 +3592,9 @@ body.nobadge #bell-n{display:none!important}
     if (k === "sin") { var r = st.blp && st.blp.by && st.blp.by[p.r]; return !!r && r.s === "falta"; }
     return true;
   }
-  function pdRows(L) {
-    var lbl = function (p) { return p.ev ? "En camino" : p.he ? "Para enviar" : p.ap ? "A preparar" : "Por aprobar"; };
-    return L.map(function (p) { return pedSw(p, '<div class="trow ssc"><button class="tname" data-todo-open="' + p.r + '"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl(p) + " · " + pedCats(p) + '</div><div class="meta">' + pedPromTxt(p) + (!p.he && !p.ev ? " " + blBadge(p) : "") + '</div></button><span class="meta" style="flex:none">‹ ›</span></div>'); }).join("");
+  function pdRows(L, col) {
+    var lbl = function (p) { return p.en ? "Entregado" : p.ev ? "En camino" : p.he ? "Para enviar" : p.ap ? "A preparar" : "Por aprobar"; };
+    return L.map(function (p) { var cc = col ? (p.en ? ["#E3F4E8", "#1B7A3A"] : p.ev ? ["#E1F0FA", "#1565A8"] : p.he ? ["#FFF1D6", "#B26A00"] : p.ap ? ["#FFE9D2", "#B25A00"] : ["#FBE9E7", "#B3261E"]) : null; return pedSw(p, '<div class="trow ssc"' + (cc ? ' style="background:' + cc[0] + ';border-radius:12px;padding-left:10px;margin:6px 0;border-left:5px solid ' + cc[1] + '"' : "") + '><button class="tname" data-todo-open="' + p.r + '"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl(p) + " · " + pedCats(p) + '</div><div class="meta">' + pedPromTxt(p) + (!p.he && !p.ev ? " " + blBadge(p) : "") + '</div></button><span class="meta" style="flex:none">‹ ›</span></div>'); }).join("");
   }
   function renderPDash() {
     if (!st.loaded.pedidos || !st.plz) { if (!st.mdl) { st.mdl = 1; modLoad(function () { st.mdl = 0; if (st.v === "pdash") render(true); }); } return '<div class="empty">Cargando…</div>'; }
@@ -3602,11 +3602,22 @@ body.nobadge #bell-n{display:none!important}
     var sent = st.pedidos.filter(function (p) { return p.ev && p.fev === hoy && !p.cc && !p.cl; });
     var cnt = {}; PDK.forEach(function (k) { cnt[k[0]] = st.pedidos.filter(function (p) { return pdMatch(p, k[0]); }).length; });
     var L = act.filter(function (p) { return !f || pdMatch(p, f); }).sort(function (a, b) { return (pf(a.fecha) || 0) - (pf(b.fecha) || 0); });
-    var h = '<button class="card" data-ghoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>📋 Gestionados hoy</b><span class="meta">ver ›</span></button><button class="card" data-pdhoy="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>🚚 Hoy enviaste ' + sent.length + '</b><span class="meta">' + (sent.length ? "ver ›" : "") + "</span></button>" +
+    var nuevosH = st.pedidos.filter(function (p) { return pf(p.fecha) && isoD(new Date(pf(p.fecha))) === hoy && !p.cc && !p.cl; }).length, actL = [];
+    try { actL = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]").filter(function (x) { return isoD(new Date(x.t)) === hoy; }); } catch (e0) {}
+    var gid = {}; actL.forEach(function (x) { if (x.id) gid[x.id] = 1; });
+    var G = st.pedidos.filter(function (p) { return !p.cc && !p.cl && (gid[p.id] || (p.ev && p.fev === hoy) || (pf(p.fecha) && isoD(new Date(pf(p.fecha))) === hoy)); });
+    var h = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px"><button class="card" data-pdhoy="1" style="text-align:center;padding:10px 6px;margin:0"><div class="meta">🚚 Enviaste</div><b style="font-size:1.4rem">' + sent.length + '</b></button><div class="card" style="text-align:center;padding:10px 6px;margin:0"><div class="meta">🆕 Nuevos</div><b style="font-size:1.4rem">' + nuevosH + '</b></div><div class="card" style="text-align:center;padding:10px 6px;margin:0"><div class="meta">✅ Gestionados</div><b style="font-size:1.4rem">' + G.length + "</b></div></div>" +
+      '<div class="nm" style="margin:4px 2px 8px">Por proceso</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + PDK.filter(function (k) { return (UI.kpiHide && UI.kpiHide.ped || []).indexOf(k[0]) < 0; }).map(function (k) { var on = f === k[0], bad = (k[0] === "dem" || k[0] === "sin") && cnt[k[0]] > 0; return '<button class="kpi" data-pdf="' + k[0] + '" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid ' + (on ? "var(--blue)" : "#E3E8D6") + ";background:" + (on ? "var(--blue)" : "#fff") + ";color:" + (on ? "#fff" : bad ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[1] + '</span><b style="font-size:1.7rem">' + cnt[k[0]] + "</b></button>"; }).join("") + "</div>" +
-      '<div class="nm" style="margin:4px 2px 8px">' + (f ? PDK.filter(function (k) { return k[0] === f; })[0][1] : "Todo lo que está en curso") + ' <span class="badge o">' + L.length + '</span>' + (f ? ' <button class="sm" data-pdf="" style="margin-left:6px">Ver todo</button>' : "") + "</div>" +
-      (L.length ? '<div class="card" style="padding:4px 12px">' + pdRows(L) + "</div>" : '<div class="card todo ok"><b>✅ Nada por acá</b></div>') +
-      '<div class="atj" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><button class="at" data-go="pedidos" data-fil="todos"><i>📋</i><span>Todos los pedidos</span></button><button class="at" data-mod="prod"><i>🥒</i><span>Producción</span></button><button class="at" data-buy="1"><i>🛒</i><span>Lista de compras</span></button></div>';
+      
+      (function () {
+        var groups = f ? [PDK.filter(function (k) { return k[0] === f; })[0]] : PDK.filter(function (k) { return ["pend", "prep", "env", "cam"].indexOf(k[0]) >= 0; }), out = "";
+        groups.forEach(function (k) { var Lg = act.filter(function (p) { return pdMatch(p, k[0]); }).sort(function (a, b) { return (pf(a.fecha) || 0) - (pf(b.fecha) || 0); }); if (!Lg.length && !f) return; out += '<div class="nm" style="margin:10px 2px 6px">' + k[1] + ' <span class="badge o">' + Lg.length + "</span>" + (f ? ' <button class="sm" data-pdf="" style="margin-left:6px">Ver todo</button>' : "") + "</div>" + (Lg.length ? '<div class="card" style="padding:4px 12px">' + pdRows(Lg) + "</div>" : '<div class="card todo ok"><b>✅ Nada por acá</b></div>'); });
+        return out || '<div class="card todo ok"><b>✅ Nada en curso</b></div>';
+      })() +
+      '<div class="atj" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><button class="at" data-go="pedidos" data-fil="todos"><i>📋</i><span>Todos los pedidos</span></button><button class="at" data-mod="prod"><i>🥒</i><span>Producción</span></button><button class="at" data-buy="1"><i>🛒</i><span>Lista de compras</span></button></div>' +
+      '<div class="nm" style="margin:18px 2px 6px">Gestionados hoy <span class="badge o">' + G.length + '</span> <button class="sm" data-ghoy="1" style="margin-left:6px">Actividad</button></div><div class="meta" style="margin:0 2px 8px">Todo en verde = todo en orden. Otro color: falta un paso; deslizá para completarlo.</div>' +
+      (G.length ? '<div class="card" style="padding:4px 12px" id="pd-gh">' + pdRows(G, true) + "</div>" : '<div class="card todo"><b>Todavía no gestionaste pedidos hoy</b></div>');
     return h;
   }
   document.addEventListener("click", function (e) {
