@@ -208,6 +208,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
 #porvenir .meta,#porvenir .nm,#entregas .frow>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 #entregas .frow{gap:8px;align-items:center}#entregas .frow>span:last-child{flex:none;white-space:nowrap;font-size:.85rem}
 #porvenir>div{min-width:0;flex:1}
+.crumb[data-crumb]{cursor:pointer}.crdd{position:absolute;z-index:60;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;min-width:230px;max-height:65vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(32,40,30,.25);padding:6px}.crdd button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 .98rem inherit;font-family:inherit;color:var(--ink,#27301f);text-align:left}.crdd button.on{background:#EDF2E4;color:#4A6B3A}.crdd button:active{background:#EDF2E4}
 </style>
 </head>
 <body>
@@ -1879,7 +1880,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function render(keepScroll) {
     var y = window.scrollY, V = { tarjetas: renderTarjetas, suscripciones: renderSu, inicio: renderInicio, pedidos: renderPedidos, productos: renderProductos, mas: renderMas, packs: renderPacks, recetas: renderRecetas, finanzas: renderFinanzas, textos: renderTextos, proveedores: renderProv, stock: renderStock, puntos: renderPuntos, cupones: renderCupones, accesos: function () { return BACK + renderAccesos(); }, voz: renderVozCfg, resenas: renderResenas };
     var h = V[st.v]();
-    if (SUB.indexOf(st.v) >= 0 && h.indexOf(BACK) === 0 && NAMES[st.v]) h = '<div class="bk">' + BACK + '<b class="crumb">' + NAMES[st.v] + "</b></div>" + h.slice(BACK.length);
+    if (SUB.indexOf(st.v) >= 0 && h.indexOf(BACK) === 0 && NAMES[st.v]) h = '<div class="bk">' + BACK + '<button class="crumb" data-crumb="1" aria-haspopup="true" style="border:0;font-family:inherit">' + NAMES[st.v] + " ▾</button></div>" + h.slice(BACK.length);
     var act = document.activeElement, id = act && act.id, pos = act && act.selectionStart;
     $("view").innerHTML = h;
     if (id === "pq" || id === "cq" || id === "pvq" || id === "sk-q" || id === "sk-s") { var e = $(id); e.focus(); try { e.setSelectionRange(pos, pos); } catch (x) {} }
@@ -2551,6 +2552,15 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
       document.body.appendChild(d); d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("#prep-x")) d.remove(); });
     }
     document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-prep]"); if (!b) return; e.stopPropagation(); e.preventDefault(); prepModal(); }, true);
+    document.addEventListener("click", function (e) {
+      var cr = e.target.closest && e.target.closest("[data-crumb]"), open = document.querySelector(".crdd");
+      if (open && !(e.target.closest && e.target.closest(".crdd"))) open.remove();
+      if (!cr) return; e.stopPropagation(); e.preventDefault(); if (open) return;
+      var IC = { tarjetas: "🖨️", suscripciones: "📬", packs: "🎁", recetas: "🥒", textos: "✏️", proveedores: "🧾", stock: "📦", puntos: "🎯", cupones: "🏷️", accesos: "🔑", voz: "🎙️", resenas: "⭐" };
+      var dd = document.createElement("div"); dd.className = "crdd";
+      dd.innerHTML = SUB.filter(function (v) { return NAMES[v] && allowed(v) && (v !== "accesos" && v !== "voz" || (st.me && st.me.rol === "Dueño")); }).map(function (v) { return '<button type="button" data-go="' + v + '"' + (v === st.v ? ' class="on"' : "") + "><span>" + (IC[v] || "") + "</span>" + esc(NAMES[v]) + "</button>"; }).join("");
+      cr.parentNode.appendChild(dd);
+    }, true);
     document.addEventListener("change", function (e) {
       var t = e.target; if (!t || !t.matches) return;
       if (t.matches("[data-pren]")) {
