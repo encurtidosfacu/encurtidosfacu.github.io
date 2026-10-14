@@ -215,6 +215,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
 #porvenir>div{min-width:0;flex:1}
 .crumb[data-crumb]{cursor:pointer}.crdd{position:absolute;z-index:60;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;min-width:230px;max-height:65vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 30px rgba(32,40,30,.25);padding:6px}.crdd button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:12px 14px;border-radius:12px;font:600 .98rem inherit;font-family:inherit;color:var(--ink,#27301f);text-align:left}.crdd button.on{background:#EDF2E4;color:#4A6B3A}.crdd button:active{background:#EDF2E4}
 .ssw.pw>.ssc,.ssw.pw>article.card{background:var(--ecb)!important;border-left:6px solid var(--ecf);transition:background .25s,border-color .25s}
+.kpi[style*="background:var(--blue)"] *{color:#fff!important}
 </style>
 </head>
 <body>
@@ -261,7 +262,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   var AREAS = [["pedidos", "Pedidos"], ["productos", "Productos"], ["packs", "Packs"], ["recetas", "Recetas"], ["proveedores", "Insumos"], ["textos", "Textos"], ["finanzas", "Finanzas"], ["resenas", "Reseñas"]];
   function can(a) { var r = st.me && st.me.rol; if (!r) return false; if (r === "Dueño" || r === "Total") return true; return String(r).toLowerCase().split(/[,;\s]+/).indexOf(a) >= 0; }
   function permList(p) { if (!p || p === "Dueño" || p === "Total") return AREAS.map(function (x) { return x[0]; }); return String(p).toLowerCase().split(/[,;\s]+/); }
-  var VAREA = { pdash: "pedidos", pset: "pedidos", prdash: "proveedores", tarjetas: "packs", suscripciones: "packs", inicio: "pedidos", pedidos: "pedidos", productos: "productos", finanzas: "finanzas", packs: "packs", recetas: "recetas", proveedores: "proveedores", stock: "proveedores", puntos: "proveedores", cupones: "packs", textos: "textos", resenas: "resenas" };
+  var VAREA = { pdash: "pedidos", pset: "pedidos", prset: "proveedores", prdash: "proveedores", tarjetas: "packs", suscripciones: "packs", inicio: "pedidos", pedidos: "pedidos", productos: "productos", finanzas: "finanzas", packs: "packs", recetas: "recetas", proveedores: "proveedores", stock: "proveedores", puntos: "proveedores", cupones: "packs", textos: "textos", resenas: "resenas" };
   function allowed(v) { if (v === "mas") return true; if (v === "accesos" || v === "voz") return !!(st.me && st.me.rol === "Dueño"); return can(VAREA[v]); }
   function firstView() { var o = ["inicio", "pedidos", "productos", "finanzas", "mas"]; for (var i = 0; i < o.length; i++) if (allowed(o[i])) return o[i]; return "mas"; }
   function applyPerms() { Array.prototype.forEach.call($("nav").querySelectorAll("button"), function (b) { b.hidden = b.hasAttribute("data-buy") ? !allowed("proveedores") : !allowed(b.getAttribute("data-v")); }); }
@@ -398,7 +399,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     st.v = v; store("uovo_adm_v", v); var nk = (st.mod && st.mod !== "gen") ? v : (SUB.indexOf(v) >= 0 ? "mas" : v);
     Array.prototype.forEach.call($("nav").querySelectorAll("button"), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === nk); });
     if (v === "mas") st.loaded.mas = true;
-    if (v === "pdash" || v === "prdash" || v === "pset") st.loaded[v] = true;
+    if (v === "pdash" || v === "prdash" || v === "pset" || v === "prset") st.loaded[v] = true;
     if (!st.loaded[v]) { $("view").innerHTML = '<div class="empty">Cargando…</div>'; fetchView(v); } else render();
     window.scrollTo(0, 0);
   }
@@ -506,7 +507,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     var pr = (st.productos || []).filter(function (x) { return x.nombre; }), n = st.pnf || {};
     var h = '<div class="card" id="pn-form"><div class="nm" style="margin-bottom:8px">Nuevo pedido</div><div class="add"><datalist id="pn-dl">' + pedClientes().map(function (c) { return '<option value="' + esc(c.nombre) + '">'; }).join("") + '</datalist><input class="inp" id="pn-n" list="pn-dl" autocomplete="off" placeholder="Nombre del cliente" value="' + esc(n.n || "") + '"><input class="inp" id="pn-t" inputmode="tel" placeholder="Teléfono (opcional)" value="' + esc(n.t || "") + '"><input class="inp" id="pn-mail" type="email" inputmode="email" autocapitalize="off" placeholder="Email (opcional) — así lo ve en su cuenta" value="' + esc(n.mail || "") + '"><div class="meta" id="pn-hint" hidden style="color:var(--ok);font-weight:700"></div>';
     h += '<div class="meta">Frascos (cantidad de cada una)</div>' + (pr.length ? pr.map(function (x, i) { return '<div class="rl" style="display:flex;gap:8px;align-items:center"><span style="flex:1">' + esc(x.nombre) + ' <small class="meta">$' + fm(x.precio || 0) + '</small></span><button class="sm" data-pnstep="-1" aria-label="Menos" style="min-width:40px;min-height:40px">−</button><input class="inp" type="number" min="0" inputmode="numeric" data-pnq="' + esc(x.nombre) + '" placeholder="0" style="max-width:64px;text-align:center" value="' + esc((n.q || {})[x.nombre] || "") + '"><button class="sm" data-pnstep="1" aria-label="Más" style="min-width:40px;min-height:40px">＋</button></div>'; }).join("") + '<div class="nm" id="pn-tot" style="text-align:right"></div>' : '<div class="meta">Cargando productos…</div>');
-    h += '<label class="meta">Entrega<input class="inp" type="date" id="pn-e" value="' + esc(n.e || "") + '"></label><select class="inp" id="pn-p"><option value="">Medio de pago</option>' + ["Efectivo", "Transferencia", "Pago full"].map(function (o) { return "<option" + (n.p === o ? " selected" : "") + ">" + o + "</option>"; }).join("") + '</select><input class="inp" id="pn-m" inputmode="numeric" placeholder="Total $ (vacío = lo calculo yo)" value="' + esc(n.m || "") + '"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pn-a"' + (n.a ? " checked" : "") + '> Ya está aprobado</label><button class="btn" data-pcreate="1">Crear pedido</button></div></div>';
+    h += '<label class="meta">Entrega<input class="inp" type="date" id="pn-e" value="' + esc(n.e || "") + '"></label><select class="inp" id="pn-p"><option value="">Medio de pago</option>' + payList().map(function (o) { return "<option" + (n.p === o ? " selected" : "") + ">" + o + "</option>"; }).join("") + '</select><input class="inp" id="pn-m" inputmode="numeric" placeholder="Total $ (vacío = lo calculo yo)" value="' + esc(n.m || "") + '"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pn-a"' + (n.a ? " checked" : "") + '> Ya está aprobado</label><button class="btn" data-pcreate="1">Crear pedido</button></div></div>';
     return h;
   }
   function delPedidos(rows) {
@@ -616,7 +617,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     function pick(keys) { return neg.filter(function (x) { return keys.indexOf(x[0]) >= 0; }).map(mi).join(""); }
     return sec("Producir", pick(["proveedores", "stock", "puntos", "recetas"]) + (allowed("proveedores") ? '<button class="mi" data-buy="1"><i>🛒</i><div><b>Lista de compras</b><span>Qué comprar y carritos para imprimir o WhatsApp</span></div></button>' : "")) +
       sec("Vender", pick(["packs", "cupones", "suscripciones", "tarjetas"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
-      sec("Ajustes", pick(["textos"]) + app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
+      sec("Ajustes", '<button class="mi" data-uicfg="1"><i>🎛</i><div><b>Personalizar Admin</b><span>Orden, bloques, atajos, pestañas, nombre y color</span></div></button>' + pick(["textos"]) + app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
   }
   var BACK = '<button class="back" data-go="mas">‹ Más</button>';
   /* ---------- Packs ---------- */
@@ -1950,12 +1951,12 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     return h;
   }
   function render(keepScroll) {
-    var y = window.scrollY, V = { pdash: renderPDash, pset: renderPSet, prdash: renderPrDash, tarjetas: renderTarjetas, suscripciones: renderSu, inicio: renderInicio, pedidos: renderPedidos, productos: renderProductos, mas: renderMas, packs: renderPacks, recetas: renderRecetas, finanzas: renderFinanzas, textos: renderTextos, proveedores: renderProv, stock: renderStock, puntos: renderPuntos, cupones: renderCupones, accesos: function () { return BACK + renderAccesos(); }, voz: renderVozCfg, resenas: renderResenas };
+    var y = window.scrollY, V = { pdash: renderPDash, pset: renderPSet, prset: renderPrSet, prdash: renderPrDash, tarjetas: renderTarjetas, suscripciones: renderSu, inicio: renderInicio, pedidos: renderPedidos, productos: renderProductos, mas: renderMas, packs: renderPacks, recetas: renderRecetas, finanzas: renderFinanzas, textos: renderTextos, proveedores: renderProv, stock: renderStock, puntos: renderPuntos, cupones: renderCupones, accesos: function () { return BACK + renderAccesos(); }, voz: renderVozCfg, resenas: renderResenas };
     var h = V[st.v]();
     if (st.mod && st.mod !== "gen" && h.indexOf(BACK) === 0) h = h.slice(BACK.length);
     else if (SUB.indexOf(st.v) >= 0 && h.indexOf(BACK) === 0 && NAMES[st.v]) h = '<div class="bk">' + BACK + '<button class="crumb" data-crumb="1" aria-haspopup="true" style="border:0;font-family:inherit">' + NAMES[st.v] + " ▾</button></div>" + h.slice(BACK.length);
     var act = document.activeElement, id = act && act.id, pos = act && act.selectionStart;
-    $("view").innerHTML = h;
+    $("view").innerHTML = h; try { uiApply(); } catch (e9) {}
     if (id === "pq" || id === "cq" || id === "pvq" || id === "sk-q" || id === "sk-s") { var e = $(id); e.focus(); try { e.setSelectionRange(pos, pos); } catch (x) {} }
     if (keepScroll) window.scrollTo(0, y);
     if (!keepScroll) maybeTour();
@@ -3240,9 +3241,121 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   }
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-susp]"); if (!b) return; e.stopPropagation(); e.preventDefault(); suPagoPop(b.getAttribute("data-susp"), function () { var q = document.getElementById("sc-q"); if (q) q.dispatchEvent(new Event("input", { bubbles: true })); }); }, true);
 
+  /* ---------- Personalización por módulo ---------- */
+  var UI = {}; try { UI = JSON.parse(localStorage.getItem("uovo_adm_ui") || "{}") || {}; } catch (e) { UI = {}; }
+  function uiSave() { try { localStorage.setItem("uovo_adm_ui", JSON.stringify(UI)); } catch (e) {} }
+  function uiM(m) { var u = UI[m] = UI[m] || {}; u.hide = u.hide || []; u.order = u.order || []; u.lab = u.lab || {}; u.nav = u.nav || []; u.navHide = u.navHide || []; u.navLab = u.navLab || {}; u.atHide = u.atHide || []; u.atOrd = u.atOrd || []; u.atLab = u.atLab || {}; return u; }
+  var HOMEV = { gen: "inicio", ped: "pdash", prod: "prdash" }, NOHIDE = ["pset", "prset", "mas", "inicio", "pdash", "prdash"];
+  var BLK_L = { "data-ghoy": "Gestionados hoy", "data-pdhoy": "Hoy enviaste", "data-pdf": "Tarjetas de estado", "data-prep": "Qué tengo que preparar", "data-sc": "Atajos" };
+  function uiScan(root) {
+    var kids = Array.prototype.slice.call(root.children), B = [], pend = null;
+    kids.forEach(function (el) {
+      var t = el.classList.contains("nm") || el.classList.contains("sec-h");
+      if (t) { pend = el; return; }
+      var els = pend ? [pend, el] : [el]; pend = null;
+      var key = el.id || ""; if (!key) { var q = el.matches("[data-ghoy],[data-pdhoy],[data-prep]") ? el : el.querySelector("[data-pdf],[data-prep],[data-sc],[data-go],[data-mod],[data-act]"); if (q) { var at = Array.prototype.slice.call(q.attributes).filter(function (a) { return a.name.indexOf("data-") === 0 && a.name !== "data-fil"; })[0]; key = at ? at.name : ""; } }
+      if (!key) key = (el.className || el.tagName).toString().split(" ")[0];
+      if (el.classList.contains("atj")) key = "atajos" + B.filter(function (b) { return b.key.indexOf("atajos") === 0; }).length;
+      var lab = BLK_L[key] || (pend === null && els.length > 1 ? els[0].textContent.replace(/\s+/g, " ").trim().slice(0, 28) : "") || (key.indexOf("atajos") === 0 ? "Atajos" : el.textContent.replace(/\s+/g, " ").trim().slice(0, 26)) || key;
+      B.push({ key: key, els: els, lab: lab.replace(/\s*\d+$/, "") });
+    });
+    return B;
+  }
+  function uiApply() {
+    var m = st.mod || "gen"; if (st.v !== HOMEV[m]) return; var u = uiM(m), v = $("view"); if (/^\s*Cargando/.test(v.textContent)) return; var B = uiScan(v), ch = false;
+    B.forEach(function (b) { if (u.lab[b.key] !== b.lab) { u.lab[b.key] = b.lab; ch = true; } });
+    var idx = function (k) { var i = u.order.indexOf(k); return i < 0 ? 1000 : i; };
+    var S = B.map(function (b, i) { return { b: b, i: i }; }).sort(function (a, c) { return idx(a.b.key) - idx(c.b.key) || a.i - c.i; });
+    S.forEach(function (x) { x.b.els.forEach(function (e) { if (u.hide.indexOf(x.b.key) >= 0) e.remove(); else v.appendChild(e); }); });
+    Array.prototype.forEach.call(v.querySelectorAll(".atj"), function (box) {
+      var items = Array.prototype.slice.call(box.children), ik = function (e) { return e.getAttribute("data-sc") || e.getAttribute("data-go") || e.getAttribute("data-mod") || (e.hasAttribute("data-buy") ? "buy" : e.textContent.trim()); };
+      items.forEach(function (e) { var k = ik(e), sp = e.querySelector("span"); if (u.atLab[k] && sp) sp.textContent = u.atLab[k]; });
+      items.slice().sort(function (a, c) { var x = u.atOrd.indexOf(ik(a)), y = u.atOrd.indexOf(ik(c)); return (x < 0 ? 1000 : x) - (y < 0 ? 1000 : y); }).forEach(function (e) { if (u.atHide.indexOf(ik(e)) >= 0) e.remove(); else box.appendChild(e); });
+    });
+    if (ch) uiSave();
+  }
+  function uiHomeScan(m) {
+    var f = { gen: renderInicio, ped: renderPDash, prod: renderPrDash }[m], t = document.createElement("div"), items = [];
+    try { t.innerHTML = f(); } catch (e) {} var B = uiScan(t);
+    Array.prototype.forEach.call(t.querySelectorAll(".atj > *"), function (e) { var k = e.getAttribute("data-sc") || e.getAttribute("data-go") || e.getAttribute("data-mod") || (e.hasAttribute("data-buy") ? "buy" : e.textContent.trim()), sp = e.querySelector("span"); items.push({ key: k, lab: sp ? sp.textContent : k }); });
+    return { B: B, A: items };
+  }
+  function uiRows(list, hid, labFn, ren) {
+    return list.map(function (x, i) { var off = hid.indexOf(x.key) >= 0; return '<div class="frow" style="padding:8px 0;gap:6px;align-items:center"><span style="flex:1;min-width:0;' + (off ? "opacity:.45;text-decoration:line-through" : "") + '">' + esc(labFn(x)) + "</span>" + (ren ? '<button class="sm" data-ui-ren="' + esc(x.key) + '" style="flex:none;min-width:38px">✏️</button>' : "") + '<button class="sm" data-ui-mv="' + esc(x.key) + '|-1" style="flex:none;min-width:38px">▲</button><button class="sm" data-ui-mv="' + esc(x.key) + '|1" style="flex:none;min-width:38px">▼</button>' + (NOHIDE.indexOf(x.key) >= 0 ? "" : '<button class="sm" data-ui-hd="' + esc(x.key) + '" style="flex:none;min-width:38px">' + (off ? "👁" : "🚫") + "</button>") + "</div>"; }).join("");
+  }
+  var UICOL = ["#4A6B3A", "#2F5233", "#6B7F3A", "#A8803F", "#C2A878", "#8A4F36", "#7A5C3E", "#3F5F5A", "#5B6B4A"];
+  function uiOpen(tab) {
+    var m = st.mod || "gen", u = uiM(m), d = popBase("uicfg", 460); tab = tab || "blk"; d.__t = tab;
+    function draw() {
+      var m2 = m, u2 = uiM(m2), sc = uiHomeScan(m2), blocks = [], seen = {};
+      sc.B.forEach(function (b) { seen[b.key] = 1; blocks.push({ key: b.key, lab: b.lab }); }); Object.keys(u2.lab).forEach(function (k) { if (!seen[k]) blocks.push({ key: k, lab: u2.lab[k] }); });
+      var idx = function (k) { var i = u2.order.indexOf(k); return i < 0 ? 1000 : i; }; blocks = blocks.map(function (b, i) { return { b: b, i: i }; }).sort(function (a, c) { return idx(a.b.key) - idx(c.b.key) || a.i - c.i; }).map(function (x) { return x.b; });
+      var ats = sc.A.map(function (a, i) { return { a: a, i: i }; }).sort(function (a, c) { var x = u2.atOrd.indexOf(a.a.key), y = u2.atOrd.indexOf(c.a.key); return (x < 0 ? 1000 : x) - (y < 0 ? 1000 : y) || a.i - c.i; }).map(function (x) { return x.a; });
+      var navs = MODNAV[m2].map(function (x) { return { key: x[0], lab: x[1] }; }), no = function (k) { var i = u2.nav.indexOf(k); return i < 0 ? 1000 : i; }; navs = navs.map(function (n, i) { return { n: n, i: i }; }).sort(function (a, c) { return no(a.n.key) - no(c.n.key) || a.i - c.i; }).map(function (x) { return x.n; });
+      var T = [["blk", "Pantalla"], ["atj", "Atajos"], ["nav", "Barra"], ["est", "Nombre y color"]];
+      var h = popHead("🎛 Personalizar · " + esc(u2.name || MODS[m2][1])) + '<div class="chips">' + T.map(function (t) { return '<button class="chip' + (d.__t === t[0] ? " on" : "") + '" data-ui-tab="' + t[0] + '">' + t[1] + "</button>"; }).join("") + "</div>";
+      if (d.__t === "blk") h += '<div class="meta">Subí, bajá o escondé cada bloque de la pantalla de inicio.</div>' + (blocks.length ? uiRows(blocks, u2.hide, function (x) { return x.lab; }, false) : '<div class="empty">Abrí primero la pantalla de inicio del módulo.</div>');
+      if (d.__t === "atj") h += '<div class="meta">Los botones de acceso rápido del inicio.</div>' + (ats.length ? uiRows(ats, u2.atHide, function (x) { return u2.atLab[x.key] || x.lab; }, true) : '<div class="empty">Este inicio no tiene atajos.</div>');
+      if (d.__t === "nav") h += '<div class="meta">Las pestañas de abajo. Ajustes no se puede esconder.</div>' + uiRows(navs, u2.navHide, function (x) { return u2.navLab[x.key] || x.lab; }, true);
+      if (d.__t === "est") h += '<div class="meta" style="margin-top:6px">Nombre del módulo</div><button class="sm" data-ui-name="1" style="margin:6px 0 10px">✏️ ' + esc(u2.name || MODS[m2][1]) + '</button><div class="meta">Color</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin:8px 0">' + UICOL.map(function (c) { return '<button data-ui-col="' + c + '" style="width:42px;height:42px;border-radius:50%;border:3px solid ' + ((u2.color || MODC[m2]) === c ? "#233018" : "#fff") + ";background:" + c + ';box-shadow:0 0 0 1px #D9E2CC"></button>'; }).join("") + "</div>";
+      h += '<div style="display:flex;gap:8px;margin-top:14px"><button class="sm red" data-ui-reset="1">Restaurar todo</button><button class="btn" data-pclose="1" style="flex:1">Listo</button></div>';
+      d.__c.innerHTML = h;
+    }
+    d.__draw = draw; draw();
+    d.addEventListener("click", function (e) {
+      var t = e.target.closest && e.target.closest("[data-ui-tab],[data-ui-mv],[data-ui-hd],[data-ui-ren],[data-ui-name],[data-ui-col],[data-ui-reset]"); if (!t) return;
+      var u3 = uiM(m), sc = uiHomeScan(m), tab2 = d.__t;
+      function mv(arrName, baseKeys, key, dir) { var A = u3[arrName].slice(); baseKeys.forEach(function (k) { if (A.indexOf(k) < 0) A.push(k); }); var i = A.indexOf(key), j = i + dir; if (j < 0 || j >= A.length) return; A.splice(i, 1); A.splice(j, 0, key); u3[arrName] = A; }
+      function baseOf() { if (tab2 === "blk") { var ks = sc.B.map(function (b) { return b.key; }); Object.keys(u3.lab).forEach(function (k) { if (ks.indexOf(k) < 0) ks.push(k); }); var idx = function (k) { var i = u3.order.indexOf(k); return i < 0 ? 1000 : i; }; return ks.map(function (k, i) { return [k, i]; }).sort(function (a, c) { return idx(a[0]) - idx(c[0]) || a[1] - c[1]; }).map(function (x) { return x[0]; }); } if (tab2 === "atj") { var ak = sc.A.map(function (a) { return a.key; }), io = function (k) { var i = u3.atOrd.indexOf(k); return i < 0 ? 1000 : i; }; return ak.map(function (k, i) { return [k, i]; }).sort(function (a, c) { return io(a[0]) - io(c[0]) || a[1] - c[1]; }).map(function (x) { return x[0]; }); } var nk = MODNAV[m].map(function (x) { return x[0]; }), no = function (k) { var i = u3.nav.indexOf(k); return i < 0 ? 1000 : i; }; return nk.map(function (k, i) { return [k, i]; }).sort(function (a, c) { return no(a[0]) - no(c[0]) || a[1] - c[1]; }).map(function (x) { return x[0]; }); }
+      var arr = tab2 === "blk" ? "order" : tab2 === "atj" ? "atOrd" : "nav", hid = tab2 === "blk" ? "hide" : tab2 === "atj" ? "atHide" : "navHide", labm = tab2 === "atj" ? "atLab" : "navLab";
+      if (t.hasAttribute("data-ui-tab")) { d.__t = t.getAttribute("data-ui-tab"); draw(); return; }
+      if (t.hasAttribute("data-ui-mv")) { var p = t.getAttribute("data-ui-mv").split("|"); u3[arr] = baseOf(); mv(arr, [], p[0], Number(p[1])); }
+      else if (t.hasAttribute("data-ui-hd")) { var k = t.getAttribute("data-ui-hd"), i2 = u3[hid].indexOf(k); if (i2 >= 0) u3[hid].splice(i2, 1); else u3[hid].push(k); }
+      else if (t.hasAttribute("data-ui-ren")) { var rk = t.getAttribute("data-ui-ren"), cur = (u3[labm] || {})[rk] || ""; if (!cur) { if (tab2 === "nav") cur = (MODNAV[m].filter(function (x) { return x[0] === rk; })[0] || [])[1]; else cur = (sc.A.filter(function (x) { return x.key === rk; })[0] || {}).lab; } textAsk("Nuevo nombre", cur, function (v) { if (!v) return; u3[labm][rk] = v; uiSave(); if (tab2 === "nav") buildNav(); render(true); if ($("uicfg") === d) draw(); }); return; }
+      else if (t.hasAttribute("data-ui-name")) { textAsk("Nombre del módulo", u3.name || MODS[m][1], function (v) { if (!v) return; u3.name = v; uiSave(); buildNav(); if ($("uicfg") === d) draw(); }); return; }
+      else if (t.hasAttribute("data-ui-col")) { u3.color = t.getAttribute("data-ui-col"); }
+      else if (t.hasAttribute("data-ui-reset")) { delete UI[m]; }
+      uiSave(); buildNav(); render(true); if ($("uicfg") === d) draw();
+    });
+  }
+  document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-uicfg]"); if (b) { e.stopPropagation(); uiOpen(); } }, true);
+  function payList() { return (UI.pay && UI.pay.length) ? UI.pay : ["Efectivo", "Transferencia", "Pago full"]; }
+  function listEdit(title, key, defs) {
+    var d = popBase("lsted", 380);
+    function draw() { var L = UI[key] && UI[key].length ? UI[key] : defs.slice(); d.__c.innerHTML = popHead(title) + L.map(function (x, i) { return '<div class="frow" style="padding:8px 0;gap:6px;align-items:center"><span style="flex:1">' + esc(x) + '</span><button class="sm" data-le="e|' + i + '">✏️</button><button class="sm" data-le="u|' + i + '">▲</button><button class="sm" data-le="d|' + i + '">▼</button><button class="sm red" data-le="x|' + i + '">🗑</button></div>'; }).join("") + '<div style="display:flex;gap:8px;margin-top:12px"><button class="sm" data-le="a|0">＋ Agregar</button><button class="btn" data-pclose="1" style="flex:1">Listo</button></div>'; }
+    draw();
+    d.addEventListener("click", function (e) { var b = e.target.closest("[data-le]"); if (!b) return; var p = b.getAttribute("data-le").split("|"), i = Number(p[1]), L = UI[key] && UI[key].length ? UI[key] : defs.slice(); UI[key] = L;
+      if (p[0] === "u" && i > 0) { var x = L.splice(i, 1)[0]; L.splice(i - 1, 0, x); } else if (p[0] === "d" && i < L.length - 1) { var y = L.splice(i, 1)[0]; L.splice(i + 1, 0, y); } else if (p[0] === "x") L.splice(i, 1);
+      else if (p[0] === "e") { textAsk("Editar", L[i], function (v) { if (v) { L[i] = v; uiSave(); draw(); } }); return; } else if (p[0] === "a") { textAsk("Nuevo", "", function (v) { if (v) { L.push(v); uiSave(); draw(); } }); return; }
+      uiSave(); draw(); });
+  }
+  function actView() {
+    var d = popBase("actv", 440), loc = []; try { loc = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]"); } catch (e) {}
+    function paint(L) { d.__c.innerHTML = popHead("🕘 Registro de actividad") + (L.length ? L.slice(0, 120).map(function (x) { var t = new Date(x.t); return '<div class="frow" style="padding:6px 0;align-items:flex-start;gap:8px"><span class="meta" style="flex:none;min-width:82px">' + ("0" + t.getDate()).slice(-2) + "/" + ("0" + (t.getMonth() + 1)).slice(-2) + " " + ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2) + "</span><span>" + esc(x.x) + (x.u ? ' <span class="meta">· ' + esc(x.u) + "</span>" : "") + "</span></div>"; }).join("") : '<div class="empty">Sin movimientos todavía.</div>'); }
+    paint(loc); if (!DEMO) api("actividad").then(function (j) { if (j && j.ok && j.items && j.items.length) paint(j.items); }).catch(function () {});
+  }
+  var PDEF = { fil: "pend", pdp: "todo" };
+  function setPick(title, opts, cur, ok) { var d = popBase("setpk", 340); d.__c.innerHTML = popHead(title) + opts.map(function (o) { return '<button class="mi" data-pk="' + o[0] + '" style="width:100%;text-align:left"><div><b>' + (o[0] === cur ? "✓ " : "") + esc(o[1]) + "</b></div></button>"; }).join(""); d.addEventListener("click", function (e) { var b = e.target.closest("[data-pk]"); if (b) { var v = b.getAttribute("data-pk"); d.remove(); ok(v); } }); }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-cfgact]"); if (!b) return; e.stopPropagation(); var a = b.getAttribute("data-cfgact");
+    if (a === "pay") listEdit("Medios de pago", "pay", ["Efectivo", "Transferencia", "Pago full"]);
+    else if (a === "act") actView();
+    else if (a === "fil") setPick("Filtro inicial de Pedidos", FILS.map(function (f) { return [f[0], f[1]]; }), UI.fil || "pend", function (v) { UI.fil = v; uiSave(); st.fil = v; toast("Guardado ✓"); render(true); });
+    else if (a === "rng") setPick("Fechas iniciales de Pedidos", [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]], UI.pdp || "todo", function (v) { UI.pdp = v; uiSave(); st.pdp = v; toast("Guardado ✓"); render(true); });
+  }, true);
+  function cfgRow(ic, t, s, attr) { return '<button class="mi" ' + attr + "><i>" + ic + "</i><div><b>" + t + "</b><span>" + s + "</span></div></button>"; }
+  function renderPrSet() {
+    var al = st.alertas === undefined ? "Cargando…" : st.alertas ? "Activadas: te aviso cuando falten insumos" : "Desactivadas";
+    if (st.alertas === undefined && !st.stkf && allowed("proveedores")) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (st.v === "prset") render(true); } }).catch(function () {}); }
+    return '<div class="sec-h">Stock</div><div class="menu">' + cfgRow("🔔", "Alertas de stock", al, 'data-act="stkalert"') + cfgRow("🎯", "Puntos de pedido", "Cuándo avisarte para reponer cada insumo", 'data-go="puntos"') + "</div>" +
+      '<div class="sec-h">Qué producís y comprás</div><div class="menu">' + cfgRow("🧾", "Insumos y proveedores", "Precios, unidades y proveedores", 'data-sc="proveedores"') + cfgRow("🥒", "Recetas", "Ingredientes y costo de cada frasco", 'data-sc="recetas"') + cfgRow("🛒", "Lista de compras", "Carritos, proveedores e impresión", 'data-buy="1"') + "</div>" +
+      '<div class="sec-h">Esta pantalla</div><div class="menu">' + cfgRow("🎛", "Personalizar Producción", "Orden, bloques, atajos, pestañas, nombre y color", 'data-uicfg="1"') + cfgRow("↻", "Actualizar datos", "Traer lo más nuevo de la planilla", 'data-act="refresh"') + "</div>" +
+      '<div class="sec-h">Módulos</div><div class="menu"><button class="mi" data-mod="ped"><i>📋</i><div><b>Pedidos</b><span>Seguimiento y entregas</span></div></button><button class="mi" data-mod="gen"><i>🏠</i><div><b>Admin</b><span>Productos, finanzas, packs y textos</span></div></button></div>';
+  }
+  if (UI.fil) st.fil = UI.fil; if (UI.pdp) st.pdp = UI.pdp;
   /* ---------- Módulos: General / Pedidos / Producción ---------- */
   var MODS = { gen: ["🏠", "Admin"], ped: ["📋", "Pedidos"], prod: ["🥒", "Producción"] }, MODC = { gen: "#4A6B3A", ped: "#A8803F", prod: "#8A4F36" };
-  var MODEX = { pdash: "ped", pset: "ped", prdash: "prod" }, MODV = { ped: ["pdash", "pedidos", "pset"], prod: ["prdash", "stock", "proveedores", "recetas", "puntos"] };
+  var MODEX = { pdash: "ped", pset: "ped", prdash: "prod", prset: "prod" }, MODV = { ped: ["pdash", "pedidos", "pset"], prod: ["prdash", "prset", "stock", "proveedores", "recetas", "puntos"] };
   var ICO = {
     home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/>', box: '<path d="M4 10h16l-1.6 9a1 1 0 0 1-1 .8H6.6a1 1 0 0 1-1-.8z"/><path d="M8 10l3-6M16 10l-3-6M9.5 13v4M12 13v4M14.5 13v4"/>',
     set: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
@@ -3252,12 +3365,13 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   var MODNAV = {
     gen: [["inicio", "Inicio", "home"], ["pedidos", "Pedidos", "box"], ["productos", "Productos", "jar"], ["finanzas", "Finanzas", "chart"], ["mas", "Más", "dots"]],
     ped: [["pdash", "Inicio", "home"], ["pedidos", "Pedidos", "box"], ["pset", "Ajustes", "set"]],
-    prod: [["prdash", "Inicio", "home"], ["stock", "Stock", "stock"], ["proveedores", "Insumos", "jar"], ["recetas", "Recetas", "jar"], ["compras", "Compras", "cart"]]
+    prod: [["prdash", "Inicio", "home"], ["stock", "Stock", "stock"], ["proveedores", "Insumos", "jar"], ["recetas", "Recetas", "jar"], ["compras", "Compras", "cart"], ["prset", "Ajustes", "set"]]
   };
   function buildNav() {
     var m = st.mod || "gen", nav = $("nav");
-    nav.innerHTML = MODNAV[m].map(function (x) { return x[0] === "compras" ? '<button data-buy="1"><svg viewBox="0 0 24 24">' + ICO.cart + "</svg>Compras</button>" : '<button data-v="' + x[0] + '"><svg viewBox="0 0 24 24">' + ICO[x[2]] + "</svg>" + x[1] + "</button>"; }).join("");
-    var mb = $("modname"); if (mb) mb.textContent = MODS[m][1]; document.documentElement.style.setProperty("--blue", MODC[m]); var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", MODC[m]);
+    var u = uiM(m), no = function (k) { var i = u.nav.indexOf(k); return i < 0 ? 1000 : i; }, NV = MODNAV[m].map(function (x, i) { return { x: x, i: i }; }).sort(function (a, c) { return no(a.x[0]) - no(c.x[0]) || a.i - c.i; }).map(function (o) { return o.x; }).filter(function (x) { return u.navHide.indexOf(x[0]) < 0 || NOHIDE.indexOf(x[0]) >= 0; });
+    nav.innerHTML = NV.map(function (x) { var lb = esc(u.navLab[x[0]] || x[1]); return x[0] === "compras" ? '<button data-buy="1"><svg viewBox="0 0 24 24">' + ICO.cart + "</svg>" + lb + "</button>" : '<button data-v="' + x[0] + '"><svg viewBox="0 0 24 24">' + ICO[x[2]] + "</svg>" + lb + "</button>"; }).join("");
+    var mb = $("modname"); if (mb) mb.textContent = u.name || MODS[m][1]; var col = u.color || MODC[m]; document.documentElement.style.setProperty("--blue", col); var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", col);
     applyPerms();
   }
   function modFor(v) {
@@ -3268,7 +3382,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
   function modMenu(btn) {
     var old = document.querySelector(".crdd"); if (old) { old.remove(); return; }
     var dd = document.createElement("div"); dd.className = "crdd"; dd.style.left = "16px"; dd.style.transform = "none"; dd.style.top = "52px"; dd.style.position = "fixed";
-    dd.innerHTML = Object.keys(MODS).map(function (k) { return '<button type="button" data-mod="' + k + '"' + (k === (st.mod || "gen") ? ' class="on"' : "") + "><span>" + MODS[k][0] + "</span>" + esc(MODS[k][1]) + (k === (st.mod || "gen") ? " ✓" : "") + "</button>"; }).join("");
+    dd.innerHTML = Object.keys(MODS).map(function (k) { return '<button type="button" data-mod="' + k + '"' + (k === (st.mod || "gen") ? ' class="on"' : "") + "><span>" + MODS[k][0] + "</span>" + esc(uiM(k).name || MODS[k][1]) + (k === (st.mod || "gen") ? " ✓" : "") + "</button>"; }).join("");
     document.body.appendChild(dd);
   }
   function modGo(k) { var o = document.querySelector(".crdd"); if (o) o.remove(); st.mod = k; store("uovo_adm_mod", k); buildNav(); goto(MODNAV[k][0][0]); }
@@ -3321,10 +3435,12 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     }
   }, true);
   function renderPSet() {
-    var P = st.plz || { def: 7 };
-    return '<div class="sec-h">Plazos y fechas</div><div class="menu"><button class="mi" data-pset="plz"><i>📅</i><div><b>Plazos de preparación</b><span>Estándar ' + P.def + ' días · por producto o pack</span></div></button></div>' +
-      '<div class="sec-h">Pedidos</div><div class="menu"><button class="mi" data-go="pedidos" data-fil="todos"><i>📋</i><div><b>Ver todos los pedidos</b><span>Lista completa con buscador y filtros</span></div></button><button class="mi" data-act="refresh"><i>↻</i><div><b>Actualizar datos</b><span>Traer lo más nuevo de la planilla</span></div></button></div>' +
-      '<div class="sec-h">Módulos</div><div class="menu"><button class="mi" data-mod="prod"><i>🥒</i><div><b>Producción</b><span>Stock, insumos, recetas y compras</span></div></button><button class="mi" data-mod="gen"><i>🏠</i><div><b>General</b><span>Productos, finanzas, packs y textos</span></div></button></div>';
+    var P = st.plz || { def: 7 }, fl = (FILS.filter(function (f) { return f[0] === (UI.fil || "pend"); })[0] || ["", "Pendientes"])[1], rg = ({ todo: "Todo", hoy: "Hoy", sem: "Esta semana", mes: "Este mes", anio: "Este año" })[UI.pdp || "todo"];
+    return '<div class="sec-h">Plazos y pagos</div><div class="menu"><button class="mi" data-pset="plz"><i>📅</i><div><b>Plazos de preparación</b><span>Estándar ' + P.def + ' días · por producto o pack</span></div></button>' + cfgRow("💳", "Medios de pago", payList().join(" · "), 'data-cfgact="pay"') + "</div>" +
+      '<div class="sec-h">Cómo se ven los pedidos</div><div class="menu">' + cfgRow("🔎", "Filtro inicial", fl, 'data-cfgact="fil"') + cfgRow("🗓", "Fechas iniciales", rg, 'data-cfgact="rng"') + cfgRow("📋", "Ver todos los pedidos", "Lista completa con buscador y filtros", 'data-go="pedidos" data-fil="todos"') + "</div>" +
+      '<div class="sec-h">Registro</div><div class="menu">' + cfgRow("📋", "Gestionados hoy", "Lo que se movió hoy y anomalías", 'data-ghoy="1"') + cfgRow("🕘", "Registro de actividad", "Quién cambió qué y cuándo", 'data-cfgact="act"') + "</div>" +
+      '<div class="sec-h">Esta pantalla</div><div class="menu">' + cfgRow("🎛", "Personalizar Pedidos", "Orden, bloques, atajos, pestañas, nombre y color", 'data-uicfg="1"') + cfgRow("↻", "Actualizar datos", "Traer lo más nuevo de la planilla", 'data-act="refresh"') + "</div>" +
+      '<div class="sec-h">Módulos</div><div class="menu"><button class="mi" data-mod="prod"><i>🥒</i><div><b>Producción</b><span>Stock, insumos, recetas y compras</span></div></button><button class="mi" data-mod="gen"><i>🏠</i><div><b>Admin</b><span>Productos, finanzas, packs y textos</span></div></button></div>';
   }
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-pset=plz]"); if (b) { e.stopPropagation(); plzPop(function () { if (st.v === "pset") render(true); }); } }, true);
   function renderPrDash() {
