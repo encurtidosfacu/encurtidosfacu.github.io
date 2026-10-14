@@ -87,7 +87,7 @@ a { color: inherit; }
 .collage { position: absolute; inset: 0; z-index: -2; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 0; overflow: hidden; }
 .collage img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .collage img:nth-child(3) { grid-column: 1 / -1; }
-.scene.noimg::before, .scene::before { background: rgba(255, 249, 238, .8); }
+.scene.noimg::before, .scene::before { background: rgba(255, 249, 238, .68); }
 
 /* Quiénes somos */
 
@@ -476,7 +476,6 @@ button.scale:hover { background: #F2DFA8; }
 #cats-in button.on { background: var(--sky); border-left-color: var(--blue); color: var(--blue); }
 #cats-in button .n { font: 700 .78rem var(--font-body); background: var(--sky-line); color: var(--ink); border-radius: 999px; min-width: 24px; text-align: center; padding: 2px 8px; }
 #cats-in button.on .n { background: var(--blue); color: #fff; }
-.collage { display: none !important; }
 
 /* Hero verde con burbujas de salmuera y borde de tapa */
 .stripe { display: none !important; }
@@ -593,6 +592,7 @@ button.scale:hover { background: #F2DFA8; }
 .omini span{font-size:.82rem;opacity:.8}
 .omini em{font-style:normal;font-weight:800;font-size:.72rem;background:#E0B04A;color:#3b2b00;border-radius:999px;padding:1px 7px;justify-self:start}
 .omini.tr{background:var(--sky);padding:8px 14px;min-height:62px}
+.star{border:0;border-radius:999px;padding:6px 12px;font:700 .85rem var(--font-body);background:#EEF3E6;color:var(--blue);cursor:pointer;display:inline-flex;gap:6px;align-items:center;margin-right:6px}.star[hidden]{display:none}.star.prem{background:linear-gradient(135deg,#F3D27A,#E0B04A);color:#3b2b00;box-shadow:0 0 0 2px #fff,0 0 12px rgba(224,176,74,.7)}@media(max-width:640px){.star span{display:none}}
 .sfab{position:fixed;right:14px;bottom:18px;z-index:30;width:58px;height:58px;border-radius:50%;border:0;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px rgba(0,0,0,.28);cursor:pointer;animation:sfp 3.2s ease-in-out infinite}
 .sfab[hidden]{display:none}
 .sban{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px auto 0;max-width:max-content;padding:7px 8px 7px 14px;border-radius:18px;text-align:center;background:rgba(224,176,74,.16);border:1px solid rgba(224,176,74,.55);color:inherit;font:600 .85rem/1.3 inherit;cursor:pointer}
@@ -670,7 +670,7 @@ body.has-obar footer{padding-bottom:90px}
 <div class="shopbar">
  <div class="sb-in">
   <div class="lead">
-  <button class="menu-btn" type="button" id="menu-btn" aria-label="Abrir menú de categorías" aria-expanded="false" aria-controls="sidemenu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span></button>
+  <button class="star" type="button" id="star" hidden aria-label="Mi suscripción">☆</button><button class="menu-btn" type="button" id="menu-btn" aria-label="Abrir menú de categorías" aria-expanded="false" aria-controls="sidemenu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menú</span></button>
   </div>
   <form class="sform" id="sform" role="search">
     <input id="q" type="search" placeholder="Buscá por nombre o ingrediente…" autocomplete="off" aria-label="Buscar frascos">
@@ -1646,7 +1646,7 @@ var DEFAULTS = {
     var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.length > 0, gone = false;
     try { gone = sessionStorage.getItem("sban-x") === "1"; } catch (e0) {}
     ban.hidden = !(near && !gone);
-    if (near) $("sban-t").innerHTML = "📬 <b>No te pierdas tu suscripción</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> " + esc(p.plan); }).join(" · ") : "cupos limitados cada mes");
+    if (near) $("sban-t").innerHTML = "📬 <b>No te pierdas tu suscripción</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
     if (!S.length) { $("spmodal").hidden = true; return; }
     $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
     if (sSel == null || !S[sSel]) {
@@ -1667,6 +1667,9 @@ var DEFAULTS = {
   document.addEventListener("click", function (e) {
     var T = e.target.closest ? e.target : null;
     if (T && T.closest("#sban-x")) { $("sban").hidden = true; try { sessionStorage.setItem("sban-x", "1"); } catch (e1) {} return; }
+    var bpx = T && T.closest("[data-bp]"); if (bpx && T.closest("#sban")) { sSel = Number(bpx.getAttribute("data-bp")); renderSusc(); $("spmodal").hidden = false; return; }
+    if (T && T.closest("#star")) { starOpen(); return; }
+    if (T && T.closest("#star-x")) { $("starm").hidden = true; return; }
     if (T && (T.closest("#sban") || T.closest("#sfab"))) { sSel = null; renderSusc(); $("spmodal").hidden = false; return; }
     if (T && (T.closest("#sp-x") || T === $("spmodal"))) { $("spmodal").hidden = true; return; }
     var spt = T && T.closest("[data-spt]"); if (spt) { sSel = Number(spt.getAttribute("data-spt")); renderSusc(); return; }
@@ -1894,13 +1897,30 @@ var DEFAULTS = {
     if (memToken && tokExp - Date.now() > 90000) { cb(memToken); return; }
     cb("");
   }
+  var mySus = [];
+  function isPrem(x) { return /premium/i.test(x.plan); }
+  function loadSus() {
+    var st0 = $("star"); if (!st0) return;
+    if (!ENDPOINT || !memToken) { mySus = []; st0.hidden = true; return; }
+    fetch(ENDPOINT + "?misusc=1&token=" + encodeURIComponent(memToken)).then(function (r) { return r.json(); }).then(function (j) {
+      mySus = (j && j.susc) || []; var pr = mySus.some(isPrem);
+      st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = (pr ? "★" : "☆") + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
+    }).catch(function () {});
+  }
+  function starOpen() {
+    var pr = mySus.some(isPrem), sb = mySus[0] || {}, m = $("starm"), wa = "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=";
+    if (!m) { m = document.createElement("div"); m.id = "starm"; m.className = "smodal"; document.body.appendChild(m); }
+    m.hidden = false;
+    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><h3>' + (pr ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p">' + esc(sb.estado === "Pendiente de pago" ? "Tu suscripción está pendiente de pago." : "Tu suscripción está activa" + (sb.pagado ? " · pagado: " + sb.pagado : "") + ".") + '</p><a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">Renovar mi suscripción</a>' + (pr ? "" : '<a class="btn" style="margin-top:8px;background:#E0B04A;color:#3b2b00" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">⭐ Pasar a Premium</a>') + "</div>";
+  }
   function loadCupones() {
+    try { loadSus(); } catch (e9) {}
     if (!ENDPOINT || !memToken) return;
     fetch(ENDPOINT + "?cupones=1&token=" + encodeURIComponent(memToken)).then(function (r) { return r.json(); }).then(function (j) {
       cupones = (j && j.cupones) || []; if (data) { refresh(); if ($("drawer").classList.contains("open")) renderCart(); }
     }).catch(function () {});
   }
-  $("acct-out").addEventListener("click", function () { memToken = ""; tokExp = 0; cupones = []; try { localStorage.removeItem("encurtidos-facu-tok"); } catch (e) {} if (data) refresh(); });
+  $("acct-out").addEventListener("click", function () { mySus = []; if ($("star")) $("star").hidden = true; memToken = ""; tokExp = 0; cupones = []; try { localStorage.removeItem("encurtidos-facu-tok"); } catch (e) {} if (data) refresh(); });
 
   /* Mis pedidos */
   var ordData = null, ordAsk = "", ordLogin = false;

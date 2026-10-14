@@ -1878,7 +1878,7 @@ button.sw{white-space:nowrap;flex:none;gap:6px}
     if (v === "suscripciones" && st.sut === "envios") { var E = st.su.envios.filter(function (e) { return MS.keys[e.id]; }).sort(function (a, b) { return b.r - a.r; }); var last = null; msRunSeq(E, function (e) { return api("delSuscEnvio", { r: e.r, id: e.id }).then(function (j) { if (j && j.ok) last = j; }); }, function () { if (last) st.su = last; msFinish("Eliminados: " + E.length); }); return; }
   }
   var ACT = { pAp: "Aprobado", pHe: "Hecho", pEn: "Entregado", pNx: "Siguiente estado", pCc: "Cancelado" };
-  function actLog(txt, id) { try { var L = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]"); L.unshift({ t: Date.now(), x: txt, id: id || "" }); localStorage.setItem("uovo_adm_act", JSON.stringify(L.slice(0, 400))); } catch (e) {} }
+  function actLog(txt, id) { try { var L = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]"); L.unshift({ t: Date.now(), x: txt, id: id || "" }); localStorage.setItem("uovo_adm_act", JSON.stringify(L.slice(0, 400))); } catch (e) {} if (!DEMO) { try { api("logActividad", { texto: txt, ref: id || "" }).catch(function () {}); } catch (e2) {} } }
   function pedSet(p, o) { var ks = ["ap", "he", "en", "te"], b = {}; ks.forEach(function (k) { b[k] = !!p[k]; }); var cc = !!p.cc; var q = Promise.resolve(); ks.forEach(function (k) { if (k in o && !!p[k] !== !!o[k]) q = q.then(function () { return api("setPedido", { r: p.r, id: p.id, campo: k, valor: !!o[k] }).then(function (j) { if (j && j.ok && j.p) for (var z in j.p) p[z] = j.p[z]; else p[k] = !!o[k]; }); }); }); return q; }
   function pedBulk(L, a) {
     if (!L.length) return; var prev = L.map(function (p) { return { p: p, ap: !!p.ap, he: !!p.he, en: !!p.en, te: !!p.te }; }), n = 0, nm = ACT[a] || "";
