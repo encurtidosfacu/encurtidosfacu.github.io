@@ -1393,56 +1393,114 @@ body.nobadge #bell-n{display:none!important}
   }
   function suSet(j, msg) { if (j && j.ok) { var oc = st.su && st.su.cajas; st.su = j; if (oc) st.su.cajas = oc; render(true); toast(msg || "Guardado ✓"); } else toast(j && j.msg || "No se pudo guardar"); }
   var SU_EST = ["Pendiente de pago", "Activo", "Pausado", "Baja", "Lista de espera"];
+  function s2Lines(c) { return String(c || "").split(/\n+/).map(function (z) { return z.trim(); }).filter(Boolean); }
+  function s2Name(l) { return String(l).split(/\s+[—-]\s+/)[0].trim(); }
+  function s2Prods() { return (st.productos || []).map(function (p) { return p.nombre; }); }
+  function s2PlanBox(sid) { var D = st.su || {}, sb = (D.suscriptores || []).filter(function (x) { return x.id === sid; })[0] || {}, pl = (D.planes || []).filter(function (p) { return p.plan === sb.plan; })[0] || {}; return pl.contenido || ""; }
   function renderSu() {
     var D = st.su; if (!D) return BACK + '<div class="empty">Cargando…</div>';
     st.sut = st.sut || "planes"; st.sumes = st.sumes || suHoy().slice(0, 7);
     var h = BACK + '<div class="chips">' + [["planes", "Planes"], ["subs", "Suscriptores " + D.suscriptores.length], ["envios", "Envíos"]].map(function (c) { return '<button class="chip' + (st.sut === c[0] ? " on" : "") + '" data-sut="' + c[0] + '">' + c[1] + "</button>"; }).join("") + "</div>";
+    if (!st.productos && !st.__spl) { st.__spl = 1; api("catalogo").then(function (j) { if (j && j.ok) st.productos = j.catalogo; if (st.v === "suscripciones") render(true); }).catch(function () {}); }
     if (st.sut === "planes") {
-      h += '<div class="help">Acá definís los planes que se ven en la tienda: precio, cupos por mes y qué lleva la caja de este mes. Los cupos se descuentan solos con cada suscriptor activo o pendiente de pago, y cuando se llenan el plan queda «agotado» solo en la tienda.</div>';
+      h += '<div class="help">Creá todos los planes que quieras (Bronce, Plata, Oro…). Tildá los productos que lleva la caja: queda guardado en el plan y de ahí sale la caja del cliente y su QR.</div><div style="margin-bottom:10px"><button class="btn" data-s2-pnew="1">＋ Nuevo plan</button></div>';
+      if (st.s2pn) h += '<article class="card"><div class="nm">Nuevo plan</div><div class="add" style="margin-top:8px"><input class="inp" data-s2n="plan" placeholder="Nombre (ej. Plata)"><div style="display:flex;gap:8px"><input class="inp" data-s2n="precio" type="number" inputmode="numeric" placeholder="Precio $"><input class="inp" data-s2n="cupos" type="number" inputmode="numeric" placeholder="Cupos"></div><textarea class="inp" rows="2" data-s2n="desc" placeholder="Descripción (la ve el cliente)"></textarea><div style="display:flex;gap:8px"><button class="btn" data-s2-pcreate="1">Crear plan</button><button class="sm" data-s2-pnew="1">Cancelar</button></div></div></article>';
       h += D.planes.map(function (p) {
-        return '<article class="card" data-spr="' + p.r + '"><div class="row"><div><div class="nm">' + esc(p.plan) + '</div><div class="meta">Cupos usados: <b>' + p.usados + " de " + p.cupos + "</b>" + (p.cupos > 0 && p.usados >= p.cupos ? ' <span class="badge r">Agotado (automático)</span>' : p.cupos > 0 ? " · quedan " + (p.cupos - p.usados) : "") + "</div></div>" +
+        var lines = s2Lines(p.contenido), names = s2Prods(), sel = {}; lines.forEach(function (l) { sel[nrm(s2Name(l))] = l; });
+        var all = names.slice(); lines.forEach(function (l) { var n = s2Name(l); if (!all.some(function (z) { return nrm(z) === nrm(n); })) all.push(n); });
+        return '<article class="card" data-spr="' + p.r + '"><div class="row"><div style="flex:1;min-width:0"><input class="inp" data-spf="plan" value="' + esc(p.plan) + '" style="font-weight:700"><div class="meta" style="margin-top:4px">Cupos usados: <b>' + p.usados + " de " + p.cupos + "</b>" + (p.cupos > 0 && p.usados >= p.cupos ? ' <span class="badge r">agotado</span>' : "") + '</div></div>' +
           '<button class="sw' + (p.activo ? " on" : "") + '" data-spsw="1" style="border:0;background:none;padding:0"><i></i>' + (p.activo ? "Visible" : "Oculto") + "</button></div>" +
-          '<div class="add" style="margin-top:10px"><div style="display:flex;gap:8px"><input class="inp" data-spf="precio" type="number" inputmode="numeric" placeholder="Precio por mes $" value="' + (p.precio || "") + '"><input class="inp" data-spf="cupos" type="number" inputmode="numeric" placeholder="Cupos del mes" value="' + (p.cupos || "") + '"></div>' +
+          '<div class="add" style="margin-top:10px"><div style="display:flex;gap:8px"><input class="inp" data-spf="precio" type="number" inputmode="numeric" placeholder="Precio $" value="' + (p.precio || "") + '"><input class="inp" data-spf="cupos" type="number" inputmode="numeric" placeholder="Cupos" value="' + (p.cupos || "") + '"></div>' +
           '<textarea class="inp" rows="2" data-spf="desc" placeholder="Descripción del plan">' + esc(p.desc) + '</textarea>' +
-          '<div class="meta" style="margin-bottom:-4px">Qué lleva la caja de este mes (solo para vos: el cliente NO lo ve al comprar)</div><textarea class="inp" rows="2" data-spf="contenido" placeholder="Un producto por línea. Ej: Pepinos en vinagre — para la picada">' + esc(p.contenido) + '</textarea>' +
-          '<div class="meta" style="margin-bottom:-4px">Fecha límite del precio actual (el cliente ve una cuenta regresiva)</div><input class="inp" data-spf="ajuste" type="date" value="' + esc(p.ajuste) + '">' +
-          '<button class="btn" data-spsave="1">Guardar plan</button></div></article>';
+          '<div class="meta" style="margin-bottom:-2px"><b>📦 Qué lleva la caja</b> · tocá para sumar o quitar</div><div class="chips" style="flex-wrap:wrap" data-s2-chips="1">' + (all.length ? all.map(function (n) { var on = !!sel[nrm(n)]; return '<button class="chip' + (on ? " on" : "") + '" data-s2-chip="1" data-s2-line="' + esc(on ? sel[nrm(n)] : n) + '">' + esc(n) + "</button>"; }).join("") : '<span class="meta">Cargando productos…</span>') + '</div>' +
+          '<div class="meta" style="margin-bottom:-4px">Fecha límite del precio actual (cuenta regresiva en la tienda, opcional)</div><input class="inp" data-spf="ajuste" type="date" value="' + esc(p.ajuste) + '">' +
+          '<div style="display:flex;gap:8px"><button class="btn" data-s2-psave="1">Guardar plan</button><button class="sm red" data-s2-pdel="1">Eliminar</button></div></div></article>';
       }).join("");
     } else if (st.sut === "subs") {
       h += '<div style="margin-bottom:10px"><button class="btn" data-sunew="1">＋ Nuevo suscriptor</button></div>';
       if (st.sun) h += '<article class="card"><div class="nm">Nuevo suscriptor</div><div class="add" style="margin-top:8px"><input class="inp" data-sn="nombre" placeholder="Nombre"><input class="inp" data-sn="tel" inputmode="tel" placeholder="WhatsApp"><input class="inp" data-sn="mail" placeholder="Mail (opcional)"><select class="inp" data-sn="plan">' + D.planes.map(function (p) { return "<option>" + esc(p.plan) + "</option>"; }).join("") + '</select><input class="inp" data-sn="zona" placeholder="Zona o dirección"><div style="display:flex;gap:8px"><button class="btn" data-sunsave="1">Agregar</button><button class="sm" data-sunew="1">Cancelar</button></div></div></article>';
       if (!D.suscriptores.length && !st.sun) h += '<div class="empty">Todavía no hay suscriptores. Cuando alguien se anote en la tienda aparece acá.</div>';
       h += D.suscriptores.slice().reverse().map(function (x) {
-        var open = st.suo === x.id, col = x.estado === "Activo" ? "g" : x.estado === "Baja" ? "r" : "o";
-        var b = '<article class="card" data-sid="' + esc(x.id) + '" data-sr="' + x.r + '"><button class="row" data-suo="' + esc(x.id) + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center"><div style="min-width:0"><div class="nm">' + esc(x.nombre) + '</div><div class="meta">' + esc(x.plan) + " · " + esc(x.tel) + '</div></div><span class="badge ' + col + '">' + esc(x.estado) + '</span><span class="pen">' + PEN + "</span></button>";
+        var open = st.suo === x.id, col = x.estado === "Activo" ? "g" : x.estado === "Baja" ? "r" : "o", pagado = !!x.pagoMes, pl0 = D.planes.filter(function (p) { return p.plan === x.plan; })[0] || {};
+        var b = '<div class="ssw" data-ssw="s:' + esc(x.id) + '"><div class="sa l"><button class="txt" data-s2-pay="' + esc(x.id) + '">' + (pagado ? "Pagó ✓" : "💰 Pagó") + '</button></div><div class="sa r"><button class="m" data-s2-env="' + esc(x.id) + '" aria-label="Armar envío">🚚</button><button class="d" data-s2-baja="' + esc(x.id) + '" aria-label="Dar de baja">✕</button></div>' +
+          '<article class="card ssc" data-sid="' + esc(x.id) + '" data-sr="' + x.r + '"><button class="row" data-suo="' + esc(x.id) + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center"><div style="min-width:0;flex:1"><div class="nm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(x.nombre) + '</div><div class="meta">' + esc(x.plan) + (x.tel ? " · " + esc(x.tel) : "") + '</div></div><div style="text-align:right"><span class="badge ' + col + '">' + esc(x.estado) + '</span><div class="meta" style="margin-top:4px">' + (pagado ? "💰 Pagó" + (x.monto ? " " + money(x.monto) : "") : "Sin pagar") + "</div></div></button>";
         if (open) {
           var hist = D.envios.filter(function (e) { return e.sid === x.id; });
-          b += '<div class="add" style="margin-top:10px"><div style="display:flex;gap:8px"><select class="inp" data-sf="estado">' + SU_EST.map(function (e) { return "<option" + (e === x.estado ? " selected" : "") + ">" + e + "</option>"; }).join("") + '</select><select class="inp" data-sf="plan">' + D.planes.map(function (p) { return "<option" + (p.plan === x.plan ? " selected" : "") + ">" + esc(p.plan) + "</option>"; }).join("") + '</select></div>' +
-            '<input class="inp" data-sf="zona" placeholder="Zona o dirección" value="' + esc(x.zona) + '"><textarea class="inp" rows="2" data-sf="notas" placeholder="Notas (alergias, preferencias de entrega…)">' + esc(x.notas) + '</textarea>' +
-            '<div class="meta" style="margin-bottom:-4px">Sus gustos (lo que le gusta y lo que no)</div><textarea class="inp" rows="2" data-sf="gustos" placeholder="Ej: le encantaron los pepinos, no probó la bondiola">' + esc(x.gustos) + '</textarea>' +
-            '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-susave="1">Guardar</button><a class="sm" href="' + suWa(x.tel, "Hola " + x.nombre.split(" ")[0] + "!") + '" target="_blank" rel="noopener">💬 WhatsApp</a><button class="sm" data-suenv="' + esc(x.id) + '">＋ Registrar envío</button><button class="sm" data-suqr="' + esc(x.id) + '">🎫 Generar QR</button></div>' +
+          b += '<div class="add" style="margin-top:10px"><input class="inp" data-s2f="nombre" placeholder="Nombre" value="' + esc(x.nombre) + '"><div style="display:flex;gap:8px"><input class="inp" data-s2f="tel" inputmode="tel" placeholder="WhatsApp" value="' + esc(x.tel) + '"><input class="inp" data-s2f="mail" inputmode="email" placeholder="Mail" value="' + esc(x.mail) + '"></div>' +
+            '<div class="meta" style="margin-bottom:-4px">Plan</div><div class="chips" style="flex-wrap:wrap" data-s2-grp="plan">' + D.planes.map(function (p) { return '<button class="chip' + (p.plan === x.plan ? " on" : "") + '" data-s2-sel="' + esc(p.plan) + '">' + esc(p.plan) + "</button>"; }).join("") + '</div>' +
+            '<div class="meta" style="margin-bottom:-4px">Estado</div><div class="chips" style="flex-wrap:wrap" data-s2-grp="estado">' + SU_EST.map(function (e) { return '<button class="chip' + (e === x.estado ? " on" : "") + '" data-s2-sel="' + e + '">' + e + "</button>"; }).join("") + '</div>' +
+            '<div style="display:flex;align-items:center;gap:10px"><button class="sw' + (pagado ? " on" : "") + '" data-s2-pg="1" style="border:0;background:none;padding:0"><i></i>Pagó</button><input class="inp" data-s2f="monto" inputmode="decimal" placeholder="Monto $" value="' + (x.monto || pl0.precio || "") + '" style="flex:1"><input class="inp" data-s2f="medio" placeholder="Medio" value="' + esc(x.medio) + '" style="flex:1"></div>' +
+            (pagado && x.fpago ? '<div class="meta">Pago registrado el ' + esc(x.fpago) + "</div>" : "") +
+            '<input class="inp" data-s2f="zona" placeholder="Zona o dirección" value="' + esc(x.zona) + '"><textarea class="inp" rows="2" data-s2f="notas" placeholder="Alergias o cosas que no le gustan">' + esc(x.notas) + '</textarea>' +
+            '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-s2-susave="1">Guardar</button><a class="sm" href="' + suWa(x.tel, "Hola " + x.nombre.split(" ")[0] + "!") + '" target="_blank" rel="noopener">💬 WhatsApp</a><button class="sm" data-suenv="' + esc(x.id) + '">🚚 Armar envío</button></div></div>' +
             '<div class="meta">Alta: ' + esc(x.fecha) + "</div>" +
-            (hist.length ? '<div class="meta" style="margin-top:6px"><b>Historial de cajas</b></div>' + hist.map(function (e) { return '<div class="frow"><span>' + esc(e.mes) + " · " + esc(e.contenido || "sin detalle") + (e.fav ? " · ⭐ " + esc(e.fav) : "") + "</span><span>" + (e.entregado ? "✓ entregado" : e.enviado ? "enviado" : "por enviar") + "</span></div>"; }).join("") : '<div class="meta">Todavía no recibió cajas.</div>') + "</div>";
+            (hist.length ? '<div class="meta" style="margin-top:6px"><b>Historial de cajas y gustos</b></div>' + hist.map(function (e) { return '<div class="frow"><span>' + esc(e.mes) + " · " + esc(e.contenido || "sin detalle") + (e.fav ? " · ⭐ " + esc(e.fav) : "") + (e.nota ? " · 💬 " + esc(e.nota) : "") + "</span></div>"; }).join("") : "");
         }
-        return b + "</article>";
+        return b + "</article></div>";
       }).join("");
     } else {
-      var L = D.envios.filter(function (e) { return e.mes === st.sumes; });
-      h += '<div class="help">Elegí el mes. «Armar envíos del mes» crea una caja por cada suscriptor activo con el contenido del plan. Después la ajustás para cada cliente según sus gustos.</div><div style="display:flex;gap:8px;margin-bottom:10px"><input class="inp" type="month" data-sumes="1" value="' + esc(st.sumes) + '" style="flex:1"><button class="btn" data-sugen="1" style="flex:none">Armar envíos</button></div>';
-      if (st.sue) h += '<article class="card"><div class="nm">Nuevo envío</div><div class="add" style="margin-top:8px"><div class="meta">' + esc((D.suscriptores.filter(function (x) { return x.id === st.sue; })[0] || {}).nombre || "") + '</div><textarea class="inp" rows="2" data-sen="contenido" placeholder="Qué le mandás"></textarea><div style="display:flex;gap:8px"><button class="btn" data-suensave="1">Agregar</button><button class="sm" data-suenv="">Cancelar</button></div></div></article>';
-      if (!L.length && !st.sue) h += '<div class="empty">No hay envíos cargados para este mes.</div>';
+      var L = D.envios.filter(function (e) { return st.sef === "todos" || (st.sef === "env" ? !!e.enviado : !e.enviado); }).slice().reverse();
+      st.sef = st.sef || "pend";
+      h += '<div class="help">Cada envío trae la caja del plan del cliente. Podés ajustarla rápido. Lo que opina el cliente después del envío queda en su legajo.</div><div class="chips" style="margin-bottom:10px">' + [["pend", "Por enviar"], ["env", "Enviados"], ["todos", "Todos"]].map(function (c) { return '<button class="chip' + (st.sef === c[0] ? " on" : "") + '" data-s2-ef="' + c[0] + '">' + c[1] + "</button>"; }).join("") + '</div>';
+      if (st.sue) h += '<article class="card"><div class="nm">Nuevo envío</div><div class="add" style="margin-top:8px"><div class="meta">' + esc((D.suscriptores.filter(function (x) { return x.id === st.sue; })[0] || {}).nombre || "") + '</div><textarea class="inp" rows="3" data-sen="contenido" placeholder="Qué le mandás">' + esc(s2PlanBox(st.sue)) + '</textarea><div style="display:flex;gap:8px"><button class="btn" data-suensave="1">Agregar</button><button class="sm" data-suenv="">Cancelar</button></div></div></article>';
+      if (!L.length && !st.sue) h += '<div class="empty">No hay envíos en esta lista.</div>';
       h += L.map(function (e) {
         var sub = D.suscriptores.filter(function (x) { return x.id === e.sid; })[0] || {};
         return '<article class="card" data-er="' + e.r + '" data-eid="' + esc(e.id) + '" data-esid="' + esc(e.sid) + '"><div class="row"><div><div class="nm">' + esc(e.nombre) + ' <span class="badge b">' + esc(e.plan) + '</span></div><div class="meta">' + (e.entregado ? "✓ Entregado " + esc(e.entregado) : e.enviado ? "Enviado " + esc(e.enviado) + " · esperando entrega" : "Por enviar") + "</div></div></div>" +
           '<div class="add" style="margin-top:8px"><textarea class="inp" rows="2" data-ef="contenido" placeholder="Qué se manda en esta caja">' + esc(e.contenido) + '</textarea>' +
-          (sub.gustos ? '<div class="meta">🧠 Gustos: ' + esc(sub.gustos) + "</div>" : "") +
+          (sub.notas ? '<div class="meta">⚠️ ' + esc(sub.notas) + "</div>" : "") +
           '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sm' + (e.enviado ? " on" : "") + '" data-eact="enviado">' + (e.enviado ? "Enviado ✓" : "Marcar enviado") + '</button><button class="sm' + (e.entregado ? " on" : "") + '" data-eact="entregado">' + (e.entregado ? "Entregado ✓" : "Marcar entregado") + "</button></div>" +
-          '<input class="inp" data-ef="fav" placeholder="Lo que más le gustó (después de preguntarle)" value="' + esc(e.fav) + '"><textarea class="inp" rows="2" data-ef="nota" placeholder="Comentario del cliente">' + esc(e.nota) + '</textarea>' +
+          (e.enviado ? '<div class="meta" style="margin-top:6px"><b>Después del envío</b> · va al legajo del cliente</div><input class="inp" data-ef="fav" placeholder="Lo que más le gustó" value="' + esc(e.fav) + '"><textarea class="inp" rows="2" data-ef="nota" placeholder="Comentario del cliente">' + esc(e.nota) + '</textarea>' : '<input type="hidden" data-ef="fav" value="' + esc(e.fav) + '"><input type="hidden" data-ef="nota" value="' + esc(e.nota) + '">') +
           cajaBlock(e) + '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-esave="1">Guardar</button>' + (e.entregado && sub.tel ? '<a class="sm" target="_blank" rel="noopener" href="' + suWa(sub.tel, "Hola " + String(e.nombre).split(" ")[0] + "! Te llegó tu caja de este mes? Contame qué te parecieron los productos y cuál fue tu favorito 🫙") + '">💬 Preguntar qué le pareció</a>' : "") + '<button class="sm red" data-edel="1">Eliminar</button></div></div></article>';
       }).join("");
     }
     return h;
   }
+  function s2Body(x, o) { var b = { r: x.r, id: x.id, nombre: x.nombre, tel: x.tel, mail: x.mail, plan: x.plan, estado: x.estado, zona: x.zona, notas: x.notas, gustos: x.gustos }; for (var k in o) b[k] = o[k]; return b; }
+  function s2Sub(id) { return ((st.su && st.su.suscriptores) || []).filter(function (z) { return z.id === id; })[0]; }
+  document.addEventListener("click", function (ev) {
+    var t = ev.target; if (!t.closest || st.v !== "suscripciones" || !st.su) return;
+    var q = function (s) { return t.closest(s); }, x, D = st.su, val = function (c, sel) { var e = c.querySelector(sel); return e ? e.value : ""; }, stop = function () { ev.stopPropagation(); ev.preventDefault(); }, fail = function () { toast("No se pudo guardar"); };
+    if (q("[data-s2-pnew]")) { stop(); st.s2pn = !st.s2pn; render(true); return; }
+    if (q("[data-s2-pcreate]")) { stop(); var c0 = q(".card"); api("saveSuscPlan", { r: 0, plan: val(c0, "[data-s2n=plan]"), precio: Number(val(c0, "[data-s2n=precio]")) || 0, cupos: Number(val(c0, "[data-s2n=cupos]")) || 0, desc: val(c0, "[data-s2n=desc]"), contenido: "" }).then(function (j) { if (j && j.ok) st.s2pn = false; suSet(j, "Plan creado ✓"); }).catch(fail); return; }
+    if ((x = q("[data-s2-chip]"))) { stop(); x.classList.toggle("on"); return; }
+    if (q("[data-s2-psave]")) {
+      stop(); var card = q("[data-spr]"), pp = D.planes.filter(function (p) { return p.r === Number(card.getAttribute("data-spr")); })[0]; if (!pp) return;
+      var lines = [].map.call(card.querySelectorAll("[data-s2-chip].on"), function (b) { return b.getAttribute("data-s2-line"); });
+      api("saveSuscPlan", { r: pp.r, activo: pp.activo, plan: val(card, "[data-spf=plan]").trim() || pp.plan, precio: Number(val(card, "[data-spf=precio]")) || 0, cupos: Number(val(card, "[data-spf=cupos]")) || 0, desc: val(card, "[data-spf=desc]"), contenido: lines.join("\n"), ajuste: val(card, "[data-spf=ajuste]") }).then(function (j) { suSet(j, "Plan guardado ✓"); }).catch(fail); return;
+    }
+    if ((x = q("[data-s2-pdel]"))) {
+      stop(); if (!x.classList.contains("arm")) { x.classList.add("arm"); x.textContent = "¿Seguro? Tocá de nuevo"; clearTimeout(armTimer); armTimer = setTimeout(function () { x.classList.remove("arm"); x.textContent = "Eliminar"; }, 3000); return; }
+      var cd = q("[data-spr]"); api("saveSuscPlan", { r: Number(cd.getAttribute("data-spr")), del: true }).then(function (j) { suSet(j, "Plan eliminado"); }).catch(fail); return;
+    }
+    if ((x = q("[data-s2-sel]"))) { stop(); [].forEach.call(x.closest("[data-s2-grp]").querySelectorAll("[data-s2-sel]"), function (b) { b.classList.remove("on"); }); x.classList.add("on"); return; }
+    if ((x = q("[data-s2-pg]"))) { stop(); x.classList.toggle("on"); return; }
+    if (q("[data-s2-susave]")) {
+      stop(); var sc = q("[data-sid]"), sb = s2Sub(sc.getAttribute("data-sid")); if (!sb) return;
+      var pg = !!sc.querySelector("[data-s2-pg].on"), pl1 = sc.querySelector('[data-s2-grp="plan"] .on'), es1 = sc.querySelector('[data-s2-grp="estado"] .on'), est = es1 ? es1.getAttribute("data-s2-sel") : sb.estado;
+      if (pg && !sb.pagoMes && est === "Pendiente de pago") est = "Activo";
+      var body = s2Body(sb, { nombre: val(sc, "[data-s2f=nombre]") || sb.nombre, tel: val(sc, "[data-s2f=tel]"), mail: val(sc, "[data-s2f=mail]"), plan: pl1 ? pl1.getAttribute("data-s2-sel") : sb.plan, estado: est, zona: val(sc, "[data-s2f=zona]"), notas: val(sc, "[data-s2f=notas]") });
+      var go = api("saveSuscriptor", body).then(function (j) { if (!(j && j.ok)) throw new Error(j && j.msg || "x"); return j; });
+      if (pg) go = go.then(function () { return api("setSuscPago", { r: sb.r, id: sb.id, mes: "Pagado", monto: Number(String(val(sc, "[data-s2f=monto]")).replace(",", ".")) || 0, fecha: sb.fpago || suHoy(), medio: val(sc, "[data-s2f=medio]") }); });
+      else if (sb.pagoMes) go = go.then(function () { return api("setSuscPago", { r: sb.r, id: sb.id, limpiar: true }); });
+      go.then(function (j) { suSet(j, "Guardado ✓"); }).catch(function (e) { toast(e && e.message && e.message !== "x" ? e.message : "No se pudo guardar"); }); return;
+    }
+    if ((x = q("[data-s2-pay]"))) {
+      stop(); var sp = s2Sub(x.getAttribute("data-s2-pay")); if (!sp) return; if (sp.pagoMes) { toast("Ya figura como pagó"); return; }
+      var plp = D.planes.filter(function (p) { return p.plan === sp.plan; })[0] || {};
+      api("saveSuscriptor", s2Body(sp, { estado: sp.estado === "Pendiente de pago" || sp.estado === "Lista de espera" ? "Activo" : sp.estado })).then(function () { return api("setSuscPago", { r: sp.r, id: sp.id, mes: "Pagado", monto: plp.precio || 0, fecha: suHoy(), medio: "" }); }).then(function (j) { suSet(j, "Pago registrado ✓"); }).catch(fail); return;
+    }
+    if ((x = q("[data-s2-baja]"))) {
+      stop(); var sbj = s2Sub(x.getAttribute("data-s2-baja")); if (!sbj) return;
+      if (!x.classList.contains("arm")) { x.classList.add("arm"); x.textContent = "¿Seguro?"; clearTimeout(armTimer); armTimer = setTimeout(function () { x.classList.remove("arm"); x.textContent = "✕"; }, 3000); return; }
+      api("saveSuscriptor", s2Body(sbj, { estado: "Baja" })).then(function (j) { suSet(j, "Suscripción dada de baja"); }).catch(fail); return;
+    }
+    if ((x = q("[data-s2-env]"))) {
+      stop(); var se = s2Sub(x.getAttribute("data-s2-env")); if (!se) return;
+      api("saveSuscEnvio", { r: 0, sid: se.id, mes: suHoy().slice(0, 7), contenido: s2PlanBox(se.id) }).then(function (j) { if (j && j.ok) { st.sut = "envios"; st.sef = "pend"; } suSet(j, "Envío armado con la caja del plan ✓"); }).catch(fail); return;
+    }
+    if ((x = q("[data-s2-ef]"))) { stop(); st.sef = x.getAttribute("data-s2-ef"); render(true); return; }
+  }, true);
   document.addEventListener("click", function (ev) {
     var t = ev.target; if (!t.closest || st.v !== "suscripciones") return;
     var q = function (s) { return t.closest(s); }, card, val = function (c, sel) { var e = c.querySelector(sel); return e ? e.value : ""; };
