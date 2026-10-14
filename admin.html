@@ -191,6 +191,8 @@ body.sh-open{overflow:hidden}
 .ssw .sa.l{left:0;width:84px}.ssw .sa.r{right:0;width:168px}
 .ssw .sa button{flex:1;border:0;color:#fff;font:700 1.5rem inherit;font-family:inherit}
 .ssw .sa.l button{background:#4A6B3A}.ssw .sa.r .m{background:#C98A1B}.ssw .sa.r .d{background:#d93a2f}
+.ssw>.ssc{margin:0;position:relative;transition:transform .2s;touch-action:pan-y;background:#fff}.ssw .sa button.txt{font-size:.8rem}.ssw.pw .sa.l{width:84px}.ssw.pw.ol>.ssc,.ssw.pw.ol>article{transform:translateX(84px)}.ssw.pw .sa.r{width:168px}.ssw.pw.one .sa.r{width:84px}.ssw.pw.one.or>.ssc,.ssw.pw.one.or>article{transform:translateX(-84px)}.ssw.pw .trow.ssc{padding:10px 4px;border-bottom:1px solid #EEF0E4}.ssw.pw{margin-bottom:0;border-radius:0}.ssw.pw:has(>article){margin-bottom:12px;border-radius:16px}
+.ssw.ol>.ssc{transform:translateX(84px)}.ssw.or>.ssc{transform:translateX(-168px)}.ssw.one .sa.r{width:84px}.ssw.one.or>.ssc{transform:translateX(-84px)}.rhd{display:flex;gap:8px;margin-bottom:12px;align-items:center}.rhd .btn{flex:1;margin:0}.rfab{width:46px;height:46px;border-radius:50%;border:0;color:#fff;font-size:1.5rem;font-weight:700;flex:none;display:grid;place-items:center}.rfab.g{background:#2f9e44}.rfab.b{background:#1c7ed6}.rfab.spin svg{animation:rsp .8s linear infinite}@keyframes rsp{to{transform:rotate(360deg)}}.rl2{background:#fff}.ssw.ri{margin-bottom:6px;border-radius:10px}.ssw.ri .ssc{box-shadow:0 0 0 2px #fff}.ssw.ri .sa.l{width:60px}.ssw.ri .sa.r{width:120px}.ssw.ri.ol>.ssc{transform:translateX(60px)}.ssw.ri.or>.ssc{transform:translateX(-120px)}.ssw.ri .sa button{font-size:1.1rem}
 .ssw.ol>article{transform:translateX(84px)}.ssw.or>article{transform:translateX(-168px)}
 .todo-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:10px 0;font:inherit;color:inherit}
 .card.todo.open .todo-h{border-bottom:1px solid #EEF0E4}
@@ -415,6 +417,11 @@ body.sh-open{overflow:hidden}
   var FILS = [["pend", "Pendientes"], ["apr", "Aprobados"], ["coc", "A macerar"], ["list", "Listos"], ["ent", "Entregados"], ["canc", "Cancelados"], ["todos", "Todos"]];
   var ESTL = { pend: ["Pendiente", "#FFF1D6", "#B26A00"], coc: ["A macerar", "#EEF3E6", "#4A6B3A"], list: ["Listo", "#E3F4E8", "#1B7A3A"], ent: ["Entregado", "#E3F4E8", "#1B7A3A"], canc: ["Cancelado", "#FBE9E7", "#B3261E"], test: ["Test", "#EDE7F6", "#5E35B1"] };
   function waLink(t) { var d = String(t || "").replace(/\D/g, ""); if (!d) return ""; if (d.indexOf("54") !== 0) d = "549" + d.replace(/^0+/, ""); return "https://wa.me/" + d; }
+  function pedSw(p, inner) {
+    var e = estadoDe(p), pos = e === "pend" ? ["ap", "Aprobar"] : e === "coc" ? ["he", "Listo"] : e === "list" ? ["en", "Entregado"] : (p.cc && !p.cl) ? ["react", "Reactivar"] : null;
+    var canc = !(p.cc || p.cl);
+    return '<div class="ssw pw' + (canc ? "" : " one") + '" data-ssw="p:' + p.r + '">' + (pos ? '<div class="sa l"><button class="txt" data-pact="' + p.r + ":" + pos[0] + '">' + pos[1] + "</button></div>" : "") + '<div class="sa r">' + (canc ? '<button class="m" data-pact="' + p.r + ':cc" aria-label="Cancelar pedido">✕</button>' : "") + '<button class="d" data-pact="' + p.r + ':del" aria-label="Eliminar pedido">🗑</button></div>' + inner + "</div>";
+  }
   function renderPedidos() {
     var base = st.pedidos.filter(dateOk), cnt = {}; base.forEach(function (p) { var e = estadoDe(p); cnt[e] = (cnt[e] || 0) + 1; });
     var q = st.q.trim().toLowerCase();
@@ -444,8 +451,7 @@ body.sh-open{overflow:hidden}
           '<div class="row" style="margin-top:10px;align-items:center"><button class="sm red" data-dpe="1">Eliminar pedido</button>' +
           (p.cl ? "" : (p.cc ? '<button class="sm" data-t="cc" data-v="0">Reactivar</button>' : '<button class="sm red" data-cc="1">Cancelar pedido</button>')) + "</div>";
       }
-      var so = String(st.swo) === String(p.r); b = so ? b.replace('<article class="card pc', '<article data-open="1" style="transform:translateX(-84px)" class="card pc') : b;
-      return '<div class="sw' + (so ? " sx" : "") + '" data-sw="' + p.r + '"><button class="swb" data-swdel="' + p.r + '" aria-label="Eliminar"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>' + b + "</article></div>";
+      return pedSw(p, b + "</article>");
     }).join("");
     return h;
   }
@@ -467,7 +473,7 @@ body.sh-open{overflow:hidden}
   function patchPedido(r, campo, valor, undo) {
     var p = st.pedidos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
     var old = p[campo], oldcc = p.cc; p[campo] = valor; if (campo === "te") p.cc = valor; render(true);
-    api("setPedido", { r: r, id: p.id, campo: campo, valor: valor }).then(function (j) {
+    return api("setPedido", { r: r, id: p.id, campo: campo, valor: valor }).then(function (j) {
       if (!j || !j.ok) { p[campo] = old; p.cc = oldcc; render(true); toast(j && j.msg || "No se pudo guardar"); return; }
       for (var k in j.p) p[k] = j.p[k]; render(true);
     }).catch(function () { p[campo] = old; p.cc = oldcc; render(true); toast("No se pudo guardar"); });
@@ -537,18 +543,18 @@ body.sh-open{overflow:hidden}
       todoH = '<div class="card todo' + (st.todoOpen ? " open" : "") + '"><button class="todo-h" data-todo="tog"><div style="flex:1;text-align:left"><div class="nm">Para hacer ahora <span class="badge o">' + T.length + '</span></div><div class="meta">' + sum + '</div></div><span style="color:var(--soft);font-size:1.1rem">' + (st.todoOpen ? "▴" : "▾") + "</span></button>" +
         (st.todoOpen ? T.slice(0, 8).map(function (p) {
           var e = estadoDe(p), a = act[e];
-          return '<div class="trow"><button class="tname" data-todo-open="' + p.r + '"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl[e] + " · " + (Number(p.cant) || 0) + " frascos" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div></button><button class="qa" data-qa="' + p.r + ":" + a[0] + '">' + a[1] + '</button><button class="qx" data-qc="' + p.r + '" aria-label="Cancelar pedido">✕</button></div>';
+          return pedSw(p, '<div class="trow ssc"><button class="tname" data-todo-open="' + p.r + '"><div class="nm" style="font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div><div class="meta">' + lbl[e] + " · " + (Number(p.cant) || 0) + " frascos" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div></button><span class="meta" style="flex:none">‹ ›</span></div>');
         }).join("") + (T.length > 8 ? '<button class="sm" data-go="pedidos" data-fil="todos" style="margin-top:8px">Ver los ' + T.length + " pedidos ›</button>" : "") : "") + "</div>";
     })();
     var al = [];
     if (viejos) al.push(["⏰ " + viejos + (viejos === 1 ? " pedido sin aprobar hace más de 24 h" : " pedidos sin aprobar hace más de 24 h"), "pedidos", "pend"]);
-    if (ag) al.push(["🚫 " + ag + (ag === 1 ? " frasco agotado" : " frascos agotados"), "productos", ""]);
+    if (ag) al.push(["🚫 " + ag + (ag === 1 ? " frasco agotado" : " frascos agotados"), "__agot", ""]);
     stkAlertLines().forEach(function (x) { al.push(x); });
-    if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" data-go="' + x[1] + '" data-fil="' + x[2] + '" style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
+    if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" ' + (x[1] === "__agot" ? 'data-agot="1"' : 'data-go="' + x[1] + '" data-fil="' + x[2] + '"') + ' style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
     if (ks.length) h += '<div class="nm" style="margin:6px 2px 8px">Entregas pendientes</div><div class="card" id="entregas">' + ks.map(function (k) { return '<div class="frow"><span>' + esc(k) + "</span><span><b>" + ent[k].n + "</b> pedidos · " + ent[k].q + " frascos</span></div>"; }).join("") + "</div>";
     h += '<div class="nm" style="margin:6px 2px 8px">Atajos</div><div class="kpis four" id="atajos" style="grid-template-columns:repeat(4,1fr)">' + [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["resenas", "⭐", "Reseñas"]].filter(function (x) { return allowed(x[0]); }).map(function (x) { return '<button class="kpi" data-go="' + x[0] + '"' + (x[3] ? ' data-newp="1"' : "") + '><b style="font-size:1.4rem">' + x[1] + '</b><span style="font-size:.68rem;line-height:1.15">' + x[2] + "</span></button>"; }).join("") + "</div>";
-    return todoH + alH + h;
+    return todoH + h + (alH ? '<div class="nm" style="margin:14px 2px 8px">Avisos</div>' + alH : "");
   }
   /* ---------- Más ---------- */
   function renderMas() {
@@ -615,13 +621,13 @@ body.sh-open{overflow:hidden}
   }
   /* ---------- Recetas ---------- */
   function renderRecetas() {
-    var h = BACK + '<button class="btn" id="rnew" data-rnew="1" style="margin-bottom:12px">＋ Nueva receta</button>';
+    var h = BACK + '<div class="rhd"><button class="btn" id="rnew" data-rnew="1">＋ Nueva receta</button><button class="rfab g" data-pnew="1" aria-label="Nuevo producto">＋</button><button class="rfab b" data-rref="1" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg></button></div>';
     if (st.rd && !st.rd.orig) h += '<div class="card" id="rd-ed">' + editorR() + "</div>";
     if (!st.recetas.length && !st.rd) return h + '<div class="empty">Todavía no hay recetas.</div>';
     return h + '<div class="help">Cuánto rinde cada preparación y qué insumos lleva. Los costos están en Finanzas › Costos.</div>' + st.recetas.map(function (x) {
       var ed = st.rd && st.rd.orig === x.nombre;
-      return '<article class="card" data-rn="' + esc(x.nombre) + '"><div class="row"><div><div class="nm">' + esc(x.nombre) + '</div><div class="meta">Una preparación rinde ' + x.y + ' frascos · ' + (x.items ? x.items.length : 0) + ' insumos</div></div></div>' +
-        '<div class="row" style="margin-top:10px"><button class="pen" data-redit="1" aria-label="Editar">' + (ed ? "Cerrar" : PEN) + "</button></div>" + (ed ? editorR() : "") + "</article>";
+      return '<div class="ssw one" data-ssw="r:' + esc(x.nombre) + '"><div class="sa l"><button data-radd="' + esc(x.nombre) + '" aria-label="Agregar insumo">＋</button></div><div class="sa r"><button class="d" data-rdelx="' + esc(x.nombre) + '" aria-label="Eliminar">🗑</button></div><article class="card ssc" data-rn="' + esc(x.nombre) + '"><div class="row"><div><div class="nm">' + esc(x.nombre) + '</div><div class="meta">Una preparación rinde ' + x.y + ' frascos · ' + (x.items ? x.items.length : 0) + ' insumos</div></div></div>' +
+        '<div class="row" style="margin-top:10px"><button class="pen" data-redit="1" aria-label="Editar">' + (ed ? "Cerrar" : PEN) + "</button></div>" + (ed ? editorR() : "") + "</article></div>";
     }).join("");
   }
   function setUnidadInsumo(name, uni) {
@@ -640,7 +646,7 @@ body.sh-open{overflow:hidden}
     var h = '<div class="add" style="margin-top:10px">';
     if (!d.orig) h += '<select class="inp" data-rnom="1">' + opts(st.productos.map(function (p) { return p.nombre; }), d.nombre, "Elegí el producto") + "</select>";
     h += '<input class="inp" type="number" inputmode="numeric" data-ry="1" placeholder="Frascos que salen de la preparación" value="' + (d.y || "") + '"><div class="meta">Insumos de <b>una preparación</b> (cantidad total):</div>';
-    h += d.items.map(function (it, i) { return '<div class="rl"><select class="inp" data-rin="' + i + '">' + opts(names, it.n, "Insumo") + '</select><input class="inp" type="number" inputmode="decimal" step="any" data-riq="' + i + '" value="' + (it.q === "" ? "" : it.q) + '" placeholder="Cant." style="max-width:90px">' + (st.runi === i && it.n ? '<select class="inp" data-runisel="' + esc(it.n) + '" style="max-width:84px">' + opts(["g", "kg", "mg", "ml", "l", "unidad"], un[it.n]) + "</select>" : '<span class="u">' + esc(un[it.n] || "") + '</span>' + (it.n ? '<button class="sm" data-runi="' + i + '" aria-label="Cambiar unidad" style="padding:4px 8px">✏️</button>' : "")) + '<button class="sm red" data-rix="' + i + '">×</button></div>'; }).join("");
+    h += d.items.map(function (it, i) { var uu = it.u || un[it.n] || "", ul = RUN.indexOf(uu) >= 0 || !uu ? RUN : RUN.concat([uu]); return '<div class="ssw ri" data-ssw="i:' + i + '"><div class="sa l"><button data-iadd="' + i + '" aria-label="Sumar">＋</button></div><div class="sa r"><button class="m" data-isub="' + i + '" aria-label="Restar">−</button><button class="d" data-idel="' + i + '" aria-label="Quitar">🗑</button></div><div class="rl ssc rl2"><select class="inp" data-rin="' + i + '">' + opts(names, it.n, "Insumo") + '<option value="__new">＋ Crear insumo nuevo…</option></select><input class="inp" type="number" inputmode="decimal" step="any" data-riq="' + i + '" value="' + (it.q === "" ? "" : it.q) + '" placeholder="Cant." style="max-width:76px"><select class="inp" data-riu="' + i + '" style="max-width:92px">' + opts(ul, uu, uu ? "" : "Unidad") + '</select><button class="sm red" data-rix="' + i + '">×</button></div></div>'; }).join("");
     if (d.items.length < 20) h += '<button class="sm" data-riadd="1">＋ Insumo</button>';
     h += '<div style="display:flex;gap:8px;margin-top:6px"><button class="btn" data-rsave="1">Guardar receta</button><button class="sm" data-rcancel="1">Cancelar</button>' + (d.orig ? '<button class="sm red" data-rdel="1">Eliminar</button>' : "") + "</div></div>";
     return h;
@@ -1333,6 +1339,7 @@ body.sh-open{overflow:hidden}
     var T = e.target.closest ? e.target : null; if (!T) return;
     var q = T.closest("[data-qa]");
     if (q) { e.stopPropagation(); var pr = q.getAttribute("data-qa").split(":"); q.disabled = true; q.textContent = "…"; patchPedido(Number(pr[0]), pr[1], true); toast(pr[1] === "ap" ? "Aprobado ✓" : pr[1] === "he" ? "Listo ✓" : "Entregado ✓"); return; }
+    var agb = T.closest("[data-agot]"); if (agb) { e.stopPropagation(); agotModal(); return; }
     var tg = T.closest("[data-todo=tog]"); if (tg) { e.stopPropagation(); st.todoOpen = !st.todoOpen; render(true); return; }
     var to = T.closest("[data-todo-open]"); if (to) { e.stopPropagation(); pedModal(Number(to.getAttribute("data-todo-open"))); return; }
     var qc = T.closest("[data-qc]"); if (qc) {
@@ -1397,29 +1404,35 @@ body.sh-open{overflow:hidden}
 
   /* ---------- Deslizar en Stock ---------- */
   (function () {
-    var el = null, sx = 0, sy = 0, dir = 0, base = 0, cur = 0;
+    var el = null, sx = 0, sy = 0, dir = 0, base = 0, cur = 0, LW = 84, RW = 168;
     function closeAll() { st.ssw = null; Array.prototype.forEach.call(document.querySelectorAll(".ssw.ol,.ssw.or"), function (w) { w.classList.remove("ol", "or"); }); }
     document.addEventListener("touchstart", function (e) {
-      var a = e.target.closest && e.target.closest(".ssw > article"); if (!a || e.target.closest("input,textarea,select")) { if (!(e.target.closest && e.target.closest(".ssw .sa"))) closeAll(); return; }
-      el = a; var w = a.parentNode; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dir = 0; base = w.classList.contains("ol") ? 84 : w.classList.contains("or") ? -168 : 0; cur = base;
+      var a = e.target.closest && e.target.closest(".ssw > article, .ssw > .ssc"); if (!a || (e.target.closest("input,textarea,select") && !e.target.closest(".ri"))) { if (!(e.target.closest && e.target.closest(".ssw .sa"))) closeAll(); return; }
+      el = a; var w = a.parentNode; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dir = 0; LW = w.classList.contains("ri") ? 60 : 84; RW = w.classList.contains("ri") ? 120 : w.classList.contains("one") ? 84 : 168; base = w.classList.contains("ol") ? LW : w.classList.contains("or") ? -RW : 0; cur = base;
       Array.prototype.forEach.call(document.querySelectorAll(".ssw.ol,.ssw.or"), function (o) { if (o !== w) o.classList.remove("ol", "or"); });
     }, { passive: true });
     document.addEventListener("touchmove", function (e) {
       if (!el) return; var x = e.touches[0].clientX - sx, y = e.touches[0].clientY - sy;
       if (!dir) { if (Math.abs(x) > 8 || Math.abs(y) > 8) dir = Math.abs(x) > Math.abs(y) ? 1 : 2; else return; }
-      if (dir !== 1) return; cur = Math.max(-168, Math.min(84, base + x)); el.style.transition = "none"; el.style.transform = "translateX(" + cur + "px)";
+      if (dir !== 1) return; cur = Math.max(-RW, Math.min(LW, base + x)); el.style.transition = "none"; el.style.transform = "translateX(" + cur + "px)";
     }, { passive: true });
     function end() {
       if (!el) return; var a = el, w = a.parentNode; el = null; a.style.transition = ""; a.style.transform = "";
       if (dir !== 1) return; msSwiped = Date.now();
       w.classList.remove("ol", "or"); st.ssw = null;
-      if (cur > 40) { w.classList.add("ol"); st.ssw = { k: w.getAttribute("data-ssw"), s: "l" }; } else if (cur < -50) { w.classList.add("or"); st.ssw = { k: w.getAttribute("data-ssw"), s: "r" }; }
+      if (cur > 40) { w.classList.add("ol"); st.ssw = { k: w.getAttribute("data-ssw"), s: "l" }; } else if (cur < -Math.min(50, RW - 10)) { w.classList.add("or"); st.ssw = { k: w.getAttribute("data-ssw"), s: "r" }; }
     }
     document.addEventListener("touchend", end); document.addEventListener("touchcancel", end);
     document.addEventListener("click", function (e) {
       var T = e.target.closest ? e.target : null; if (!T) return;
-      if (msSwiped && Date.now() - msSwiped < 350 && T.closest(".ssw > article")) { e.stopPropagation(); e.preventDefault(); return; }
-      var w = T.closest(".ssw.ol, .ssw.or"); if (w && T.closest(".ssw > article")) { e.stopPropagation(); e.preventDefault(); closeAll(); return; }
+      if (msSwiped && Date.now() - msSwiped < 350 && T.closest(".ssw > article, .ssw > .ssc")) { e.stopPropagation(); e.preventDefault(); return; }
+      var w = T.closest(".ssw.ol, .ssw.or"); if (w && T.closest(".ssw > article, .ssw > .ssc")) { e.stopPropagation(); e.preventDefault(); closeAll(); return; }
+      var pa = T.closest("[data-pact]"); if (pa) { e.stopPropagation(); closeAll(); var pq = pa.getAttribute("data-pact").split(":"); pedDecide(Number(pq[0]), pq[1]); return; }
+      var ra = T.closest("[data-radd]"), rdx = T.closest("[data-rdelx]"), ia = T.closest("[data-iadd],[data-isub]"), idl = T.closest("[data-idel]");
+      if (ra) { e.stopPropagation(); closeAll(); var rn2 = ra.getAttribute("data-radd"), rx2 = st.recetas.filter(function (x) { return x.nombre === rn2; })[0]; if (!rx2) return; st.rd = { orig: rn2, nombre: rn2, y: rx2.y, items: rx2.items.map(function (i) { return { n: i.n, q: i.q, u: insU(i.n) }; }) }; st.rd.items.push({ n: "", q: "", u: "" }); render(true); return; }
+      if (rdx) { e.stopPropagation(); if (!rdx.classList.contains("arm")) { rdx.classList.add("arm"); rdx.innerHTML = "¿Seguro?"; rdx.style.fontSize = ".8rem"; clearTimeout(armTimer); armTimer = setTimeout(function () { rdx.classList.remove("arm"); rdx.innerHTML = "🗑"; rdx.style.fontSize = ""; }, 3000); return; } rdx.disabled = true; api("delReceta", { nombre: rdx.getAttribute("data-rdelx") }).then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.ssw = null; st.loaded.productos = false; render(true); toast("Receta eliminada"); } else { toast(j && j.msg || "No se pudo"); rdx.disabled = false; } }).catch(function () { toast("No se pudo"); rdx.disabled = false; }); return; }
+      if (ia && st.rd) { e.stopPropagation(); var ii = Number((ia.getAttribute("data-iadd") || ia.getAttribute("data-isub"))), add2 = ia.hasAttribute("data-iadd"); closeAll(); var it0 = st.rd.items[ii]; if (!it0) return; numAsk((add2 ? "Sumar a " : "Restar de ") + (it0.n || "insumo"), it0.u || "", function (v) { var c = Number(it0.q) || 0; it0.q = Math.max(0, Math.round((c + (add2 ? v : -v)) * 1000) / 1000); render(true); }); return; }
+      if (idl && st.rd) { e.stopPropagation(); closeAll(); st.rd.items.splice(Number(idl.getAttribute("data-idel")), 1); if (!st.rd.items.length) st.rd.items.push({ n: "", q: "", u: "" }); render(true); return; }
       var ad = T.closest("[data-sadd]"), sb = T.closest("[data-ssub]");
       if (ad || sb) { e.stopPropagation(); var nm = (ad || sb).getAttribute(ad ? "data-sadd" : "data-ssub"); closeAll(); render(true); qtyAsk(nm, !!ad); return; }
       var dx = T.closest("[data-sdelx]"); if (dx) {
@@ -1455,6 +1468,104 @@ body.sh-open{overflow:hidden}
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
   }
 
+  function numAsk(title, uni, cb) {
+    var old = document.getElementById("numask"); if (old) old.remove();
+    var d = document.createElement("div"); d.className = "modal"; d.id = "numask";
+    d.innerHTML = '<div class="card" style="width:min(380px,100%);margin:0"><div class="nm" style="margin-bottom:8px">' + esc(title) + '</div><input class="inp" id="na-v" inputmode="decimal" autocomplete="off" placeholder="Cantidad' + (uni ? " (" + esc(uni) + ")" : "") + '"><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="na-ok">Aceptar</button><button class="sm" id="na-x">Cancelar</button></div></div>';
+    document.body.appendChild(d); var inp = d.querySelector("#na-v"); setTimeout(function () { inp.focus(); }, 50);
+    function go() { var v = parseAR(inp.value); if (!(v > 0)) { toast("Poné la cantidad"); return; } d.remove(); cb(v); }
+    d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("#na-x")) d.remove(); else if (e.target.closest("#na-ok")) go(); });
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+  }
+  var UF = { mg: ["m", .001], g: ["m", 1], kg: ["m", 1000], t: ["m", 1e6], ton: ["m", 1e6], tonelada: ["m", 1e6], ml: ["v", 1], cl: ["v", 10], l: ["v", 1000], lt: ["v", 1000], litro: ["v", 1000], litros: ["v", 1000], unidad: ["u", 1], unidades: ["u", 1], u: ["u", 1], docena: ["u", 12] };
+  var RUN = ["g", "kg", "mg", "tonelada", "ml", "l", "unidad", "docena"];
+  function insU(n) { var f = st.insumos.filter(function (x) { return x.n === n; })[0]; return f ? f.u : ""; }
+  function convQ(q, from, to) { var a = UF[String(from || "").toLowerCase()], b = UF[String(to || "").toLowerCase()]; if (!from || !to || String(from).toLowerCase() === String(to).toLowerCase()) return q; if (!a || !b || a[0] !== b[0]) return null; return Math.round(q * a[1] / b[1] * 1e6) / 1e6; }
+  function riNew(idx) {
+    var old = document.getElementById("rinew"); if (old) old.remove();
+    var d = document.createElement("div"); d.className = "modal"; d.id = "rinew";
+    d.innerHTML = '<div class="card" style="width:min(400px,100%);margin:0"><div class="nm" style="margin-bottom:2px">Nuevo insumo</div><div class="meta" style="margin-bottom:10px">Se agrega a Proveedores sin precio. Proveedor y precio son opcionales.</div><div class="add"><input class="inp" id="rn-n" placeholder="Nombre (ej. Berenjenas)" autocomplete="off"><input class="inp" id="rn-u" list="rn-ul" placeholder="Unidad (g, kg, l, unidad…)" value="g"><datalist id="rn-ul">' + RUN.map(function (u) { return '<option value="' + u + '">'; }).join("") + '</datalist><input class="inp" id="rn-p" placeholder="Proveedor (opcional)"></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="rn-ok">Crear</button><button class="sm" id="rn-x">Cancelar</button></div></div>';
+    document.body.appendChild(d); setTimeout(function () { d.querySelector("#rn-n").focus(); }, 50);
+    d.addEventListener("click", function (e) {
+      if (e.target === d || e.target.closest("#rn-x")) { d.remove(); if (st.rd && st.rd.items[idx] && st.rd.items[idx].n === "__new") st.rd.items[idx].n = ""; render(true); return; }
+      var ok = e.target.closest("#rn-ok"); if (!ok) return;
+      var nm = d.querySelector("#rn-n").value.trim(), un = d.querySelector("#rn-u").value.trim() || "unidad", pv = d.querySelector("#rn-p").value.trim();
+      if (!nm) { toast("Falta el nombre"); return; } ok.disabled = true; ok.textContent = "Creando…";
+      var fin = function () { var it = st.rd && st.rd.items[idx]; if (!st.insumos.some(function (x) { return x.n === nm; })) st.insumos.push({ n: nm, u: un }); if (it) { it.n = nm; it.u = un; } d.remove(); VC.prov = null; render(true); toast("Insumo creado ✓"); };
+      if (DEMO) { fin(); return; }
+      api("addInsumo", { t: "a", nombre: nm, unidad: un }).then(function (j) {
+        if (!(j && j.ok) && !(j && /exist|ya/i.test(j.msg || ""))) { toast(j && j.msg || "No se pudo crear"); ok.disabled = false; ok.textContent = "Crear"; return "fail"; }
+        if (j && j.ok) st.prov = j.proveedores;
+        var row = ((st.prov || {}).a || []).filter(function (z) { return nrm(z.ins) === nrm(nm); })[0];
+        if (pv && row) return api("setProveedor", { t: "a", r: row.r, ins: row.ins, campo: "prov", valor: pv }).then(function (k) { if (k && k.ok) st.prov = k.proveedores; });
+      }).then(function (x) { if (x !== "fail" && document.getElementById("rinew")) fin(); }).catch(function () { toast("No se pudo crear"); ok.disabled = false; ok.textContent = "Crear"; });
+    });
+  }
+  function prodNew() {
+    var old = document.getElementById("prodnew"); if (old) old.remove();
+    var d = document.createElement("div"); d.className = "modal"; d.id = "prodnew";
+    d.innerHTML = '<div class="card" style="width:min(400px,100%);margin:0"><div class="nm" style="margin-bottom:10px">Nuevo producto</div><div class="add"><datalist id="pn-cl">' + catOpts() + '</datalist><input class="inp" id="pn-n" placeholder="Nombre (ej: Zanahorias)" autocomplete="off"><input class="inp" id="pn-c" list="pn-cl" placeholder="Categoría"><div class="row" style="align-items:center;gap:14px"><button class="sw" id="pn-vi" style="border:0;background:none;padding:0"><i></i>Visible</button><button class="sw warn" id="pn-ag" style="border:0;background:none;padding:0"><i></i>Agotado</button></div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn" id="pn-ok">Crear</button><button class="sm" id="pn-x">Cancelar</button></div></div>';
+    document.body.appendChild(d); setTimeout(function () { d.querySelector("#pn-n").focus(); }, 50);
+    d.addEventListener("click", function (e) {
+      if (e.target === d || e.target.closest("#pn-x")) { d.remove(); return; }
+      var sw = e.target.closest("#pn-vi,#pn-ag"); if (sw) { sw.classList.toggle("on"); return; }
+      var ok = e.target.closest("#pn-ok"); if (!ok) return;
+      var nm = d.querySelector("#pn-n").value.trim(); if (!nm) { toast("Falta el nombre"); return; }
+      var vi = d.querySelector("#pn-vi").classList.contains("on"), ag = d.querySelector("#pn-ag").classList.contains("on"), cat = d.querySelector("#pn-c").value.trim();
+      ok.disabled = true; ok.textContent = "Creando…";
+      if (DEMO) { d.remove(); toast("Producto creado ✓"); return; }
+      api("addProducto", { nombre: nm, desc: "", precio: 0, cat: cat, ing: "" }).then(function (j) {
+        if (!(j && j.ok)) { toast(j && j.msg || "No se pudo"); ok.disabled = false; ok.textContent = "Crear"; return; }
+        st.productos = j.catalogo; var p = j.catalogo.filter(function (x) { return x.nombre === nm; })[0] || j.catalogo[j.catalogo.length - 1], ch = Promise.resolve();
+        if (p && !!p.vi !== vi) ch = ch.then(function () { return api("setProducto", { r: p.r, nombre: p.nombre, campo: "vi", valor: vi }); });
+        if (p && !!p.ag !== ag) ch = ch.then(function () { return api("setProducto", { r: p.r, nombre: p.nombre, campo: "ag", valor: ag }); });
+        return ch.then(function () { return api("catalogo"); }).then(function (k) { if (k && k.ok) st.productos = k.catalogo; d.remove(); render(true); toast("Producto creado ✓"); });
+      }).catch(function () { toast("No se pudo"); ok.disabled = false; ok.textContent = "Crear"; });
+    });
+  }
+  function recRefresh(btn) {
+    if (btn) btn.classList.add("spin");
+    Promise.all([api("recetas2"), api("catalogo")]).then(function (r) { if (r[0] && r[0].ok) { st.recetas = r[0].recetas; st.insumos = r[0].insumos; } if (r[1] && r[1].ok) { st.productos = r[1].catalogo; st.loaded.productos = true; } render(true); toast("Actualizado ✓"); }).catch(function () { if (btn) btn.classList.remove("spin"); toast("No se pudo actualizar"); });
+  }
+  function pedDecide(r, kind) {
+    var p = st.pedidos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
+    var old = document.getElementById("peddec"); if (old) old.remove();
+    var L = { ap: ["Aprobar pedido", "Aprobar", 0], he: ["Marcar como hecho", "Listo", 0], en: ["Marcar como entregado", "Entregado", 0], cc: ["Cancelar pedido", "Cancelar pedido", 1], del: ["Eliminar pedido", "Eliminar pedido", 1], react: ["Reactivar pedido", "Reactivar", 0] }[kind]; if (!L) return;
+    var wa = waLink(p.tel), d = document.createElement("div"); d.className = "modal"; d.id = "peddec";
+    d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm">' + L[0] + '</div><div class="meta" style="margin-bottom:8px">' + esc(p.nombre) + " · " + esc(p.id) + " · " + (Number(p.cant) || 0) + " frascos · <b>" + money(p.total) + "</b></div>" +
+      '<div class="items">' + esc(p.pedido) + '</div><div class="meta" style="margin-top:6px">' + esc(p.fecha) + (p.entrega ? " · Entrega " + esc(p.entrega) : "") + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + "</div>" +
+      (wa ? '<a class="sm" target="_blank" rel="noopener" href="' + wa + '" style="margin-top:8px">💬 ' + esc(p.tel) + "</a>" : "") +
+      (kind === "del" ? "" : '<textarea class="inp" rows="2" id="pd-n" placeholder="Nota del pedido (opcional)…" style="margin-top:8px">' + esc(p.notas) + "</textarea>") +
+      '<div style="display:flex;gap:8px;margin-top:12px"><button class="' + (L[2] ? "btn" : "btn") + '" id="pd-ok" style="' + (L[2] ? "background:#b3261e" : "") + '">' + L[1] + '</button><button class="sm" id="pd-x">Volver</button></div></div>';
+    document.body.appendChild(d);
+    d.addEventListener("click", function (e) {
+      if (e.target === d || e.target.closest("#pd-x")) { d.remove(); return; }
+      if (!e.target.closest("#pd-ok")) return;
+      var nt = d.querySelector("#pd-n"), v = nt ? nt.value : null; d.remove();
+      if (kind === "del") { delPedidos([{ r: p.r, id: p.id }]); return; }
+      var pr = Promise.resolve(); if (v !== null && v !== (p.notas || "")) pr = patchPedido(r, "notas", v);
+      Promise.resolve(pr).then(function () { patchPedido(r, kind === "cc" ? "cc" : kind === "react" ? "cc" : kind, kind === "react" ? false : true); });
+      toast(kind === "ap" ? "Aprobado ✓" : kind === "he" ? "Listo ✓" : kind === "en" ? "Entregado ✓" : kind === "cc" ? "Pedido cancelado" : "Pedido reactivado");
+    });
+  }
+  function agotModal() {
+    var old = document.getElementById("agotm"); if (old) old.remove();
+    var L = (st.productos || []).filter(function (p) { return p.ag; }).map(function (p) { return p.r; });
+    var d = document.createElement("div"); d.className = "modal"; d.id = "agotm";
+    function draw() {
+      var P = L.map(function (r) { return st.productos.filter(function (x) { return x.r === r; })[0]; }).filter(Boolean);
+      d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm" style="margin-bottom:2px">Frascos agotados</div><div class="meta" style="margin-bottom:10px">Apagá "Agotada" cuando vuelva el stock.</div>' +
+        P.map(function (p) { return '<div class="trow"><div class="tname"><div class="nm" style="font-size:.98rem">' + esc(p.nombre) + '</div></div><button class="sw warn' + (p.ag ? " on" : "") + '" data-ar="' + p.r + '" data-c="ag" style="border:0;background:none;padding:0"><i></i>Agotada</button><button class="sw' + (p.vi ? " on" : "") + '" data-ar="' + p.r + '" data-c="vi" style="border:0;background:none;padding:0"><i></i>Visible</button></div>'; }).join("") +
+        '<button class="btn" id="ag-x" style="margin-top:12px">Listo</button></div>';
+    }
+    draw(); document.body.appendChild(d);
+    d.addEventListener("click", function (e) {
+      if (e.target === d || e.target.closest("#ag-x")) { d.remove(); render(true); return; }
+      var b = e.target.closest("[data-ar]"); if (!b) return;
+      var p = st.productos.filter(function (x) { return x.r === Number(b.getAttribute("data-ar")); })[0]; if (!p) return;
+      var c = b.getAttribute("data-c"); patchProducto(p.r, c, !p[c]); setTimeout(draw, 0);
+    });
+  }
   function pedModal(r) {
     var p = st.pedidos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
     var old = document.getElementById("pedmodal"); if (old) old.remove();
@@ -1984,7 +2095,8 @@ body.sh-open{overflow:hidden}
     var tg = e.target;
     if (st.rd && tg.matches("[data-rnom]")) { st.rd.nombre = tg.value; return; }
     if (st.rd && tg.matches("[data-ry]")) { st.rd.y = Number(tg.value) || 0; return; }
-    if (st.rd && tg.matches("[data-rin]")) { st.rd.items[Number(tg.getAttribute("data-rin"))].n = tg.value; render(true); return; }
+    if (st.rd && tg.matches("[data-rin]")) { var ri = Number(tg.getAttribute("data-rin")), rit = st.rd.items[ri]; if (tg.value === "__new") { rit.n = "__new"; riNew(ri); return; } rit.n = tg.value; rit.u = insU(tg.value); render(true); return; }
+    if (st.rd && tg.matches("[data-riu]")) { st.rd.items[Number(tg.getAttribute("data-riu"))].u = tg.value; return; }
     if (st.rd && tg.matches("[data-riq]")) { st.rd.items[Number(tg.getAttribute("data-riq"))].q = tg.value === "" ? "" : Number(tg.value); return; }
     if (st.pd && tg.matches("[data-kf=dpct]")) { st.pd.dpct = Number(tg.value) || 0; st.pd.precio = dcalc(st.pd); var kp = document.getElementById("k-prev"); if (kp) kp.innerHTML = dprev(st.pd); return; }
     if (st.pd && tg.matches("[data-kf]")) { var kf = tg.getAttribute("data-kf"); st.pd[kf] = (kf === "nombre" || kf === "texto" || kf === "vence") ? tg.value : Number(tg.value) || 0; return; }
@@ -2041,15 +2153,20 @@ body.sh-open{overflow:hidden}
         return;
       }
     }
-    if (t.closest("[data-rnew]")) { st.rd = { orig: "", nombre: "", y: 0, items: [{ n: "", q: "" }] }; render(true); return; }
-    if (t.closest("[data-redit]")) { var rn = t.closest(".card").getAttribute("data-rn"), rx = st.recetas.filter(function (x) { return x.nombre === rn; })[0]; st.rd = st.rd && st.rd.orig === rn ? null : { orig: rn, nombre: rn, y: rx.y, items: rx.items.map(function (i) { return { n: i.n, q: i.q }; }) }; render(true); return; }
+    if (t.closest("[data-pnew]")) { prodNew(); return; }
+    if (t.closest("[data-rref]")) { recRefresh(t.closest("[data-rref]")); return; }
+    if (t.closest("[data-rnew]")) { st.rd = { orig: "", nombre: "", y: 0, items: [{ n: "", q: "", u: "" }] }; render(true); return; }
+    if (t.closest("[data-redit]")) { var rn = t.closest(".card").getAttribute("data-rn"), rx = st.recetas.filter(function (x) { return x.nombre === rn; })[0]; st.rd = st.rd && st.rd.orig === rn ? null : { orig: rn, nombre: rn, y: rx.y, items: rx.items.map(function (i) { return { n: i.n, q: i.q, u: insU(i.n) }; }) }; render(true); return; }
     if (st.rd) {
-      if (t.closest("[data-riadd]")) { st.rd.items.push({ n: "", q: "" }); render(true); return; }
+      if (t.closest("[data-riadd]")) { st.rd.items.push({ n: "", q: "", u: "" }); render(true); return; }
       var rxx = t.closest("[data-rix]"); if (rxx) { st.rd.items.splice(Number(rxx.getAttribute("data-rix")), 1); render(true); return; }
       if (t.closest("[data-rcancel]")) { st.rd = null; render(true); return; }
       if (t.closest("[data-rsave]")) {
-        var rd = st.rd; t.closest("[data-rsave]").disabled = true;
-        api("saveReceta", { nombre: rd.nombre, y: rd.y, items: rd.items.map(function (i) { return [i.n, i.q]; }) }).then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; st.rd = null; st.loaded.productos = false; render(true); var rr = j.recetas.filter(function (x) { return x.nombre.toLowerCase() === rd.nombre.toLowerCase(); })[0]; toast("Receta guardada ✓" + (rr ? " · " + money(rr.costo) + " por frasco" : "")); } else { toast(j && j.msg || "No se pudo guardar"); render(true); } }).catch(function () { render(true); });
+        var rd = st.rd, bad = null, cits = [];
+        rd.items.forEach(function (i) { if (!i.n || i.n === "__new" || i.q === "" || i.q == null) return; var q = convQ(Number(i.q), i.u, insU(i.n)); if (q == null) bad = bad || i.n; cits.push([i.n, q]); });
+        if (bad) { toast("Unidad incompatible en " + bad + " (el insumo está en " + insU(bad) + ")"); return; }
+        t.closest("[data-rsave]").disabled = true;
+        api("saveReceta", { nombre: rd.nombre, y: rd.y, items: cits }).then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; st.rd = null; st.loaded.productos = false; render(true); var rr = j.recetas.filter(function (x) { return x.nombre.toLowerCase() === rd.nombre.toLowerCase(); })[0]; toast("Receta guardada ✓" + (rr ? " · " + money(rr.costo) + " por frasco" : "")); } else { toast(j && j.msg || "No se pudo guardar"); render(true); } }).catch(function () { render(true); });
         return;
       }
       var rdl = t.closest("[data-rdel]"); if (rdl) {
