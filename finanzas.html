@@ -115,6 +115,7 @@ function loadAll(){
       if(fd.ventas){MAN=fd.ventas}else if(MAN.length)persist("ventas",MAN);
       if(fd.gastos){GAS=fd.gastos}else if(GAS.length)persist("gastos",GAS);
       if(fd.costHist&&fd.costHist.length)HIST=fd.costHist;
+      Object.keys(fd).forEach(function(k){if(k.indexOf("costPed:")===0)CP[k.slice(8)]=fd[k]||{}});
     }
     snapCostos();
   }).catch(function(){D.err="No pude leer los datos."});
@@ -146,7 +147,7 @@ function parseItems(t){
 }
 function costoAct(n){for(var i=0;i<D.cat.length;i++)if(D.cat[i].nombre===n)return D.cat[i].costo;return undefined}
 /* Historial de costos: cada venta usa el costo que regía en su fecha. Los períodos pasados no se mueven al actualizar costos. */
-var HIST=[];
+var HIST=[],CP={};
 function snapCostos(){
   var cur={};D.cat.forEach(function(p){if(p.costo!=null)cur[p.nombre]=Math.round(Number(p.costo)*100)/100});
   if(!Object.keys(cur).length)return;
@@ -154,15 +155,16 @@ function snapCostos(){
   if(last)Object.keys(cur).forEach(function(k){if(last[k]==null||Math.abs(last[k]-cur[k])>0.009)ch=true});
   if(ch){HIST.push({t:new Date().toISOString(),c:cur});if(HIST.length>200)HIST=HIST.slice(-200);persist("costHist",HIST)}
 }
+function cpDe(id,fecha){var mk=fecha.getFullYear()+"-"+("0"+(fecha.getMonth()+1)).slice(-2),M=CP[mk];return M&&M[id]||null}
 function costoDe(n,d){
   if(d&&HIST.length){var e=null;for(var i=0;i<HIST.length;i++){if(new Date(HIST[i].t)<=d)e=HIST[i]}if(!e)e=HIST[0];if(e.c[n]!=null)return e.c[n]}
   return costoAct(n)}
 function enPeriodo(d){return d.getFullYear()===ST.y&&d.getMonth()===ST.m}
 function calc(canal){
   var V=ventas().filter(function(v){return enPeriodo(v.fecha)&&(!canal||v.canal===canal)});
-  var r={bruto:0,desc:0,envio:0,cmv:0,faltaCosto:{},n:V.length};
+  var r={bruto:0,desc:0,envio:0,cmv:0,repo:0,faltaCosto:{},n:V.length};
   V.forEach(function(v){r.bruto+=v.bruto;r.desc+=v.desc;r.envio+=v.envio;
-    v.items.forEach(function(it){var c=costoDe(it.n,v.fecha);if(c==null)r.faltaCosto[it.n]=1;else r.cmv+=c*it.q});
+    v.items.forEach(function(it){var fz=v.src==="tienda"?cpDe(v.id,v.fecha):null,c=fz&&fz.c[it.n]!=null?fz.c[it.n]:costoDe(it.n,v.fecha),ca=costoAct(it.n);if(c==null)r.faltaCosto[it.n]=1;else r.cmv+=c*it.q;r.repo+=(ca!=null?ca:(c||0))*it.q});
     if(!v.items.length&&v.bruto)r.faltaCosto["(venta sin detalle de productos)"]=1;
   });
   r.neto=r.bruto-r.desc+r.envio;
@@ -221,6 +223,7 @@ function vER(){
   row("Ventas netas",function(x){return x.neto},"t")+
   row("CMV (costo de mercadería vendida)",function(x){return x.cmv},"s",1)+
   row("Utilidad bruta",function(x){return x.neto-x.cmv},"t")+
+  row("Referencia: utilidad bruta a costo de reposición hoy",function(x){return x.neto-x.repo},"s")+
   CATS.map(function(c){return row(c[1],function(x){return x.gas[c[0]]||0},"s",1)}).join("")+
   row("Resultado",function(x){return x.res},"t")+
   '</table></div><div class="help">Los gastos sin canal se muestran solo en el Total. Cargalos en <b>Gastos</b>.</div></div>';
@@ -306,7 +309,7 @@ er:[["#t-per","Período","Elegí el mes a analizar."],
 ["#t-ert tr:nth-child(2)","Ventas brutas","Todo lo facturado antes de descontar nada."],
 ["#t-ert tr:nth-child(3)","Descuentos y ajustes","Cupones, devoluciones y ajustes. Si los cargás en Ventas, bajan las ventas netas."],
 ["#t-ert tr:nth-child(5)","Ventas netas","Lo que entró de verdad. Es la base de todo el cálculo."],
-["#t-ert tr:nth-child(6)","CMV","Costo de lo que vendiste: costo de cada producto (Recetas) por unidades vendidas. Si falta un costo, este número queda bajo y la ganancia parece mayor."],
+["#t-ert tr:nth-child(6)","CMV","Costo de lo que vendiste: costo de cada producto (Recetas) por unidades vendidas. Si falta un costo, este número queda bajo y la ganancia parece mayor. El costo de cada pedido se fija al aprobarlo: actualizar costos después no cambia las ventas ya hechas. Debajo ves, como referencia, cuánto sería a costo de reposición de hoy."],
 ["#t-ert tr:nth-child(7)","Utilidad bruta","Lo que queda para pagar gastos. Si es chica, el problema está en el precio o el costo."],
 ["#t-ert tr:nth-child(8)","Gastos","Comerciales, publicidad, operativos e impuestos. Se cargan en Gastos y restan acá."],
 ["#t-ert tr:nth-child(12)","Resultado","Tu ganancia. Compará columnas: ves en qué canal ganás y en cuál solo facturás."]],

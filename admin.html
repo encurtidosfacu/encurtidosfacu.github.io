@@ -550,7 +550,7 @@ body.nobadge #bell-n{display:none!important}
     var old = p[campo], oldcc = p.cc; p[campo] = valor; if (campo === "te") p.cc = valor; render(true);
     return api("setPedido", { r: r, id: p.id, campo: campo, valor: valor }).then(function (j) {
       if (!j || !j.ok) { p[campo] = old; p.cc = oldcc; render(true); toast(j && j.msg || "No se pudo guardar"); return; }
-      for (var k in j.p) p[k] = j.p[k]; render(true); try { actLog(({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] ? ({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] + " · " + p.nombre : "Editó " + campo + " · " + p.nombre, p.id); } catch (x) {}
+      for (var k in j.p) p[k] = j.p[k]; if (campo === "ap" && valor) { try { cpApprove(p); } catch (x0) {} } render(true); try { actLog(({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] ? ({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] + " · " + p.nombre : "Editó " + campo + " · " + p.nombre, p.id); } catch (x) {}
     }).catch(function () { p[campo] = old; p.cc = oldcc; render(true); toast("No se pudo guardar"); });
   }
 
@@ -786,25 +786,39 @@ body.nobadge #bell-n{display:none!important}
     var H = st.__ch; if (d && H && H.length) { var e = null; for (var i = 0; i < H.length; i++) { if (new Date(H[i].t) <= d) e = H[i]; } if (!e) e = H[0]; if (e.c[name] != null) return e.c[name]; }
     return costoAct(name);
   }
+  function costLoad(cb) {
+    if (DEMO || !allowed("finanzas")) return; if (st.__ch && st.__cp) { cb(); return; }
+    if (st.__cl) { st.__cl.push(cb); return; } st.__cl = [cb];
+    api("finData").then(function (j) { var D = (j && j.ok && j.datos) || {}; st.__ch = D.costHist || []; st.__cp = {}; Object.keys(D).forEach(function (k) { if (k.indexOf("costPed:") === 0) st.__cp[k.slice(8)] = D[k] || {}; }); var L = st.__cl; st.__cl = null; L.forEach(function (f) { try { f(); } catch (e) {} }); }).catch(function () { st.__cl = null; });
+  }
+  /* costo congelado por pedido: se fija al aprobar y no se mueve más */
+  function cpMonth(p) { var d = pf(p.fecha); return d ? d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) : "s-f"; }
+  function cpGet(p) { var M = st.__cp && st.__cp[cpMonth(p)]; return (M && M[p.id]) || null; }
+  function cpSet(p, fresh) {
+    var M = (st.__cp[cpMonth(p)] = st.__cp[cpMonth(p)] || {}), c = {};
+    Object.keys(pedItems(p).frascos).forEach(function (k) { var v = fresh ? costoAct(k) : costoDe(k, pf(p.fecha)); if (v != null) c[k] = Math.round(v * 100) / 100; });
+    M[p.id] = { t: new Date().toISOString(), c: c };
+  }
+  function cpSave(mk) { api("finSave", { clave: "costPed:" + mk, valor: st.__cp[mk] }).catch(function () {}); }
+  function cpApprove(p) { costLoad(function () { cpSet(p, true); cpSave(cpMonth(p)); }); }
   function costSnap() {
     if (DEMO || !st.productos || !st.productos.length || !allowed("finanzas") || Date.now() - (st.__csT || 0) < 60000) return; st.__csT = Date.now();
-    var go = function () {
-      var cur = {}; st.productos.forEach(function (p) { if (p.costo != null) cur[p.nombre] = Math.round(Number(p.costo) * 100) / 100; }); if (!Object.keys(cur).length) return;
-      var H = st.__ch, last = H.length ? H[H.length - 1].c : null, ch = !last;
+    costLoad(function () {
+      var cur = {}; st.productos.forEach(function (p) { if (p.costo != null) cur[p.nombre] = Math.round(Number(p.costo) * 100) / 100; });
+      var H = st.__ch, last = H.length ? H[H.length - 1].c : null, ch = !last && Object.keys(cur).length > 0;
       if (last) Object.keys(cur).forEach(function (k) { if (last[k] == null || Math.abs(last[k] - cur[k]) > 0.009) ch = true; });
       if (ch) { H.push({ t: new Date().toISOString(), c: cur }); if (H.length > 200) st.__ch = H = H.slice(-200); api("finSave", { clave: "costHist", valor: H }).catch(function () {}); }
-    };
-    if (st.__ch) { go(); return; }
-    api("finData").then(function (j) { st.__ch = (j && j.ok && j.datos && j.datos.costHist) || []; go(); }).catch(function () {});
+      var touched = {}; (st.pedidos || []).forEach(function (p) { if (p.cc || p.cl || !p.ap || cpGet(p)) return; cpSet(p, false); touched[cpMonth(p)] = 1; }); Object.keys(touched).forEach(cpSave);
+    });
   }
   function finRango() { var a = new Date(st.fd + "T00:00:00"), b = new Date(st.fh + "T23:59:59"); if (a > b) { var t = a; a = b; b = t; } return [a, b]; }
   function finAgg(a, b) {
-    var r = { v: 0, n: 0, ck: 0, packs: 0, combos: 0, costo: 0, sinCosto: 0, sabores: {}, mails: {} };
+    var r = { v: 0, n: 0, ck: 0, packs: 0, combos: 0, costo: 0, repo: 0, sinCosto: 0, sabores: {}, mails: {} };
     (st.pedidos || []).forEach(function (p) {
       if (p.cc || p.cl || !p.ap) return; var d = pf(p.fecha); if (!d || d < a || d > b) return;
       r.v += Number(p.total) || 0; r.n++; r.ck += Number(p.cant) || 0; if (p.mail) r.mails[String(p.mail).toLowerCase()] = 1;
       var it = pedItems(p); r.packs += it.packs; r.combos += it.combos;
-      Object.keys(it.frascos).forEach(function (k) { r.sabores[k] = (r.sabores[k] || 0) + it.frascos[k]; var c = costoDe(k, d); if (c == null) r.sinCosto += it.frascos[k]; else r.costo += c * it.frascos[k]; });
+      Object.keys(it.frascos).forEach(function (k) { r.sabores[k] = (r.sabores[k] || 0) + it.frascos[k]; var fz = cpGet(p), c = fz && fz.c[k] != null ? fz.c[k] : costoDe(k, d), ca = costoAct(k); if (c == null) r.sinCosto += it.frascos[k]; else r.costo += c * it.frascos[k]; r.repo += (ca != null ? ca : (c || 0)) * it.frascos[k]; });
     });
     return r;
   }
@@ -859,7 +873,7 @@ body.nobadge #bell-n{display:none!important}
     var neto = bruto - (mo || 0) - (gs || 0), mg = g.v ? Math.round(neto / g.v * 100) : 0;
     var h = '<div class="hero' + (neto < 0 ? " neg" : "") + '" id="fin-res"><small>' + (neto < 0 ? "Resultado del período: perdiste" : "Resultado del período: te quedó") + "</small><b>" + money(Math.abs(neto)) + "</b><small>Margen " + mg + "% sobre ventas</small></div>";
     h += '<div class="nm" style="margin:6px 2px 8px">Estado de resultados</div><div class="card" id="fin-lines">' +
-      frow("Ventas (pedidos aprobados)", money(g.v)) + frow("− Costo de los frascos vendidos", money(g.costo), 0, 1) + frow("Resultado bruto", money(bruto), 1, bruto < 0) +
+      frow("Ventas (pedidos aprobados)", money(g.v)) + frow("− Costo de los frascos vendidos", money(g.costo), 0, 1) + frow("Resultado bruto", money(bruto), 1, bruto < 0) + frow('<span class="meta">Referencia · costo de reposición hoy</span>', '<span class="meta">' + money(g.repo) + " · margen " + (g.v ? Math.round((g.v - g.repo) / g.v * 100) : 0) + "%</span>") +
       (mo != null ? frow("− Mano de obra, luz y envío <small>(prorrateado)</small>", money(mo), 0, 1) : "") + (gs != null ? frow("− Gastos del negocio <small>(prorrateado)</small>", money(gs), 0, 1) : "") + frow("Resultado neto", money(neto), 1, neto < 0) + "</div>";
     h += '<div class="meta" style="margin:6px 2px">' + g.n + " pedidos · " + g.ck + " frascos. Costo según tus Recetas" + (g.sinCosto ? " (<b>" + g.sinCosto + " frascos sin receta</b> no suman costo: cargá su receta)" : "") + ". Mano de obra y gastos salen de la planilla mensual repartidos por días.</div>";
     var comp = finMovs(R[0], R[1]); if (st.movs) h += '<div class="card">' + frow("Compras de insumos del período <small>(plata que salió)</small>", money(comp)) + "</div>";
@@ -2123,7 +2137,7 @@ body.nobadge #bell-n{display:none!important}
   }
   var ACT = { pAp: "Aprobado", pHe: "Hecho", pEn: "Entregado", pNx: "Siguiente estado", pCc: "Cancelado" };
   function actLog(txt, id) { try { var L = JSON.parse(localStorage.getItem("uovo_adm_act") || "[]"); L.unshift({ t: Date.now(), x: txt, id: id || "" }); localStorage.setItem("uovo_adm_act", JSON.stringify(L.slice(0, 400))); } catch (e) {} if (!DEMO) { try { api("logActividad", { texto: txt, ref: id || "" }).catch(function () {}); } catch (e2) {} } }
-  function pedSet(p, o) { var ks = ["ap", "he", "en", "te"], b = {}; ks.forEach(function (k) { b[k] = !!p[k]; }); var cc = !!p.cc; var q = Promise.resolve(); ks.forEach(function (k) { if (k in o && !!p[k] !== !!o[k]) q = q.then(function () { return api("setPedido", { r: p.r, id: p.id, campo: k, valor: !!o[k] }).then(function (j) { if (j && j.ok && j.p) for (var z in j.p) p[z] = j.p[z]; else p[k] = !!o[k]; }); }); }); return q; }
+  function pedSet(p, o) { var ks = ["ap", "he", "en", "te"], b = {}; ks.forEach(function (k) { b[k] = !!p[k]; }); var cc = !!p.cc; var q = Promise.resolve(); ks.forEach(function (k) { if (k in o && !!p[k] !== !!o[k]) q = q.then(function () { return api("setPedido", { r: p.r, id: p.id, campo: k, valor: !!o[k] }).then(function (j) { if (j && j.ok && j.p) for (var z in j.p) p[z] = j.p[z]; else p[k] = !!o[k]; if (k === "ap" && o[k]) { try { cpApprove(p); } catch (x1) {} } }); }); }); return q; }
   function pedBulk(L, a) {
     if (!L.length) return; var prev = L.map(function (p) { return { p: p, ap: !!p.ap, he: !!p.he, en: !!p.en, te: !!p.te }; }), n = 0, nm = ACT[a] || "";
     toast("Trabajando…");
