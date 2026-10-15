@@ -1769,7 +1769,7 @@ var DEFAULTS = {
     if (T && T.closest("#sban-x")) { var bn = $("sban"), fb = $("sfab"); window.__banMin = true; if (fb && !fb.hidden) { var r1 = bn.getBoundingClientRect(), r2 = fb.getBoundingClientRect(); bn.style.transition = "transform .55s ease-in, opacity .55s"; bn.style.transformOrigin = "center"; bn.style.transform = "translate(" + (r2.left + 29 - (r1.left + r1.width / 2)) + "px," + (r2.top + 29 - (r1.top + r1.height / 2)) + "px) scale(.08)"; bn.style.opacity = "0"; setTimeout(function () { bn.hidden = true; bn.style.transform = ""; bn.style.opacity = ""; bn.style.transition = ""; fb.animate([{ transform: "scale(1)" }, { transform: "scale(1.35)" }, { transform: "scale(1)" }], { duration: 450 }); }, 560); } else bn.hidden = true; return; }
     var bpx = T && T.closest("[data-bp]"); if (bpx && T.closest("#sban")) { sSel = Number(bpx.getAttribute("data-bp")); renderSusc(); $("spmodal").hidden = false; return; }
     if (T && T.closest("#star")) { starOpen(); return; }
-    if (T && T.closest("#star-x")) { $("starm").hidden = true; return; }
+    if (T && T.closest("#star-x")) { starClose(); return; }
     if (T && (T.closest("#sban") || T.closest("#sfab"))) { sSel = null; renderSusc(); $("spmodal").hidden = false; return; }
     if (T && (T.closest("#sp-x") || T === $("spmodal"))) { $("spmodal").hidden = true; return; }
     var spt = T && T.closest("[data-spt]"); if (spt) { sSel = Number(spt.getAttribute("data-spt")); renderSusc(); return; }
@@ -2025,7 +2025,7 @@ var DEFAULTS = {
     var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
     var st1 = document.createElement("div"); st1.style.cssText = "position:absolute;left:50%;top:50%;width:" + big + "px;height:" + big + "px;margin:" + (-big / 2) + "px 0 0 " + (-big / 2) + "px;filter:drop-shadow(0 0 30px rgba(240,193,75,.8));will-change:transform,opacity";
     st1.innerHTML = starSvg(true, big);
-    ov.appendChild(st1); document.body.appendChild(ov); b.style.visibility = "hidden";
+    ov.appendChild(st1); document.body.appendChild(ov); b.style.visibility = "hidden"; setTimeout(function () { b.style.visibility = ""; try { ov.remove(); } catch (eo) {} }, 3200);
     var r = b.getBoundingClientRect(), tx = r.left + r.width / 2 - W / 2, ty = r.top + r.height / 2 - H / 2, fin = Math.max(20, r.height) / big;
     var a1 = st1.animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(.16)", opacity: 1, offset: .75 }, { transform: "scale(.07)", opacity: 1 }], { duration: 950, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
     a1.onfinish = function () {
@@ -2036,6 +2036,37 @@ var DEFAULTS = {
       };
     };
   }
+
+  function starClose() {
+    var m = $("starm"); if (!m || m.hidden) return;
+    var bx = m.querySelector(".sbox"), br = bx ? bx.getBoundingClientRect() : null, W = innerWidth, H = innerHeight;
+    var cx = br ? br.left + br.width / 2 : W / 2, cy = br ? br.top + Math.min(br.height / 2, 120) : H / 2;
+    m.hidden = true;
+    var b = $("star"); if (!b || b.hidden || !mySus.length) return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var pr = mySus.some(isPrem), r = b.getBoundingClientRect(), S = 110;
+    var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
+    var s1 = document.createElement("div"); s1.style.cssText = "position:absolute;left:" + (cx - S / 2) + "px;top:" + (cy - S / 2) + "px;width:" + S + "px;height:" + S + "px;filter:drop-shadow(0 0 14px rgba(240,193,75,.9));will-change:transform";
+    s1.innerHTML = starSvg(true, S); ov.appendChild(s1); document.body.appendChild(ov); b.style.visibility = "hidden";
+    setTimeout(function () { b.style.visibility = ""; try { ov.remove(); } catch (eo) {} }, 2600);
+    var cols = ["#F0C14B", "#FFE08A", "#FFFFFF", "#E0457B", "#3FA9F5"];
+    for (var i = 0; i < 16; i++) {
+      var p = document.createElement("i"), a = i / 16 * Math.PI * 2, d = 50 + Math.random() * 40, w = 5 + Math.random() * 5;
+      p.style.cssText = "position:absolute;left:" + cx + "px;top:" + cy + "px;width:" + w + "px;height:" + w + "px;border-radius:50%;background:" + cols[i % cols.length]; ov.appendChild(p);
+      p.animate([{ transform: "translate(0,0) scale(1)", opacity: 1 }, { transform: "translate(" + Math.cos(a) * d + "px," + Math.sin(a) * d + "px) scale(.2)", opacity: 0 }], { duration: 520, easing: "ease-out", fill: "forwards" });
+    }
+    var tx = r.left + r.width / 2 - cx, ty = r.top + r.height / 2 - cy, fin = Math.max(20, r.height) / S;
+    var a1 = s1.animate([{ transform: "scale(.6)", opacity: 0 }, { transform: "scale(1.45)", opacity: 1, offset: .5 }, { transform: "scale(1)", opacity: 1 }], { duration: 300, easing: "ease-out", fill: "forwards" });
+    a1.onfinish = function () {
+      var a2 = s1.animate([{ transform: "translate(0,0) scale(1)" }, { transform: "translate(" + tx * .5 + "px," + (ty * .5 - 40) + "px) scale(.55)", offset: .5 }, { transform: "translate(" + tx + "px," + ty + "px) scale(" + fin + ")" }], { duration: 620, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
+      a2.onfinish = function () {
+        b.style.visibility = ""; b.animate([{ transform: "scale(1)" }, { transform: "scale(1.45) rotate(-12deg)" }, { transform: "scale(1)" }], { duration: 420, easing: "ease-out" });
+        if (pr) confetti(ov, r.left + r.width / 2, r.top + r.height / 2, W, H);
+        s1.remove(); setTimeout(function () { ov.remove(); }, pr ? 2400 : 50);
+      };
+    };
+  }
+  window.__starClose = starClose;
   function confetti(ov, x, y, W, H) {
     var cols = ["#F0C14B", "#E0457B", "#4A6B3A", "#3FA9F5", "#F28C28", "#9B59B6", "#FFFFFF"];
     for (var i = 0; i < 70; i++) {
@@ -2349,7 +2380,7 @@ var DEFAULTS = {
 <button type="button" id="totop" aria-label="Subir"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <script>
 (function(){
-function cl(){var m=document.getElementById("starm");if(m)m.hidden=true;}
+function cl(){var m=document.getElementById("starm");if(!m||m.hidden)return;if(window.__starClose)window.__starClose();else m.hidden=true;}
 function hit(e){var t=e.target,m=document.getElementById("starm");return m&&!m.hidden&&t&&(t===m||(t.closest&&t.closest("#star-x")));}
 document.addEventListener("click",function(e){if(hit(e)){e.preventDefault();e.stopPropagation();cl();}},true);
 document.addEventListener("touchend",function(e){if(hit(e)){e.preventDefault();cl();}},true);
