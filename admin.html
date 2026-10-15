@@ -761,13 +761,31 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
     }).catch(function () { toast("No se pudo"); });
   }
   function catOpts() { var c = {}; (st.productos || []).forEach(function (p) { if (p.cat) c[p.cat] = 1; }); return Object.keys(c).map(function (k) { return '<option value="' + esc(k) + '">'; }).join(""); }
+
+  var RUMAP = { g: "g", gr: "g", grs: "g", gramo: "g", gramos: "g", kg: "kg", kgs: "kg", kilo: "kg", kilos: "kg", kilogramo: "kg", kilogramos: "kg", mg: "mg", ml: "ml", cc: "ml", mililitro: "ml", mililitros: "ml", l: "l", lt: "l", lts: "l", litro: "l", litros: "l", u: "unidad", un: "unidad", unidad: "unidad", unidades: "unidad", docena: "docena", docenas: "docena", ton: "tonelada", tonelada: "tonelada", toneladas: "tonelada" };
+  function riParse(txt) { var m = String(txt || "").trim().toLowerCase().match(/^([\d.,]+)\s*([a-záéíóúñ]*)$/); if (!m) return null; var q = parseAR(m[1]); if (!(q >= 0) || isNaN(q)) return null; var u = m[2] ? RUMAP[nrm(m[2])] : ""; if (m[2] && !u) return null; return { q: q, u: u }; }
+  function riQuick(inp) {
+    var t = inp.value.trim(); if (!t) return;
+    var m = t.match(/^(.+?)\s+([\d.,]+)\s*([a-záéíóúñ]*)$/i), n, q, u;
+    if (m) { n = m[1]; q = m[2]; u = m[3]; } else { m = t.match(/^([\d.,]+)\s*([a-záéíóúñ]*)\s+(?:de\s+)?(.+)$/i); if (!m) { toast("Escribí por ejemplo: cebolla 100 g"); return; } q = m[1]; u = m[2]; n = m[3]; }
+    var qn = parseAR(q); if (!(qn > 0)) { toast("No entendí la cantidad"); return; }
+    var uu = u ? RUMAP[nrm(u)] : ""; if (u && !uu) { toast("No conozco la unidad «" + u + "»"); return; }
+    var nn = nrm(n.replace(/^de\s+/i, "")), names = (st.insumos || []).map(function (i) { return i.n; });
+    var hit = names.filter(function (x) { return nrm(x) === nn; })[0] || names.filter(function (x) { return nrm(x).indexOf(nn) >= 0 || nn.indexOf(nrm(x)) >= 0; })[0] || "";
+    var it = { n: hit, q: qn, u: uu || (hit ? insU(hit) : "") };
+    var e0 = st.rd.items.filter(function (x) { return !x.n && (x.q === "" || x.q == null); })[0];
+    if (e0) { e0.n = it.n; e0.q = it.q; e0.u = it.u; } else st.rd.items.push(it);
+    toast(hit ? "Agregado: " + hit + " " + fm(qn) + " " + it.u : "No encontré el insumo «" + n + "»: elegilo en la lista");
+    render(true);
+  }
   function editorR() {
     var d = st.rd, names = st.insumos.map(function (i) { return i.n; }), un = {}; st.insumos.forEach(function (i) { un[i.n] = i.u; });
     var h = '<div class="add" style="margin-top:10px">';
     if (d.orig) h += '<div class="meta" style="margin-bottom:-4px">Nombre del producto</div><input class="inp" data-rren="1" value="' + esc(d.orig) + '" placeholder="Nombre">';
     if (!d.orig) h += '<select class="inp" data-rnom="1">' + opts(st.productos.map(function (p) { return p.nombre; }), d.nombre, "Elegí el producto") + "</select>";
     h += '<input class="inp" type="number" inputmode="numeric" data-ry="1" placeholder="Frascos que salen de la preparación" value="' + (d.y || "") + '"><div class="meta">Insumos de <b>una preparación</b> (cantidad total):</div>';
-    h += d.items.map(function (it, i) { var uu = it.u || un[it.n] || "", ul = RUN.indexOf(uu) >= 0 || !uu ? RUN : RUN.concat([uu]); return '<div class="ssw ri" data-ssw="i:' + i + '"><div class="sa l"><button data-iadd="' + i + '" aria-label="Sumar">＋</button></div><div class="sa r"><button class="m" data-isub="' + i + '" aria-label="Restar">−</button><button class="d" data-idel="' + i + '" aria-label="Quitar">🗑</button></div><div class="rl ssc rl2"><select class="inp" data-rin="' + i + '">' + opts(names, it.n, "Insumo") + '<option value="__new">＋ Crear insumo nuevo…</option></select><input class="inp" type="number" inputmode="decimal" step="any" data-riq="' + i + '" value="' + (it.q === "" ? "" : it.q) + '" placeholder="Cant." style="max-width:76px"><select class="inp" data-riu="' + i + '" style="max-width:92px">' + opts(ul, uu, uu ? "" : "Unidad") + '</select><button class="sm red" data-rix="' + i + '">×</button></div></div>'; }).join("");
+    h += d.items.map(function (it, i) { var uu = it.u || un[it.n] || "", ul = RUN.indexOf(uu) >= 0 || !uu ? RUN : RUN.concat([uu]); return '<div class="ssw ri" data-ssw="i:' + i + '"><div class="sa l"><button data-iadd="' + i + '" aria-label="Sumar">＋</button></div><div class="sa r"><button class="m" data-isub="' + i + '" aria-label="Restar">−</button><button class="d" data-idel="' + i + '" aria-label="Quitar">🗑</button></div><div class="rl ssc rl2"><select class="inp" data-rin="' + i + '">' + opts(names, it.n, "Insumo") + '<option value="__new">＋ Crear insumo nuevo…</option></select><input class="inp" type="text" inputmode="decimal" autocomplete="off" data-riq="' + i + '" value="' + (it.q === "" ? "" : String(it.q).replace(".", ",")) + '" placeholder="Cant. (100 g)" style="max-width:104px"><select class="inp" data-riu="' + i + '" style="max-width:92px">' + opts(ul, uu, uu ? "" : "Unidad") + '</select><button class="sm red" data-rix="' + i + '">×</button></div></div>'; }).join("");
+    h += '<input class="inp" type="text" autocomplete="off" enterkeyhint="done" data-rqk="1" placeholder="⚡ Escribí todo junto: cebolla 100 g  (y Enter)" style="margin-top:6px">';
     if (d.items.length < 20) h += '<button class="sm" data-riadd="1">＋ Insumo</button>';
     h += '<div style="display:flex;gap:8px;margin-top:6px"><button class="btn" data-rsave="1">Guardar receta</button><button class="sm" data-rcancel="1">Cancelar</button>' + (d.orig ? '<button class="sm red" data-rdel="1">Eliminar</button>' : "") + "</div></div>";
     return h;
@@ -2721,7 +2739,8 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
     if (st.rd && tg.matches("[data-ry]")) { st.rd.y = Number(tg.value) || 0; return; }
     if (st.rd && tg.matches("[data-rin]")) { var ri = Number(tg.getAttribute("data-rin")), rit = st.rd.items[ri]; if (tg.value === "__new") { rit.n = "__new"; riNew(ri); return; } rit.n = tg.value; rit.u = insU(tg.value); render(true); return; }
     if (st.rd && tg.matches("[data-riu]")) { st.rd.items[Number(tg.getAttribute("data-riu"))].u = tg.value; return; }
-    if (st.rd && tg.matches("[data-riq]")) { st.rd.items[Number(tg.getAttribute("data-riq"))].q = tg.value === "" ? "" : Number(tg.value); return; }
+    if (st.rd && tg.matches("[data-riq]")) { var qi = st.rd.items[Number(tg.getAttribute("data-riq"))], pq = riParse(tg.value); if (!pq) { qi.q = tg.value.trim() === "" ? "" : (parseAR(tg.value) || ""); } else { qi.q = pq.q; if (pq.u) qi.u = pq.u; render(true); } return; }
+    if (st.rd && tg.matches("[data-rqk]")) { riQuick(tg); return; }
     if (st.pd && tg.matches("[data-kf=dpct]")) { st.pd.dpct = Number(tg.value) || 0; st.pd.precio = dcalc(st.pd); var kp = document.getElementById("k-prev"); if (kp) kp.innerHTML = dprev(st.pd); return; }
     if (st.pd && tg.matches("[data-kf]")) { var kf = tg.getAttribute("data-kf"); st.pd[kf] = (kf === "nombre" || kf === "texto" || kf === "vence") ? tg.value : Number(tg.value) || 0; return; }
     if (st.pd && tg.matches("[data-kin]")) { st.pd.items[Number(tg.getAttribute("data-kin"))].n = tg.value; return; }
@@ -3189,6 +3208,7 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
       return '<div class="frow" style="padding:9px 0;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:800;color:#B3261E">' + esc(b.n) + '</div><div class="meta">Tenés ' + blFmt(b.have > 0 ? b.have : 0, b.uni) + " · necesitás " + blFmt(b.need || 0, b.uni) + " · falta <b>" + blFmt(b.q, b.uni) + "</b></div></div>" + cartBtn(b.n) + "</div>";
     }).join("") + "</div>";
   }
+  document.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target && e.target.matches && (e.target.matches("[data-rqk]") || e.target.matches("[data-riq]"))) { e.preventDefault(); e.target.blur(); } }, true);
   document.addEventListener("click", function (e) { var c = e.target.closest && e.target.closest("[data-cadd]"); if (c) { e.stopImmediatePropagation(); e.preventDefault(); cartAddPop(c.getAttribute("data-cadd")); } }, true);
   function blShort(prod) {
     var P = st.blp, rec = (st.recetas || []).filter(function (r) { return nrm(r.nombre) === nrm(prod); })[0];
