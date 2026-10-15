@@ -114,7 +114,9 @@ function loadAll(){
       if(fd.cfg){CFG=fd.cfg}else persist("cfg",CFG);
       if(fd.ventas){MAN=fd.ventas}else if(MAN.length)persist("ventas",MAN);
       if(fd.gastos){GAS=fd.gastos}else if(GAS.length)persist("gastos",GAS);
+      if(fd.costHist&&fd.costHist.length)HIST=fd.costHist;
     }
+    snapCostos();
   }).catch(function(){D.err="No pude leer los datos."});
 }
 /* config y cargas manuales (v1: en este navegador; luego a la planilla) */
@@ -142,13 +144,25 @@ function parseItems(t){
   t.split(",").forEach(function(x){var q=x.trim().match(/^(\d+)\s*x\s*(.+)$/i);if(q)r.push({n:q[2].trim(),q:+q[1]})});
   return r;
 }
-function costoDe(n){for(var i=0;i<D.cat.length;i++)if(D.cat[i].nombre===n)return D.cat[i].costo;return undefined}
+function costoAct(n){for(var i=0;i<D.cat.length;i++)if(D.cat[i].nombre===n)return D.cat[i].costo;return undefined}
+/* Historial de costos: cada venta usa el costo que regía en su fecha. Los períodos pasados no se mueven al actualizar costos. */
+var HIST=[];
+function snapCostos(){
+  var cur={};D.cat.forEach(function(p){if(p.costo!=null)cur[p.nombre]=Math.round(Number(p.costo)*100)/100});
+  if(!Object.keys(cur).length)return;
+  var last=HIST.length?HIST[HIST.length-1].c:null,ch=!last;
+  if(last)Object.keys(cur).forEach(function(k){if(last[k]==null||Math.abs(last[k]-cur[k])>0.009)ch=true});
+  if(ch){HIST.push({t:new Date().toISOString(),c:cur});if(HIST.length>200)HIST=HIST.slice(-200);persist("costHist",HIST)}
+}
+function costoDe(n,d){
+  if(d&&HIST.length){var e=null;for(var i=0;i<HIST.length;i++){if(new Date(HIST[i].t)<=d)e=HIST[i]}if(!e)e=HIST[0];if(e.c[n]!=null)return e.c[n]}
+  return costoAct(n)}
 function enPeriodo(d){return d.getFullYear()===ST.y&&d.getMonth()===ST.m}
 function calc(canal){
   var V=ventas().filter(function(v){return enPeriodo(v.fecha)&&(!canal||v.canal===canal)});
   var r={bruto:0,desc:0,envio:0,cmv:0,faltaCosto:{},n:V.length};
   V.forEach(function(v){r.bruto+=v.bruto;r.desc+=v.desc;r.envio+=v.envio;
-    v.items.forEach(function(it){var c=costoDe(it.n);if(c==null)r.faltaCosto[it.n]=1;else r.cmv+=c*it.q});
+    v.items.forEach(function(it){var c=costoDe(it.n,v.fecha);if(c==null)r.faltaCosto[it.n]=1;else r.cmv+=c*it.q});
     if(!v.items.length&&v.bruto)r.faltaCosto["(venta sin detalle de productos)"]=1;
   });
   r.neto=r.bruto-r.desc+r.envio;
