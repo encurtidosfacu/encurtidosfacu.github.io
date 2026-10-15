@@ -274,7 +274,7 @@ body.nobadge #bell-n{display:none!important}
   var AREAS = [["pedidos", "Pedidos"], ["productos", "Productos"], ["packs", "Packs"], ["recetas", "Recetas"], ["proveedores", "Insumos"], ["textos", "Textos"], ["finanzas", "Finanzas"], ["resenas", "Reseñas"]];
   function can(a) { var r = st.me && st.me.rol; if (!r) return false; if (r === "Dueño" || r === "Total") return true; return String(r).toLowerCase().split(/[,;\s]+/).indexOf(a) >= 0; }
   function permList(p) { if (!p || p === "Dueño" || p === "Total") return AREAS.map(function (x) { return x[0]; }); return String(p).toLowerCase().split(/[,;\s]+/); }
-  var VAREA = { pdash: "pedidos", pset: "pedidos", prset: "proveedores", prdash: "proveedores", tarjetas: "packs", suscripciones: "packs", inicio: "pedidos", pedidos: "pedidos", productos: "productos", finanzas: "finanzas", packs: "packs", recetas: "recetas", proveedores: "proveedores", stock: "proveedores", puntos: "proveedores", cupones: "packs", textos: "textos", resenas: "resenas" };
+  var VAREA = { pdash: "pedidos", pset: "pedidos", prset: "proveedores", prdash: "proveedores", tarjetas: "packs", suscripciones: "packs", tandas: "pedidos", inicio: "pedidos", pedidos: "pedidos", productos: "productos", finanzas: "finanzas", packs: "packs", recetas: "recetas", proveedores: "proveedores", stock: "proveedores", puntos: "proveedores", cupones: "packs", textos: "textos", resenas: "resenas" };
   function allowed(v) { if (v === "mas") return true; if (v === "accesos" || v === "voz") return !!(st.me && st.me.rol === "Dueño"); return can(VAREA[v]); }
   function firstView() { var o = ["inicio", "pedidos", "productos", "finanzas", "mas"]; for (var i = 0; i < o.length; i++) if (allowed(o[i])) return o[i]; return "mas"; }
   function applyPerms() { Array.prototype.forEach.call($("nav").querySelectorAll("button"), function (b) { b.hidden = b.hasAttribute("data-buy") ? !allowed("proveedores") : !allowed(b.getAttribute("data-v")); }); }
@@ -404,7 +404,7 @@ body.nobadge #bell-n{display:none!important}
   }
 
   /* ---------- Navegación ---------- */
-  var SUB = ["tarjetas", "suscripciones", "packs", "recetas", "textos", "proveedores", "stock", "puntos", "cupones", "accesos", "voz", "resenas"];
+  var SUB = ["tarjetas", "suscripciones", "tandas", "packs", "recetas", "textos", "proveedores", "stock", "puntos", "cupones", "accesos", "voz", "resenas"];
   function goto(v) {
     if (!allowed(v)) v = firstView();
     modFor(v);
@@ -485,7 +485,7 @@ body.nobadge #bell-n{display:none!important}
     if (!st.loaded.productos && !st.pprf) { st.pprf = 1; api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === "pedidos") render(true); } }).catch(function () {}); }
     if (!st.plz && !st.plzf) { st.plzf = 1; plzLoad(function () { if (st.v === "pedidos") render(true); }); }
     var PP = [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]];
-    var h = '<button class="sm" data-ghoy="1" style="margin-bottom:8px">📋 Gestionados hoy</button><button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
+    var h = colaBanner() + '<button class="sm" data-ghoy="1" style="margin-bottom:8px">📋 Gestionados hoy</button><button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
       '<input class="search" id="pq" type="search" placeholder="Buscar por nombre, código o pedido…" value="' + esc(st.q) + '">' +
       '<button class="chip" data-pdtog="1" style="margin:0 0 8px">📅 ' + esc((PP.filter(function (x) { return x[0] === (st.pdp || "todo"); })[0] || ["", "Rango"])[1]) + ' · fecha del pedido ' + (st.pdo ? "▴" : "▾") + '</button><div' + (st.pdo ? "" : ' hidden') + '><div class="chips">' + PP.map(function (x) { return '<button class="chip' + ((st.pdp || "todo") === x[0] ? " on" : "") + '" data-pdp="' + x[0] + '">' + x[1] + "</button>"; }).join("") + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><label class="meta">Desde<input class="inp" type="date" id="pd-d" value="' + esc(st.pdd || "") + '"></label><label class="meta">Hasta<input class="inp" type="date" id="pd-h" value="' + esc(st.pdh || "") + '"></label></div></div>' +
       '<div class="chips">' + FILS.map(function (f) { var n = f[0] === "todos" ? base.length : f[0] === "apr" ? base.filter(function (p) { return p.ap && !p.cc && !p.cl; }).length : (cnt[f[0]] || 0); return '<button class="chip' + (st.fil === f[0] ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "<b>" + n + "</b></button>"; }).join("") + "</div>";
@@ -619,7 +619,7 @@ body.nobadge #bell-n{display:none!important}
   /* ---------- Más ---------- */
   function renderMas() {
     var mi = function (x) { return '<button class="mi" data-go="' + x[0] + '"><i>' + x[1] + "</i><div><b>" + x[2] + "</b><span>" + x[3] + "</span></div></button>"; };
-    var neg = [["textos", "✏️", "Textos de la página", "Cambiá los textos de la tienda"], ["proveedores", "🧾", "Proveedores e insumos", "Precios de lo que comprás"], ["stock", "📦", "Stock", "Cuánto te queda y qué reponer"], ["puntos", "🎯", "Puntos de pedido", "Cuándo avisarte para reponer cada insumo"], ["recetas", "🥒", "Recetas", "Costo de cada preparación y frasco"], ["packs", "🎁", "Packs y combos", "Activá, pausá y cambiá precios"], ["suscripciones", "📬", "Suscripciones", "Planes, suscriptores y envíos"], ["tarjetas", "🖨️", "Tarjetas y stickers", "Diseñá e imprimí tarjetas con QR"], ["cupones", "🏷️", "Cupones", "Descuentos para tus clientes"]].filter(function (x) { return allowed(x[0]); });
+    var neg = [["textos", "✏️", "Textos de la página", "Cambiá los textos de la tienda"], ["proveedores", "🧾", "Proveedores e insumos", "Precios de lo que comprás"], ["stock", "📦", "Stock", "Cuánto te queda y qué reponer"], ["puntos", "🎯", "Puntos de pedido", "Cuándo avisarte para reponer cada insumo"], ["recetas", "🥒", "Recetas", "Costo de cada preparación y frasco"], ["packs", "🎁", "Packs y combos", "Activá, pausá y cambiá precios"], ["suscripciones", "📬", "Suscripciones", "Planes, suscriptores y envíos"], ["tandas", "📅", "Tandas y cola", "Abrí y cerrá pedidos por fecha, cola y lista de espera"], ["tarjetas", "🖨️", "Tarjetas y stickers", "Diseñá e imprimí tarjetas con QR"], ["cupones", "🏷️", "Cupones", "Descuentos para tus clientes"]].filter(function (x) { return allowed(x[0]); });
     var app = [["resenas", "⭐", "Reseñas", "Lo que dicen tus clientes"]].filter(function (x) { return allowed(x[0]); });
     if (st.me && st.me.rol === "Dueño") { app.push(["voz", "🎙️", "Asistente de voz", "Dictá lo que querés hacer"]); app.push(["accesos", "🔑", "Accesos", "Quién puede entrar a esta app"]); }
     if (st.alertas === undefined && !st.stkf && allowed("proveedores")) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (st.v === "mas") render(true); } }).catch(function () {}); }
@@ -628,7 +628,7 @@ body.nobadge #bell-n{display:none!important}
     function sec(ttl, body) { return body ? '<div class="sec-h">' + ttl + '</div><div class="menu">' + body + "</div>" : ""; }
     function pick(keys) { return neg.filter(function (x) { return keys.indexOf(x[0]) >= 0; }).map(mi).join(""); }
     return sec("Producir", pick(["proveedores", "stock", "puntos", "recetas"]) + (allowed("proveedores") ? '<button class="mi" data-buy="1"><i>🛒</i><div><b>Lista de compras</b><span>Qué comprar y carritos para imprimir o WhatsApp</span></div></button>' : "")) +
-      sec("Vender", pick(["packs", "cupones", "suscripciones", "tarjetas"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
+      sec("Vender", pick(["packs", "cupones", "suscripciones", "tandas", "tarjetas"]) + app.filter(function (x) { return x[0] === "resenas"; }).map(mi).join("")) +
       sec("Ajustes", '<button class="mi" data-cfgpop="1"><i>⚙️</i><div><b>Configuraciones de la app</b><span>Orden, tarjetas, atajos, pestañas, avisos, nombre y color</span></div></button>' + pick(["textos"]) + app.filter(function (x) { return x[0] !== "resenas"; }).map(mi).join("") + ac);
   }
   var BACK = '<button class="back" data-go="mas">‹ Más</button>';
@@ -1525,6 +1525,137 @@ body.nobadge #bell-n{display:none!important}
   });
   document.addEventListener("change", function (ev) { var t = ev.target; if (st.v === "suscripciones" && t.matches && t.matches("[data-sumes]")) { st.sumes = t.value || st.sumes; render(true); } });
 
+  /* ---------- Tandas, cola de pedidos y zonas en espera ---------- */
+  function tAdd(n) { var d = new Date(); d.setDate(d.getDate() + n); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function tFmt(s) { if (!s) return "—"; var a = String(s).split("-"); return a[2] + "/" + a[1]; }
+  function tEst(r) { var h = suHoy(); if (r.apertura && h < r.apertura) return ["Programada", "w"]; if (h > r.cierre) return ["Cerrada", "no"]; return ["Abierta", "ok"]; }
+  function tOpen() { return (st.rondas || []).some(function (r) { return tEst(r)[0] === "Abierta"; }); }
+  var TDEMO = null;
+  function tDemo() { return TDEMO || (TDEMO = { rondas: [{ r: 2, nombre: "Tanda de octubre", apertura: tAdd(-2), cierre: tAdd(5), entrega: tAdd(12), nota: "" }, { r: 3, nombre: "Tanda de noviembre", apertura: tAdd(20), cierre: tAdd(27), entrega: tAdd(34), nota: "" }], cola: [{ r: 2, fecha: "13/10/2026 18:20", nombre: "Carla Díaz", tel: "2915550000", mail: "carla@mail.com", pedido: "2 x Zanahorias, 1 x Pepinos", total: 7500, estado: "En cola", items: JSON.stringify([{ nombre: "Zanahorias", cantidad: 2 }, { nombre: "Pepinos", cantidad: 1 }]), nota: "" }], espera: [{ r: 2, fecha: "12/10/2026 10:00", nombre: "Juan P.", tel: "2915551111", mail: "", ciudad: "Tandil", zona: "", plan: "Estándar", avisado: "" }] }); }
+  function tLoad(force) {
+    if (DEMO) { var d = tDemo(); st.rondas = d.rondas; st.cola = d.cola; st.espera = d.espera; return; }
+    if (st.__tl && !force) return; st.__tl = 1;
+    Promise.all([api("rondas"), api("cola"), api("espera")]).then(function (r) {
+      st.rondas = r[0] && r[0].ok ? r[0].rondas : []; st.cola = r[1] && r[1].ok ? r[1].cola : []; st.espera = r[2] && r[2].ok ? r[2].espera : [];
+      if (["tandas", "pdash", "inicio", "pedidos"].indexOf(st.v) >= 0) render(true);
+    }).catch(function () { st.rondas = st.rondas || []; st.cola = st.cola || []; st.espera = st.espera || []; st.__tl = 0; });
+  }
+  function colaBanner() {
+    tLoad(); var n = (st.cola || []).filter(function (c) { return c.estado === "En cola"; }).length; if (!n) return "";
+    return '<button class="card" data-go="tandas" data-tt-go="cola" style="width:100%;text-align:left;border:2px solid #C98A1B;background:#FFF8E8;margin-bottom:12px"><div class="nm">📌 ' + n + (n === 1 ? " pedido en la cola" : " pedidos en la cola") + '</div><div class="meta">' + (tOpen() ? "Ya abriste pedidos: atendelos primero, son prioridad." : "Clientes que quisieron pedir con los pedidos cerrados.") + " Tocá para verlos.</div></button>";
+  }
+  function waMsg(c, kind) {
+    if (kind === "z") return "¡Hola " + (c.nombre || "") + "! Te escribimos de πKDA: ya llegamos a " + (c.ciudad || "tu zona") + " 💚 ¿Querés que avancemos con tu suscripción?";
+    return "¡Hola " + (c.nombre || "") + "! Te escribimos de πKDA: ya abrimos pedidos 🥒 Tenías anotado: " + (c.pedido || "tu pedido") + ". ¿Lo confirmamos?";
+  }
+  function renderTandas() {
+    tLoad(); if (!st.rondas) return BACK + '<div class="empty">Cargando…</div>';
+    var t = st.tt || "tandas", nC = st.cola.filter(function (c) { return c.estado === "En cola"; }).length, nZ = st.espera.filter(function (z) { return !z.avisado; }).length;
+    var h = BACK + '<div class="chips">' + [["tandas", "Tandas"], ["cola", "Cola" + (nC ? " " + nC : "")], ["zonas", "Zonas" + (nZ ? " " + nZ : "")]].map(function (c) { return '<button class="chip' + (t === c[0] ? " on" : "") + '" data-tt="' + c[0] + '">' + c[1] + "</button>"; }).join("") + "</div>";
+    if (t === "tandas") {
+      h += '<div class="help">Cargá cuándo <b>abren</b> y <b>cierran</b> los pedidos y cuándo <b>entregás</b>. Se abren y cierran solos en esas fechas. Con los pedidos cerrados, los clientes pueden anotar su pedido en la <b>Cola</b>.</div><div style="margin-bottom:10px"><button class="btn" data-tn-new="1">＋ Nueva tanda</button></div>';
+      var L = st.rondas.slice().sort(function (a, b) { return (a.cierre < b.cierre ? 1 : -1); }); if (st.rd && !st.rd.r) L.unshift(st.rd);
+      if (!L.length) h += '<div class="empty">Todavía no cargaste tandas.</div>';
+      h += L.map(function (r) {
+        var ed = st.rd && (st.rd.r || 0) === (r.r || 0), es = tEst(r), id = r.r || 0;
+        var card = '<article class="card" data-tr="' + id + '"><div class="row"><div><div class="nm">' + esc(r.nombre || "Tanda nueva") + '</div><div class="meta">📥 Abre ' + tFmt(r.apertura) + " · ⏹ Cierra " + tFmt(r.cierre) + " · 🚚 Entrega " + tFmt(r.entrega) + '</div></div><span class="tag ' + es[1] + '">' + es[0] + "</span></div>";
+        if (!ed) return '<div class="ssw" data-ssw="t:' + id + '"><div class="sa l"><button class="txt" data-tn-open="' + id + '">▶ Abrir hoy</button></div><div class="sa r"><button class="m" data-tn-close="' + id + '" aria-label="Cerrar ahora">⏹</button><button class="d" data-tn-del="' + id + '" aria-label="Eliminar">✕</button></div>' + card + '<div style="margin-top:8px">' + (id ? '<button class="pen" data-tn-edit="' + id + '" aria-label="Editar">' + PEN + "</button>" : "") + "</div></article></div>";
+        var d = st.rd;
+        return card + '<div class="add" style="margin-top:10px"><input class="inp" data-tf="nombre" placeholder="Nombre (ej. Tanda de noviembre)" value="' + esc(d.nombre) + '"><div class="meta" style="margin-top:6px">📥 Se abren los pedidos</div><input class="inp" type="date" data-tf="apertura" value="' + esc(d.apertura) + '"><div class="meta" style="margin-top:6px">⏹ Se cierran los pedidos</div><input class="inp" type="date" data-tf="cierre" value="' + esc(d.cierre) + '"><div class="meta" style="margin-top:6px">🚚 Fecha de entrega</div><input class="inp" type="date" data-tf="entrega" value="' + esc(d.entrega) + '"><input class="inp" data-tf="nota" placeholder="Nota (opcional, no se muestra)" value="' + esc(d.nota) + '"><div style="display:flex;gap:8px;margin-top:8px"><button class="btn" data-tn-save="1">Guardar</button><button class="btn ghost" data-tn-cancel="1">Cancelar</button></div></div></article>';
+      }).join("");
+      return h;
+    }
+    if (t === "cola") {
+      var f = st.cf || "cola", CL = st.cola.filter(function (c) { return f === "todos" || (f === "cola" ? c.estado === "En cola" : c.estado !== "En cola"); }).slice().reverse();
+      h += '<div class="help">Pedidos que los clientes dejaron cuando los pedidos estaban cerrados. Tocá uno para escribirle por WhatsApp o mail. Deslizá: derecha = pasar a pedido, izquierda = WhatsApp o descartar.</div><div class="chips" style="margin-bottom:10px">' + [["cola", "En cola"], ["hechos", "Atendidos"], ["todos", "Todos"]].map(function (c) { return '<button class="chip' + (f === c[0] ? " on" : "") + '" data-tcf="' + c[0] + '">' + c[1] + "</button>"; }).join("") + "</div>";
+      if (!CL.length) return h + '<div class="empty">No hay pedidos en esta lista.</div>';
+      return h + CL.map(function (c) {
+        var on = c.estado === "En cola";
+        return '<div class="ssw' + (on ? "" : " one") + '" data-ssw="q:' + c.r + '">' + (on ? '<div class="sa l"><button class="txt" data-tq-ok="' + c.r + '">✅ Pasar a pedido</button></div>' : "") + '<div class="sa r"><button class="m" data-tq-wa="' + c.r + '" aria-label="WhatsApp">💬</button>' + (on ? '<button class="d" data-tq-no="' + c.r + '" aria-label="Descartar">✕</button>' : "") + '</div><article class="card" data-cq="' + c.r + '"><div class="row"><div><div class="nm">' + esc(c.nombre) + '</div><div class="meta">' + esc(c.fecha) + " · " + esc(c.tel) + '</div></div><span class="tag ' + (on ? "w" : "no") + '">' + esc(c.estado) + '</span></div><div style="margin-top:6px">' + esc(c.pedido) + '</div><div class="meta" style="margin-top:4px"><b>' + money(c.total) + "</b>" + (c.nota ? " · " + esc(c.nota) : "") + "</div></article></div>";
+      }).join("");
+    }
+    h += '<div class="help">Personas que quisieron suscribirse pero viven fuera de tu zona de reparto. Escribiles cuando llegues a su ciudad. Deslizá: derecha = avisado, izquierda = WhatsApp o eliminar.</div>';
+    if (!st.espera.length) return h + '<div class="empty">Nadie en la lista de zonas.</div>';
+    return h + st.espera.slice().reverse().map(function (z) {
+      return '<div class="ssw" data-ssw="z:' + z.r + '"><div class="sa l"><button class="txt" data-tz-ok="' + z.r + '">' + (z.avisado ? "↩ Sin avisar" : "✅ Avisado") + '</button></div><div class="sa r"><button class="m" data-tz-wa="' + z.r + '" aria-label="WhatsApp">💬</button><button class="d" data-tz-del="' + z.r + '" aria-label="Eliminar">✕</button></div><article class="card" data-tz="' + z.r + '"><div class="row"><div><div class="nm">' + esc(z.nombre) + '</div><div class="meta">' + esc(z.ciudad) + (z.plan ? " · " + esc(z.plan) : "") + " · " + esc(z.tel) + '</div></div><span class="tag ' + (z.avisado ? "ok" : "w") + '">' + (z.avisado ? "Avisado" : "Pendiente") + '</span></div><div class="meta" style="margin-top:4px">' + esc(z.fecha) + (z.zona ? " · " + esc(z.zona) : "") + "</div></article></div>";
+    }).join("");
+  }
+  function tFind(kind, r) { var L = kind === "q" ? st.cola : kind === "z" ? st.espera : st.rondas; return (L || []).filter(function (x) { return String(x.r) === String(r); })[0]; }
+  function tReload(msg) { if (DEMO) { st.__x = 0; render(true); if (msg) toast(msg); return Promise.resolve(); } st.__tl = 0; tLoad(true); if (msg) toast(msg); return Promise.resolve(); }
+  function tSave(r, patch, msg) {
+    var b = { r: r.r || 0, nombre: r.nombre || "", apertura: r.apertura || "", cierre: r.cierre || "", entrega: r.entrega || "", nota: r.nota || "" }; for (var k in patch) b[k] = patch[k];
+    if (!b.cierre || !b.entrega) { toast("Poné la fecha de cierre y la de entrega"); return Promise.resolve(); }
+    if (DEMO) { var L = tDemo().rondas, e = r.r ? L.filter(function (x) { return x.r === r.r; })[0] : null; if (e) { for (var kk in b) e[kk] = b[kk]; } else { b.r = L.length + 5; L.push(b); } st.rd = null; return tReload(msg || "Guardado ✓"); }
+    return api("saveRonda", b).then(function (j) { if (!(j && j.ok)) { toast(j && j.msg || "No se pudo guardar"); return; } st.rondas = j.rondas; st.rd = null; render(true); toast(msg || "Guardado ✓"); }).catch(function () { toast("No se pudo guardar"); });
+  }
+  function tDel(r) { if (DEMO) { var L = tDemo().rondas; L.splice(L.indexOf(tFind("t", r)), 1); return tReload("Eliminada"); } return api("saveRonda", { r: r, del: true }).then(function (j) { if (j && j.ok) { st.rondas = j.rondas; render(true); toast("Eliminada"); } }); }
+  function qSet(c, estado) { if (DEMO) { c.estado = estado; return Promise.resolve({ ok: true }); } return api("setCola", { r: c.r, estado: estado }); }
+  function qToPedido(c) {
+    var items = []; try { items = JSON.parse(c.items || "[]"); } catch (e) {}
+    if (!items.length) { toast("Este pedido no tiene productos para convertir. Cargalo a mano."); return Promise.resolve(false); }
+    var go = DEMO ? Promise.resolve({ ok: true }) : api("addPedido", { nombre: c.nombre, telefono: c.tel, eml: c.mail, items: items });
+    return go.then(function (j) { if (!(j && j.ok)) { toast(j && j.msg || "No se pudo crear el pedido"); return false; } return qSet(c, "Pasado a pedido").then(function () { st.pedidos = null; return true; }); });
+  }
+  function contactPop(kind, x) {
+    var d = popBase("cqpop", 420), msg = waMsg(x, kind), wa = suWa(x.tel, msg), nom = kind === "q" ? "Pedido en cola" : "Zona en espera";
+    d.__c.innerHTML = popHead(esc(x.nombre)) + '<div class="meta">' + nom + " · " + esc(x.fecha) + '</div>' + (kind === "q" ? '<div style="margin:8px 0">' + esc(x.pedido) + '<div class="meta"><b>' + money(x.total) + "</b></div></div>" : '<div style="margin:8px 0">' + esc(x.ciudad) + (x.plan ? " · " + esc(x.plan) : "") + "</div>") +
+      '<a class="btn" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="' + esc(wa) + '" target="_blank" rel="noopener">💬 Escribir por WhatsApp</a>' +
+      (x.mail ? '<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="mailto:' + esc(x.mail) + "?subject=" + encodeURIComponent("πKDA") + "&body=" + encodeURIComponent(msg) + '">✉️ Escribir por mail</a>' : "") +
+      '<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="tel:' + esc(x.tel) + '">📞 Llamar</a>' +
+      (kind === "q" && x.estado === "En cola" ? '<button class="btn" data-cq-ok="' + x.r + '" style="width:100%;margin-bottom:8px">✅ Pasar a pedido</button>' : "") + '<button class="btn ghost" data-cq-close="1" style="width:100%">Cerrar</button>';
+    d.__c.addEventListener("click", function (e) {
+      if (e.target.closest("[data-cq-close]")) { d.remove(); return; }
+      var ok = e.target.closest("[data-cq-ok]"); if (ok) { qToPedido(x).then(function (g) { d.remove(); if (g) tReload("Pedido creado ✓ · figura en Pedidos"); }); }
+    });
+  }
+  function tanMsAct(del) {
+    var t = st.tt || "tandas";
+    if (t === "cola") return ['<button data-msact="qOk">Pasar a pedido</button>', '<button data-msact="qNo">Descartar</button>', del];
+    if (t === "zonas") return ['<button data-msact="zOk">Avisado</button>', '<button data-msact="zNo">Sin avisar</button>', del];
+    return ['<button data-msact="tOpen">Abrir hoy</button>', '<button data-msact="tClose">Cerrar ahora</button>', del];
+  }
+  function tanMsRows() { var t = st.tt || "tandas", L = t === "cola" ? st.cola : t === "zonas" ? st.espera : st.rondas; return (L || []).filter(function (x) { return MS.keys[x.r]; }); }
+  function tanMsAction(a) {
+    var rows = tanMsRows(), t = st.tt || "tandas";
+    msRunSeq(rows, function (x) {
+      if (a === "tOpen") return tSave(x, { apertura: suHoy() }, "x");
+      if (a === "tClose") return tSave(x, { cierre: tAdd(-1), apertura: x.apertura && x.apertura > tAdd(-1) ? tAdd(-1) : x.apertura }, "x");
+      if (a === "qOk") return x.estado === "En cola" ? qToPedido(x) : Promise.resolve();
+      if (a === "qNo") return qSet(x, "Descartado");
+      if (a === "zOk" || a === "zNo") { if (DEMO) { x.avisado = a === "zOk" ? "Sí" : ""; return Promise.resolve(); } return api("setEspera", { r: x.r, avisado: a === "zOk" }); }
+    }, function () { MS.on = false; MS.keys = {}; msBar(); tReload("Listo ✓"); });
+  }
+  function tanMsDelete() {
+    var rows = tanMsRows().slice().sort(function (a, b) { return b.r - a.r; }), t = st.tt || "tandas";
+    msRunSeq(rows, function (x) {
+      if (DEMO) { var L = t === "cola" ? tDemo().cola : t === "zonas" ? tDemo().espera : tDemo().rondas; L.splice(L.indexOf(x), 1); return Promise.resolve(); }
+      return t === "cola" ? api("setCola", { r: x.r, del: true }) : t === "zonas" ? api("setEspera", { r: x.r, del: true }) : api("saveRonda", { r: x.r, del: true });
+    }, function () { MS.on = false; MS.keys = {}; msBar(); tReload("Eliminados ✓"); });
+  }
+  document.addEventListener("click", function (ev) {
+    var T = ev.target; if (!T.closest || st.v !== "tandas" && !T.closest("[data-tt-go]")) return;
+    var q = function (s) { return T.closest(s); }, x, stop = function () { ev.stopPropagation(); ev.preventDefault(); };
+    if ((x = q("[data-tt-go]"))) { st.tt = x.getAttribute("data-tt-go"); return; }
+    if (st.v !== "tandas" || q("#msbar") || q(".modal")) return;
+    if ((x = q("[data-tt]"))) { stop(); st.tt = x.getAttribute("data-tt"); st.rd = null; render(true); return; }
+    if ((x = q("[data-tcf]"))) { stop(); st.cf = x.getAttribute("data-tcf"); render(true); return; }
+    if (q("[data-tn-new]")) { stop(); st.rd = { r: 0, nombre: "", apertura: suHoy(), cierre: tAdd(7), entrega: tAdd(14), nota: "" }; render(true); return; }
+    if ((x = q("[data-tn-edit]"))) { stop(); var e1 = tFind("t", x.getAttribute("data-tn-edit")); if (e1) { st.rd = JSON.parse(JSON.stringify(e1)); render(true); } return; }
+    if (q("[data-tn-cancel]")) { stop(); st.rd = null; render(true); return; }
+    if (q("[data-tn-save]")) { stop(); var c = q("[data-tr]"); var d = st.rd || {}; ["nombre", "apertura", "cierre", "entrega", "nota"].forEach(function (k) { var i = c.querySelector('[data-tf="' + k + '"]'); if (i) d[k] = i.value.trim(); }); tSave(d, {}); return; }
+    if ((x = q("[data-tn-open]"))) { stop(); var r1 = tFind("t", x.getAttribute("data-tn-open")); if (!r1) return; if (r1.cierre < suHoy()) { toast("Esa tanda ya cerró: cambiale las fechas"); st.rd = JSON.parse(JSON.stringify(r1)); render(true); return; } tSave(r1, { apertura: suHoy() }, "Pedidos abiertos desde hoy ✓"); return; }
+    if ((x = q("[data-tn-close]"))) { stop(); var r2 = tFind("t", x.getAttribute("data-tn-close")); if (!r2) return; tSave(r2, { cierre: tAdd(-1), apertura: r2.apertura && r2.apertura > tAdd(-1) ? tAdd(-1) : r2.apertura }, "Pedidos cerrados ✓"); return; }
+    if ((x = q("[data-tn-del]"))) { stop(); if (!x.classList.contains("arm")) { x.classList.add("arm"); x.textContent = "¿Seguro?"; clearTimeout(armTimer); armTimer = setTimeout(function () { x.classList.remove("arm"); x.textContent = "✕"; }, 3000); return; } tDel(Number(x.getAttribute("data-tn-del"))); return; }
+    if ((x = q("[data-tq-ok]"))) { stop(); var c1 = tFind("q", x.getAttribute("data-tq-ok")); if (c1) qToPedido(c1).then(function (g) { if (g) tReload("Pedido creado ✓ · figura en Pedidos"); }); return; }
+    if ((x = q("[data-tq-no]"))) { stop(); if (!x.classList.contains("arm")) { x.classList.add("arm"); x.textContent = "¿Seguro?"; clearTimeout(armTimer); armTimer = setTimeout(function () { x.classList.remove("arm"); x.textContent = "✕"; }, 3000); return; } var c2 = tFind("q", x.getAttribute("data-tq-no")); if (c2) qSet(c2, "Descartado").then(function () { tReload("Descartado"); }); return; }
+    if ((x = q("[data-tq-wa]"))) { stop(); var c3 = tFind("q", x.getAttribute("data-tq-wa")); if (c3) window.open(suWa(c3.tel, waMsg(c3, "q")), "_blank"); return; }
+    if ((x = q("[data-tz-ok]"))) { stop(); var z1 = tFind("z", x.getAttribute("data-tz-ok")); if (!z1) return; var nv = !z1.avisado; (DEMO ? Promise.resolve(z1.avisado = nv ? "Sí" : "") : api("setEspera", { r: z1.r, avisado: nv })).then(function () { tReload(nv ? "Marcado como avisado ✓" : "Vuelve a pendiente"); }); return; }
+    if ((x = q("[data-tz-del]"))) { stop(); if (!x.classList.contains("arm")) { x.classList.add("arm"); x.textContent = "¿Seguro?"; clearTimeout(armTimer); armTimer = setTimeout(function () { x.classList.remove("arm"); x.textContent = "✕"; }, 3000); return; } var z2 = tFind("z", x.getAttribute("data-tz-del")); if (z2) (DEMO ? Promise.resolve(tDemo().espera.splice(tDemo().espera.indexOf(z2), 1)) : api("setEspera", { r: z2.r, del: true })).then(function () { tReload("Eliminado"); }); return; }
+    if ((x = q("[data-tz-wa]"))) { stop(); var z3 = tFind("z", x.getAttribute("data-tz-wa")); if (z3) window.open(suWa(z3.tel, waMsg(z3, "z")), "_blank"); return; }
+    if ((x = q("article[data-cq]")) && !q("button,a,input")) { var c4 = tFind("q", x.getAttribute("data-cq")); if (c4) contactPop("q", c4); return; }
+    if ((x = q("article[data-tz]")) && !q("button,a,input")) { var z4 = tFind("z", x.getAttribute("data-tz")); if (z4) contactPop("z", z4); return; }
+  }, true);
+
   /* ---------- Selección múltiple ---------- */
   var MSV = {
     pedidos: { sel: "article.pc[data-r]", key: function (e) { return e.getAttribute("data-r"); }, name: "pedidos" },
@@ -1535,6 +1666,7 @@ body.nobadge #bell-n{display:none!important}
     resenas: { sel: "article[data-rn][data-r]", key: function (e) { return e.getAttribute("data-r"); } },
     recetas: { sel: "article[data-rn]", key: function (e) { return e.getAttribute("data-rn"); } },
     productos: { sel: "article.card[data-r]", key: function (e) { return e.getAttribute("data-r"); } },
+    tandas: { sel: "article[data-tr],article[data-cq],article[data-tz]", key: function (e) { return e.getAttribute("data-tr") || e.getAttribute("data-cq") || e.getAttribute("data-tz"); } },
     suscripciones: { sel: "article[data-sid],article[data-eid]", key: function (e) { return e.getAttribute("data-sid") || e.getAttribute("data-eid"); } }
   };
   var MS = { on: false, v: "", keys: {} }, msArm = null;
@@ -1551,6 +1683,7 @@ body.nobadge #bell-n{display:none!important}
     else if (v === "resenas") a = ['<button data-msact="on">Mostrar</button>', '<button data-msact="off">Ocultar</button>'];
     else if (v === "productos") a = ['<button data-msact="vi1">Mostrar</button>', '<button data-msact="vi0">Ocultar</button>', '<button data-msact="ag1">Agotado</button>', '<button data-msact="ag0">Disponible</button>'];
     else if (v === "suscripciones") a = st.sut === "envios" ? ['<button data-msact="env">Marcar enviado</button>', '<button data-msact="ent">Marcar entregado</button>', del] : st.sut === "subs" ? ['<button data-msact="sAct">Activo</button>', '<button data-msact="sPau">Pausado</button>', '<button data-msact="sBaja">Baja</button>'] : [];
+    if (v === "tandas") a = tanMsAct(del);
     return a.join("");
   }
   function msBar() {
@@ -1910,12 +2043,12 @@ body.nobadge #bell-n{display:none!important}
     });
   }
   function msApply() {
-    if (MS.on && MS.v !== st.v + (st.v === "suscripciones" ? st.sut : "")) { MS.on = false; MS.keys = {}; }
+    if (MS.on && MS.v !== st.v + (st.v === "suscripciones" ? st.sut : st.v === "tandas" ? st.tt : "")) { MS.on = false; MS.keys = {}; }
     var c = msCfg(); if (!c) { MS.on = false; }
     if (MS.on) msEls().forEach(function (e) { e.classList.toggle("msel-on", !!MS.keys[c.key(e)]); });
     msBar();
   }
-  function msStart(el) { var c = msCfg(); if (!c) return; MS.on = true; MS.v = st.v + (st.v === "suscripciones" ? st.sut : ""); MS.keys = {}; MS.keys[c.key(el)] = 1; msApply(); if (navigator.vibrate) try { navigator.vibrate(20); } catch (x) {} }
+  function msStart(el) { var c = msCfg(); if (!c) return; MS.on = true; MS.v = st.v + (st.v === "suscripciones" ? st.sut : st.v === "tandas" ? st.tt : ""); MS.keys = {}; MS.keys[c.key(el)] = 1; msApply(); if (navigator.vibrate) try { navigator.vibrate(20); } catch (x) {} }
   function msStop() { MS.on = false; MS.keys = {}; msEls().forEach(function (e) { e.classList.remove("msel-on"); }); msBar(); }
   var msT = null, msXY = null, msJust = 0;
   function msDown(ev) {
@@ -1939,6 +2072,7 @@ body.nobadge #bell-n{display:none!important}
   function msFinish(msg) { MS.on = false; MS.keys = {}; msBar(); render(true); toast(msg || "Listo ✓"); }
   function msDelete() {
     var v = st.v, ks = Object.keys(MS.keys), n = ks.length;
+    if (v === "tandas") { tanMsDelete(); return; }
     if (v === "pedidos") { var rows = st.pedidos.filter(function (p) { return MS.keys[p.r]; }).map(function (p) { return { r: p.r, id: p.id }; }); MS.on = false; MS.keys = {}; msBar(); delPedidos(rows); return; }
     if (v === "stock" || v === "proveedores") {
       api("proveedores").then(function (j0) {
@@ -1980,6 +2114,7 @@ body.nobadge #bell-n{display:none!important}
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-ghoy]"); if (b) { e.stopPropagation(); gesHoy(); } }, true);
   function msAction(a) {
     var v = st.v, ks = Object.keys(MS.keys);
+    if (v === "tandas") { tanMsAction(a); return; }
     if (v === "pedidos") {
       var L = st.pedidos.filter(function (p) { return MS.keys[p.r]; }); pedBulk(L, a); msStop(); return;
     }
@@ -2027,7 +2162,7 @@ body.nobadge #bell-n{display:none!important}
     return h;
   }
   function render(keepScroll) {
-    var y = window.scrollY, V = { pdash: renderPDash, pset: renderPSet, prset: renderPrSet, prdash: renderPrDash, tarjetas: renderTarjetas, suscripciones: renderSu, inicio: renderInicio, pedidos: renderPedidos, productos: renderProductos, mas: renderMas, packs: renderPacks, recetas: renderRecetas, finanzas: renderFinanzas, textos: renderTextos, proveedores: renderProv, stock: renderStock, puntos: renderPuntos, cupones: renderCupones, accesos: function () { return BACK + renderAccesos(); }, voz: renderVozCfg, resenas: renderResenas };
+    var y = window.scrollY, V = { pdash: renderPDash, pset: renderPSet, prset: renderPrSet, prdash: renderPrDash, tarjetas: renderTarjetas, suscripciones: renderSu, tandas: renderTandas, inicio: renderInicio, pedidos: renderPedidos, productos: renderProductos, mas: renderMas, packs: renderPacks, recetas: renderRecetas, finanzas: renderFinanzas, textos: renderTextos, proveedores: renderProv, stock: renderStock, puntos: renderPuntos, cupones: renderCupones, accesos: function () { return BACK + renderAccesos(); }, voz: renderVozCfg, resenas: renderResenas };
     var h = V[st.v]();
     if (st.mod && st.mod !== "gen" && h.indexOf(BACK) === 0) h = h.slice(BACK.length);
     else if (SUB.indexOf(st.v) >= 0 && h.indexOf(BACK) === 0 && NAMES[st.v]) h = '<div class="bk">' + BACK + '<button class="crumb" data-crumb="1" aria-haspopup="true" style="border:0;font-family:inherit">' + NAMES[st.v] + " ▾</button></div>" + h.slice(BACK.length);
@@ -2048,6 +2183,9 @@ body.nobadge #bell-n{display:none!important}
       ["#nav [data-v=mas]", "Más funciones", "Textos, Proveedores, Recetas, Packs y Accesos están en Más."],
       ["#vfab", "Asistente de voz 🎙️", "Tocá el micrófono y preguntale lo que no te acuerdes: «¿cómo cambio un precio?». Te explica paso a paso y te lleva ahí."],
       ["#wand", "La varita ✨", "Tocala cuando quieras para ver esta guía de nuevo en cualquier pantalla."]],
+    tandas: [["[data-tn-new]", "Nueva tanda", "Cargá fecha de apertura, cierre y entrega. Los pedidos se abren y cierran solos."],
+      ["[data-tt=cola]", "Cola", "Pedidos que los clientes dejaron con la tienda cerrada. Tocá uno para escribirle por WhatsApp o mail."],
+      ["[data-tt=zonas]", "Zonas en espera", "Gente fuera de zona que quiere suscribirse. Avisales cuando llegues."]],
     pedidos: [["#pq", "Buscador", "Escribí un nombre, un código o un sabor para encontrar un pedido."],
       [".chips", "Etapas", "Filtrá por Pendientes, A macerar, Listos, Entregados o Cancelados. El número es la cantidad."],
       [".pc", "Tocá un pedido", "Se abre y ves el detalle, el WhatsApp del cliente, la nota, y los botones Aprobado, Hecho y Entregado."],
@@ -2175,6 +2313,9 @@ body.nobadge #bell-n{display:none!important}
     { t: "Fijar un punto de pedido rápido", k: "punto pedido minimo alerta stock avisar rapido", go: "inicio", p: ["Tocá el atajo Puntos de pedido.", "Elegí el insumo.", "Poné el mínimo y Guardar: la alerta queda creada."] },
     { t: "Cargar o corregir el precio de un insumo sin compra", k: "precio insumo cargar corregir olvide compra signo pesos", go: "proveedores", p: ["Abrí Insumos.", "Deslizá el insumo hacia la derecha.", "Tocá $ y poné el precio. El stock no cambia."] },
     { t: "Productos sin receta", k: "falta receta productos sin receta", go: "recetas", p: ["En Recetas, los productos sin receta aparecen con ❗ Falta receta.", "Tocá Cargar para armarla."] },
+    { t: "Tandas: abrir y cerrar pedidos solos", k: "tanda tandas abrir cerrar pedidos programar apertura cierre entrega fecha", go: "tandas", p: ["En Más → Tandas y cola tocá «Nueva tanda» y cargá cuándo abren, cuándo cierran y cuándo entregás.", "Los pedidos se abren y cierran solos en esas fechas. Deslizá una tanda: izquierda abre hoy, derecha cierra o borra."] },
+    { t: "Cola de pedidos y lista de espera", k: "cola espera lista añadir cola whatsapp mail avisar prioridad", go: "tandas", p: ["Con pedidos cerrados el cliente toca «Añadir a la cola» y deja su contacto.", "En Tandas y cola → Cola: deslizá a la izquierda para pasar a pedido, a la derecha para escribirle por WhatsApp o descartar. Mantené apretado para seleccionar varios."] },
+    { t: "Editar todos los textos de la tienda", k: "textos editar tienda frases mensajes cola tanda suscripcion", go: "textos", p: ["En Textos están todos los mensajes de la tienda. La sección «9 · Textos extra» tiene los de tandas, cola y suscripciones."] },
     { t: "Suscripciones: zona, estrella y pase a Premium", k: "suscripcion zona bahia blanca lista espera estrella premium plata oro upgrade", go: "textos", p: ["En Textos de la página buscá susc_zonas (ciudades habilitadas) y susc_upgrade_precio (cuánto más paga un Estándar para pasar a Premium).", "Quien está fuera de zona queda en la hoja Zonas en espera para avisarle."] },
     { t: "Cambiar el precio de un frasco", k: "precio cambiar cambio modificar subir bajar aumentar frasco producto valor cuanto", go: "productos", p: ["Tocá Productos abajo.", "Buscá el frasco y tocá el número del precio.", "Escribí el precio nuevo y salí del campo: se guarda solo y se ve en la tienda."] },
     { t: "Marcar un frasco como agotada", k: "agotada agotado stock sin quedan terminada acabo apagar", go: "productos", p: ["Tocá Productos.", "En el frasco, tocá el interruptor Agotada.", "En la tienda se ve apagada y no se puede pedir. Volvé a tocarlo cuando haya stock."] },
@@ -2212,7 +2353,7 @@ body.nobadge #bell-n{display:none!important}
 
   var NAVS = [["inicio", /\binicio\b|\bhome\b|pantalla principal/], ["pedidos", /pedido/], ["productos", /producto|galletit|\bfrascos?\b/], ["finanzas", /finanza|ganancia|\bplata\b/], ["mas", /\bmas\b|\bmenu\b/], ["packs", /\bpacks?\b|combo|promo/], ["recetas", /receta/], ["textos", /texto|\bfrases?\b/], ["stock", /\bstock\b|inventario|existencias?/], ["proveedores", /prov[a-z]*|insumo|packaging|compras?\b/], ["resenas", /rese[nñ]a|opini/], ["accesos", /acceso|permiso/], ["voz", /\bvoz\b|\bclave\b/]];
   var NAVV = /\b(lleva\w*|ir|ve|vaya|voy|anda\w*|abri\w*|abrir|entra\w*|mostra\w*|ver|vamos|cambia\w*|pasa\w*|quiero ir|dirigi\w*)\b/;
-  var NAMES = { tarjetas: "Tarjetas y stickers", suscripciones: "Suscripciones", inicio: "Inicio", pedidos: "Pedidos", productos: "Productos", finanzas: "Finanzas", mas: "Más", packs: "Packs y combos", recetas: "Recetas", textos: "Textos", proveedores: "Proveedores e insumos", stock: "Stock", cupones: "Cupones", resenas: "Reseñas", accesos: "Accesos", voz: "Asistente de voz" };
+  var NAMES = { tarjetas: "Tarjetas y stickers", suscripciones: "Suscripciones", tandas: "Tandas y cola", inicio: "Inicio", pedidos: "Pedidos", productos: "Productos", finanzas: "Finanzas", mas: "Más", packs: "Packs y combos", recetas: "Recetas", textos: "Textos", proveedores: "Proveedores e insumos", stock: "Stock", cupones: "Cupones", resenas: "Reseñas", accesos: "Accesos", voz: "Asistente de voz" };
   function navIntent(tx) {
     var n = nrm(tx); if (!NAVV.test(n) || /^(como|donde|que|para que|cuando)\b/.test(n)) return "";
     if (/\bfoto|imagen|video/.test(n)) return "fotos";
@@ -2756,7 +2897,7 @@ body.nobadge #bell-n{display:none!important}
       var cr = e.target.closest && e.target.closest("[data-crumb]"), open = document.querySelector(".crdd");
       if (open && !(e.target.closest && e.target.closest(".crdd"))) open.remove();
       if (!cr) return; e.stopPropagation(); e.preventDefault(); if (open) return;
-      var IC = { tarjetas: "🖨️", suscripciones: "📬", packs: "🎁", recetas: "🥒", textos: "✏️", proveedores: "🧾", stock: "📦", puntos: "🎯", cupones: "🏷️", accesos: "🔑", voz: "🎙️", resenas: "⭐" };
+      var IC = { tarjetas: "🖨️", suscripciones: "📬", tandas: "📅", packs: "🎁", recetas: "🥒", textos: "✏️", proveedores: "🧾", stock: "📦", puntos: "🎯", cupones: "🏷️", accesos: "🔑", voz: "🎙️", resenas: "⭐" };
       var dd = document.createElement("div"); dd.className = "crdd";
       dd.innerHTML = SUB.filter(function (v) { return NAMES[v] && allowed(v) && (v !== "accesos" && v !== "voz" || (st.me && st.me.rol === "Dueño")); }).map(function (v) { return '<button type="button" data-go="' + v + '"' + (v === st.v ? ' class="on"' : "") + "><span>" + (IC[v] || "") + "</span>" + esc(NAMES[v]) + "</button>"; }).join("");
       cr.parentNode.appendChild(dd);
@@ -3667,7 +3808,7 @@ body.nobadge #bell-n{display:none!important}
     var CT = {}; sent.forEach(function (p) { var C = catsOf(pedItems(p).frascos); Object.keys(C).forEach(function (k) { CT[k] = (CT[k] || 0) + C[k].tot; }); });
     var ini = function (k) { return String(k).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ ]/g, "").trim().slice(0, 3).toUpperCase(); };
     var PL = { hoy: "Hoy", "3d": "Últimos 3 días", sem: "Esta semana", mes: "Este mes", anio: "Este año", todo: "Todo", rng: "Personalizado" }, up = new Date();
-    var h = '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;margin-bottom:10px"><b style="font-size:1.05rem">Hoy enviaste ' + sent.length + '</b><span style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">' + Object.keys(CT).map(function (k) { return '<button data-pdhoy="' + esc(k) + '" style="border:0;background:none;font:inherit;font-weight:700;color:var(--err);padding:0">' + CT[k] + " " + esc(ini(k)) + "</button>"; }).join(" · ") + '</span></div>' +
+    var h = colaBanner() + '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;margin-bottom:10px"><b style="font-size:1.05rem">Hoy enviaste ' + sent.length + '</b><span style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">' + Object.keys(CT).map(function (k) { return '<button data-pdhoy="' + esc(k) + '" style="border:0;background:none;font:inherit;font-weight:700;color:var(--err);padding:0">' + CT[k] + " " + esc(ini(k)) + "</button>"; }).join(" · ") + '</span></div>' +
       '<button class="card" data-pdper="1" style="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;margin-bottom:6px"><span class="meta" style="font-size:1rem">📅 Período</span><b>' + esc(PL[st.pdp || "todo"] || "Todo") + ' ▾</b></button><div class="meta" style="margin:0 4px 10px">Actualizado ' + ("0" + up.getHours()).slice(-2) + ":" + ("0" + up.getMinutes()).slice(-2) + '</div>' +
       '<div class="nm" style="margin:4px 2px 8px;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)">Por proceso</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' + PDK.filter(function (k) { return (UI.kpiHide && UI.kpiHide.ped || []).indexOf(k[0]) < 0; }).map(function (k) { var on = f === k[0], bad = (k[0] === "dem" || k[0] === "sin") && cnt[k[0]] > 0; return '<button class="kpi" data-pdf="' + k[0] + '" style="text-align:left;padding:12px 14px;border-radius:16px;border:1.5px solid ' + (on ? "var(--blue)" : "#E3E8D6") + ";background:" + (on ? "var(--blue)" : "#fff") + ";color:" + (on ? "#fff" : bad ? "var(--err)" : "var(--ink)") + '"><span style="display:block;font-size:.8rem;opacity:.85">' + k[1] + '</span><b style="font-size:1.7rem">' + cnt[k[0]] + "</b></button>"; }).join("") + "</div>" +
@@ -3711,7 +3852,7 @@ body.nobadge #bell-n{display:none!important}
   function scMic(d) { return '<button class="ibtn" data-sc-mic="1" aria-label="Dictar" style="background:var(--blue);width:44px;height:44px;flex:none"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>'; }
   function scBar(ph, add) { return '<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center"><input class="search" id="sc-q" type="search" placeholder="' + ph + '" style="margin:0;flex:1;min-width:0" autocomplete="off">' + (add ? '<button class="btn" data-sc-add="1" aria-label="Agregar" style="width:44px;height:44px;padding:0;font-size:1.5rem;flex:none">＋</button>' : "") + scMic() + "</div>"; }
   function scOpen(k) {
-    var T = { proveedores: "🧾 Insumos", stock: "📦 Stock", recetas: "🥒 Recetas", packs: "🎁 Packs y combos", suscripciones: "📬 Suscripciones", cupones: "🏷️ Cupones", textos: "✏️ Textos de la página" };
+    var T = { proveedores: "🧾 Insumos", stock: "📦 Stock", recetas: "🥒 Recetas", packs: "🎁 Packs y combos", suscripciones: "📬 Suscripciones", tandas: "📅 Tandas y cola", cupones: "🏷️ Cupones", textos: "✏️ Textos de la página" };
     var d = popBase("scm", 440); d.__k = k; d.__q = ""; d.__x = null; d.__add = false;
     function need() {
       var P = [];

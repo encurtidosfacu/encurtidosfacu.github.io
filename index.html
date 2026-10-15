@@ -668,7 +668,7 @@ body.has-obar footer{padding-bottom:90px}
 .sban .sx{color:#F7F4EA;opacity:.7}
 .pmos{background:transparent!important;gap:0!important}.pmos img{filter:drop-shadow(0 6px 8px rgba(60,40,10,.18))}.pcard{background:rgba(255,255,255,.4)!important}
 .star{background:linear-gradient(135deg,#F2F2F2,#B9BFC6)!important;color:#2d3238!important;box-shadow:0 0 0 2px #fff,0 0 10px rgba(150,160,170,.7)}.star.prem{background:linear-gradient(135deg,#F3D27A,#E0B04A)!important;color:#3b2b00!important;box-shadow:0 0 0 2px #fff,0 0 12px rgba(224,176,74,.7)}
-.sbox.sdone label,.sbox.sdone #sm-go,.sbox.sdone #sm-h{display:none}.sbox .sh{font-size:.8rem;color:var(--ink-soft);margin-top:-4px}.sbox .sthx{text-align:center;padding:6px 0}.sbox .sthx b{display:block;font:600 1.3rem var(--font-display);color:var(--blue-deep)}
+.sbox.sdone label,.sbox.sdone #cm-go,.sbox.sdone #sm-go,.sbox.sdone #sm-h{display:none}.sbox .sh{font-size:.8rem;color:var(--ink-soft);margin-top:-4px}.sbox .sthx{text-align:center;padding:6px 0}.sbox .sthx b{display:block;font:600 1.3rem var(--font-display);color:var(--blue-deep)}
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -747,6 +747,7 @@ body.has-obar footer{padding-bottom:90px}
 <div class="obar" id="obar" hidden><div class="ob-t"><b id="ob-n"></b><span id="ob-s"></span></div><button type="button" id="ob-go">Ver mi antojo</button></div>
 <div class="smodal" id="spmodal" hidden role="dialog" aria-modal="true"><div class="sbox spb"><button type="button" class="dx" id="sp-x" aria-label="Cerrar">×</button><h3 id="t-susc">Suscribite</h3><p class="sm-p" id="x-susc"></p><div class="splans" id="splans"></div></div></div>
 <button type="button" class="sfab" id="sfab" hidden aria-label="Suscripción mensual"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><i id="sfab-n" hidden></i></button>
+<div class="smodal" id="cmodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="cm-x" aria-label="Cerrar">×</button><h3 id="cm-t"></h3><p class="sm-p" id="cm-p"></p><label>Nombre<input id="cm-n" autocomplete="name"></label><label>WhatsApp<input id="cm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="cm-m" inputmode="email" autocomplete="email"></label><button type="button" class="btn" id="cm-go"></button><p class="sm-f" id="cm-f"></p></div></div>
 <div class="smodal" id="smodal" hidden role="dialog" aria-modal="true"><div class="sbox"><button type="button" class="dx" id="sm-x" aria-label="Cerrar">×</button><h3 id="sm-t"></h3><p class="sm-p" id="sm-p"></p><label>Nombre<input id="sm-n" autocomplete="name"></label><label>WhatsApp<input id="sm-w" inputmode="tel" autocomplete="tel"></label><label>Mail (opcional)<input id="sm-m" inputmode="email" autocomplete="email"></label><label>Ciudad<input id="sm-c" autocomplete="address-level2"></label><label>Dirección de entrega<input id="sm-z" autocomplete="street-address"></label><p class="sh" id="sm-h"></p><button type="button" class="btn" id="sm-go">Quiero anotarme</button><p class="sm-f" id="sm-f"></p></div></div>
 
 <section class="offers" id="offers" hidden aria-label="Ofertas"><div class="oh"><b>🔥 Ofertas y combos</b></div><div class="otrack" id="otrack"></div></section>
@@ -1005,6 +1006,8 @@ var DEFAULTS = {
       cur = nx;
     }, secs * 1000);
   }
+  var TXD = {"tanda_pedidos_hasta": "Pedidos hasta el", "tanda_se_entrega": "Se entrega el", "tanda_hasta_hoy": "🔥 Pedidos hasta hoy 🔥", "tanda_ultimo_dia": "¡ÚLTIMO DÍA!", "tanda_manana_cierra": "¡MAÑANA CIERRA!", "tanda_cierran_en": "Cierran los pedidos en", "tanda_proxima": "Próxima tanda", "tanda_muy_pronto": "Muy pronto", "tanda_abre_el": "Abren los pedidos el", "tanda_enterate": "Enterate", "tanda_instagram": "En nuestro Instagram", "texto_pedidos_cerrados": "Por ahora no estamos tomando pedidos.", "texto_entrega": "Entrega:", "texto_entrega_coordinar": "a coordinar por WhatsApp", "texto_pedidos_hasta_min": "pedidos hasta el", "texto_transferencia": "Pagando por transferencia", "texto_subtotal": "Subtotal", "texto_verificando": "Verificando tu pedido… tocá de nuevo en un instante.", "texto_error_pedidos": "No pudimos cargar tus pedidos. Probá de nuevo en un rato.", "texto_tocar_enviar": "Tocá para revisar y enviar", "texto_desc_cantidad": "Descuento por cantidad", "texto_agotada": "Agotada", "susc_intro": "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:", "susc_boton_lista": "Anotarme en la lista", "susc_boton_suscribir": "Quiero suscribirme", "susc_fuera_zona": "Aún no llegamos a tu zona. Dejanos tu contacto y te avisamos cuando lleguemos.", "susc_cupo_completo": "Cupo completo", "susc_cupo_completo_lista": "Cupo completo · anotate en lista de espera", "susc_ya_anotado": "Ya te anotamos. Te escribimos por WhatsApp para coordinar el pago y la entrega.", "susc_gracias_pago": "Te escribimos por WhatsApp para coordinar el pago y la entrega.", "susc_estado_activa": "Tu suscripción está activa", "susc_estado_pendiente": "Tu suscripción está pendiente de pago.", "susc_renovar": "Renovar mi suscripción", "susc_tu_caja": "Tu caja mensual", "susc_gracias_cliente": "¡Gracias por confiar en nosotros! 💚", "susc_precio_vale": "⏳ El precio actual vale solo por", "susc_plazo_manana": "⏳ ¡Mañana se termina el plazo!", "susc_plazo_ultima": "🔥 ¡Última hora! Termina en", "susc_plazo_disponible": "Disponible por", "susc_wa_mensaje": "¡Hola! Quiero suscribirme al plan", "cola_boton": "Añadir a la cola", "cola_titulo": "Dejanos tu contacto", "cola_texto": "Ahora no estamos tomando pedidos. Dejanos tu contacto y te escribimos cuando los abramos de nuevo: tu pedido queda anotado primero.", "cola_enviar": "Anotar mi pedido", "cola_gracias": "¡Listo! Tu pedido quedó en la cola. Te escribimos apenas abramos pedidos."};
+  function TX(k) { var v = data && data.config ? data.config[k] : null; return v != null && v !== "" ? String(v) : (TXD[k] || ""); }
   var data = null;       // { config, tandas, productos } ya normalizado
   var qty = {};          // nombre de frasco -> cantidad
   var cq = {};           // nombre de combo -> cantidad
@@ -1017,8 +1020,8 @@ var DEFAULTS = {
   function parseDay(s) { var a = String(s).split("-").map(Number); return new Date(a[0], a[1] - 1, a[2], 23, 59, 59); }
   function longDate(d) { return d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" }); }
   function digits(v) { return String(v == null ? "" : v).replace(/\D/g, ""); }
-  function tandasOn() { return !!data && /^\s*(si|sí|yes|true|1)\s*$/i.test(String(data.config.usar_tandas || "")); }
-  function entregaTxt() { return tandasOn() ? deliveryTxt : "a coordinar por WhatsApp"; }
+  function tandasOn() { return !!data && (/^\s*(si|sí|yes|true|1)\s*$/i.test(String(data.config.usar_tandas || "")) || (data.tandas || []).some(function (t) { return t.apertura; })); }
+  function entregaTxt() { return tandasOn() ? deliveryTxt : TX("texto_entrega_coordinar"); }
   function isYes(v) { return !/^\s*(no|false|0)\s*$/i.test(String(v == null ? "SI" : v)); }
 
   /* ---------- Fotos y videos ---------- */
@@ -1079,14 +1082,16 @@ var DEFAULTS = {
     var c = data.config, now = new Date();
     cycle = null;
     if (tandasOn()) for (var i = 0; i < data.tandas.length; i++) { if (parseDay(data.tandas[i].cierre) >= now) { cycle = data.tandas[i]; break; } }
+    var sched = null;
+    if (cycle && cycle.apertura) { var ap0 = parseDay(cycle.apertura); ap0.setHours(0, 0, 0, 0); if (ap0 > now) { sched = cycle; cycle = null; } }
     var paused = !isYes(c.pedidos_activos);
     if (cycle && !paused) {
       var dc = parseDay(cycle.cierre), de = parseDay(cycle.entrega);
       closeTxt = longDate(dc);
       deliveryTxt = longDate(de);
-      $("k-close").textContent = "Pedidos hasta el";
+      $("k-close").textContent = TX("tanda_pedidos_hasta");
       $("d-close").textContent = closeTxt;
-      $("k-deliv").textContent = "Se entrega el";
+      $("k-deliv").textContent = TX("tanda_se_entrega");
       $("d-deliv").textContent = deliveryTxt;
       var t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       var cl = Math.floor((dc - t0) / 864e5), dl = Math.floor((de - t0) / 864e5);
@@ -1094,18 +1099,23 @@ var DEFAULTS = {
       bc.classList.toggle("urgent", cl <= 3);
       bc.classList.toggle("last", cl <= 0); bc.classList.toggle("mana", cl === 1);
       closeEnd = dc;
-      if (cl <= 0) { $("k-close").textContent = "🔥 Pedidos hasta hoy 🔥"; }
-      var ttl = cl <= 0 ? "¡ÚLTIMO DÍA!" : (cl === 1 ? "¡MAÑANA CIERRA!" : "Cierran los pedidos en");
+      if (cl <= 0) { $("k-close").textContent = TX("tanda_hasta_hoy"); }
+      var ttl = cl <= 0 ? TX("tanda_ultimo_dia") : (cl === 1 ? TX("tanda_manana_cierra") : TX("tanda_cierran_en"));
       $("cd-close").innerHTML = '<b class="ttl">' + ttl + '</b><span class="clock" id="clock"></span>';
       tick();
       $("cd-deliv").hidden = true;
       $("cd-close").hidden = false;
     } else {
       closeTxt = ""; deliveryTxt = "";
-      $("k-close").textContent = "Próxima tanda";
-      $("d-close").textContent = "Muy pronto";
-      $("k-deliv").textContent = "Enterate";
-      $("d-deliv").textContent = "En nuestro Instagram";
+      if (sched) {
+        $("k-close").textContent = TX("tanda_abre_el"); $("d-close").textContent = longDate(parseDay(sched.apertura));
+        $("k-deliv").textContent = TX("tanda_se_entrega"); $("d-deliv").textContent = longDate(parseDay(sched.entrega));
+      } else {
+        $("k-close").textContent = TX("tanda_proxima");
+        $("d-close").textContent = TX("tanda_muy_pronto");
+        $("k-deliv").textContent = TX("tanda_enterate");
+        $("d-deliv").textContent = TX("tanda_instagram");
+      }
       $("cd-close").hidden = true; $("cd-deliv").hidden = true;
     }
     setPortada(c);
@@ -1275,7 +1285,7 @@ var DEFAULTS = {
     box.innerHTML = rows.length ? rows.slice(0, 8).map(function (i) {
       var p = data.productos[i], n = qty[p.nombre] || 0;
       return '<div class="sr"><div class="sr-t"><b>' + esc(p.nombre) + '</b><span>' + esc(p.descripcion) + '</span></div>' +
-        (p.agotada ? '<span class="sr-c">Agotada</span>' : '<div class="sr-c">' + (n ? '<button type="button" data-si="' + i + '" data-d="-1" aria-label="Quitar una"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button><output>' + n + '</output>' : '') +
+        (p.agotada ? '<span class="sr-c">' + esc(TX("texto_agotada")) + '</span>' : '<div class="sr-c">' + (n ? '<button type="button" data-si="' + i + '" data-d="-1" aria-label="Quitar una"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button><output>' + n + '</output>' : '') +
           '<button type="button" class="plus" data-si="' + i + '" data-d="1" aria-label="Agregar a mi antojo"><svg viewBox="0 0 24 24"><path d="M6 12h12M12 6v12"/></svg></button></div>') + '</div>';
     }).join("") : '<div class="sr-none">Sin resultados</div>';
     box.hidden = false;
@@ -1410,7 +1420,7 @@ var DEFAULTS = {
             '<output id="q-' + i + '" aria-live="polite">0</output>' +
             '<button type="button" data-i="' + i + '" data-d="1" aria-label="Sumar una ' + esc(p.nombre) + '">+</button></div></div>';
       return '<article class="card' + (p.agotada ? " sold" : "") + '" id="card-' + i + '">' +
-        (p.agotada ? '<span class="badge">Agotada</span>' : (p.top ? '<span class="badge hot">★ ' + esc(data.config.cartel_mas_vendidas) + "</span>" : "")) + media +
+        (p.agotada ? '<span class="badge">' + esc(TX("texto_agotada")) + '</span>' : (p.top ? '<span class="badge hot">★ ' + esc(data.config.cartel_mas_vendidas) + "</span>" : "")) + media +
         '<div class="card-body"><div class="card-top"><h3>' + esc(p.nombre) + '</h3><span class="price">' + money(p.precio) + priceTwo(p.precio) + "</span></div>" +
         (p.descripcion ? '<p class="desc">' + esc(p.descripcion) + "</p>" : "") + step + "</div></article>";
     })(p, i); });
@@ -1485,6 +1495,36 @@ var DEFAULTS = {
   function cuponActivo(base) {
     var best = null; cupones.forEach(function (c) { if (c.pct > 0 && base > 0 && base >= (c.min || 0) && (!best || c.pct > best.pct)) best = c; }); return best;
   }
+
+  /* ---------- Cola de pedidos (cuando los pedidos están cerrados) ---------- */
+  function colaData() {
+    var lines = chosen().map(function (p) { return qty[p.nombre] + " x " + p.nombre; }), items = {};
+    chosen().forEach(function (p) { items[p.nombre] = (items[p.nombre] || 0) + qty[p.nombre]; });
+    chosenCombos().forEach(function (cb) { lines.push(cq[cb.nombre] + " x PACK " + cb.nombre + " (" + cb.items.map(function (it) { return it.c + " " + it.n; }).join(" + ") + ")"); cb.items.forEach(function (it) { items[it.n] = (items[it.n] || 0) + it.c * cq[cb.nombre]; }); });
+    validPacks().forEach(function (k) { lines.push("PACK " + k.q + " frascos (" + packText(k) + ")"); Object.keys(k.sel).forEach(function (nm) { items[nm] = (items[nm] || 0) + k.sel[nm]; }); });
+    return { texto: lines.join(", "), total: totals().t, items: Object.keys(items).map(function (nm) { return { nombre: nm, cantidad: items[nm] }; }) };
+  }
+  function openCola() {
+    var pr = profile() || {}; try { $("cart-close").click(); } catch (er) {}
+    $("cm-t").textContent = TX("cola_titulo"); $("cm-p").textContent = TX("cola_texto"); $("cm-go").textContent = TX("cola_enviar"); $("cm-go").disabled = false;
+    $("cm-f").textContent = ""; $("cmodal").querySelector(".sbox").classList.remove("sdone");
+    if (pr.n && !$("cm-n").value) $("cm-n").value = pr.n; if (pr.m && !$("cm-m").value) $("cm-m").value = pr.m;
+    $("cmodal").hidden = false;
+  }
+  document.addEventListener("click", function (e) {
+    var T = e.target; if (!T.closest) return;
+    if (T.closest("#cm-x") || T === $("cmodal")) { $("cmodal").hidden = true; return; }
+    if (T.closest("#cm-go")) {
+      var n = $("cm-n").value.trim(), w = $("cm-w").value.trim();
+      if (!n || w.replace(/\D/g, "").length < 8) { $("cm-f").textContent = "Poné tu nombre y tu WhatsApp."; return; }
+      var cd = colaData();
+      var pl = { accion: "encolar", nombre: n, tel: w, email: $("cm-m").value.trim(), pedido: cd.texto, total: cd.total, items: JSON.stringify(cd.items) };
+      try { fetch(ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, body: JSON.stringify(pl) }).catch(function () {}); } catch (err) {}
+      $("cm-go").disabled = true; $("cm-t").textContent = TX("cola_gracias"); $("cm-p").textContent = ""; $("cm-f").textContent = "";
+      $("cmodal").querySelector(".sbox").classList.add("sdone");
+      qty = {}; cq = {}; pk = []; try { refresh(); } catch (err) {}
+    }
+  });
   function totals() {
     var unit = [], n = 0, ct = 0;
     data.productos.forEach(function (p) { var q = p.agotada ? 0 : (qty[p.nombre] || 0); n += q; for (var i = 0; i < q; i++) unit.push(p.precio); });
@@ -1563,7 +1603,7 @@ var DEFAULTS = {
     if (x.n > prevN) { cn.classList.remove("pop"); void cn.offsetWidth; cn.classList.add("pop"); }
     var ob = $("obar"), open = $("drawer").classList.contains("open");
     ob.hidden = x.n === 0 || open; document.body.classList.toggle("has-obar", !ob.hidden);
-    if (x.n > 0) { $("ob-n").textContent = x.n + (x.n === 1 ? " frasco" : " frascos") + " · " + money(x.t); $("ob-s").textContent = x.ahorroTotal > 0 ? "Ahorrás " + money(x.ahorroTotal) + " 🎉" : "Tocá para revisar y enviar"; }
+    if (x.n > 0) { $("ob-n").textContent = x.n + (x.n === 1 ? " frasco" : " frascos") + " · " + money(x.t); $("ob-s").textContent = x.ahorroTotal > 0 ? "Ahorrás " + money(x.ahorroTotal) + " 🎉" : TX("texto_tocar_enviar"); }
     if (x.n > prevN && !ob.hidden) { ob.classList.remove("bump"); void ob.offsetWidth; ob.classList.add("bump"); if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {} }
     if (open) renderCart();
   }
@@ -1622,10 +1662,10 @@ var DEFAULTS = {
       var v = el.getAttribute("data-vence"), m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v); if (!m) { el.hidden = true; return; }
       var end = new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59), ms = end - new Date(), h = ms / 3600000, t, cls = "pvence";
       if (ms <= 0) t = "Terminó";
-      else if (h < 24) { var hh = Math.floor(h), mm = Math.floor(ms / 60000) % 60, ss = Math.floor(ms / 1000) % 60; t = "🔥 ¡Última hora! Termina en " + (hh ? hh + "h " : "") + mm + "m " + (ss < 10 ? "0" : "") + ss + "s"; cls += " hot"; }
-      else if (h < 48) { t = "⏳ ¡Mañana se termina el plazo!"; cls += " hot"; }
+      else if (h < 24) { var hh = Math.floor(h), mm = Math.floor(ms / 60000) % 60, ss = Math.floor(ms / 1000) % 60; t = (TX("susc_plazo_ultima") + " ") + (hh ? hh + "h " : "") + mm + "m " + (ss < 10 ? "0" : "") + ss + "s"; cls += " hot"; }
+      else if (h < 48) { t = TX("susc_plazo_manana"); cls += " hot"; }
       else if (h < 24 * 7) { t = "⏳ Quedan " + Math.ceil(h / 24) + " días, ¡no te la pierdas!"; cls += " warn"; }
-      else t = "Disponible por " + Math.ceil(h / 24) + " días más";
+      else t = (TX("susc_plazo_disponible") + " ") + Math.ceil(h / 24) + " días más";
       el.className = cls; if (el.textContent !== t) el.textContent = t;
     });
   }
@@ -1664,29 +1704,29 @@ var DEFAULTS = {
     var ban = $("sban"), ls = S.filter(function (p) { return p.cupos - p.usados > 0; }), near = ls.length > 0, gone = false;
     gone = !!window.__banMin;
     ban.hidden = !(near && !gone && !hasSus());
-    if (near) $("sban-t").innerHTML = "<b>Tu caja mensual</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
+    if (near) $("sban-t").innerHTML = "<b>" + esc(TX("susc_tu_caja")) + "</b> · " + (ls.some(function (p) { return p.cupos - p.usados <= 6; }) ? "quedan " + ls.map(function (p) { var l = p.cupos - p.usados; return "<b>" + l + "</b> <u data-bp=\"" + S.indexOf(p) + "\" style=\"cursor:pointer;text-decoration:underline;text-underline-offset:3px\">" + esc(p.plan) + "</u>"; }).join(" · ") : "cupos limitados cada mes");
     if (!S.length) { $("spmodal").hidden = true; return; }
     if (hasSus()) {
       var cur = mySus[0] || {}, pm = S.filter(function (p) { return /prem/i.test(p.plan); })[0], isP = mySus.some(function (x) { return /prem/i.test(x.plan); }), up = Number(String(data.config.susc_upgrade_precio || "").replace(/[^\d.]/g, "")) || (pm && cur.precio ? Math.max(0, pm.precio - cur.precio) : (pm ? pm.precio : 0));
       $("x-susc").textContent = "";
-      $("splans").innerHTML = '<div class="sthx"><b>' + (isP ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(cur.plan || "")) + "</b><p>¡Gracias por confiar en nosotros! 💚</p></div>" + (!isP && pm ? '<article class="splan prem"><h3>Pasate a ' + esc(pm.plan) + ' ✨</h3><div class="sprice">' + (up > 0 ? money(up) + " <small>por mes más</small>" : "") + '</div>' + (pm.desc ? "<p>" + esc(pm.desc) + "</p>" : "") + '<button type="button" class="btn" data-supg="1">Quiero pasarme a Premium</button></article>' : "");
+      $("splans").innerHTML = '<div class="sthx"><b>' + (isP ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(cur.plan || "")) + "</b><p>" + esc(TX("susc_gracias_cliente")) + "</p></div>" + (!isP && pm ? '<article class="splan prem"><h3>Pasate a ' + esc(pm.plan) + ' ✨</h3><div class="sprice">' + (up > 0 ? money(up) + " <small>por mes más</small>" : "") + '</div>' + (pm.desc ? "<p>" + esc(pm.desc) + "</p>" : "") + '<button type="button" class="btn" data-supg="1">Quiero pasarme a Premium</button></article>' : "");
       return;
     }
-    $("x-susc").textContent = sSel == null ? "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:" : "";
+    $("x-susc").textContent = sSel == null ? TX("susc_intro") : "";
     if (sSel == null || !S[sSel]) {
       var cdp = S.filter(function (p) { return sCount(p.ajuste); }).sort(function (a, b) { return sCount(a.ajuste) - sCount(b.ajuste); })[0];
-      $("splans").innerHTML = (cdp ? '<div class="sadj sct" data-sc="' + esc(cdp.ajuste) + '" style="margin-bottom:10px">⏳ El precio actual vale solo por <b>' + sFmt(sCount(cdp.ajuste)) + "</b></div>" : "") + '<div class="spch">' + S.map(function (p, i) {
+      $("splans").innerHTML = (cdp ? '<div class="sadj sct" data-sc="' + esc(cdp.ajuste) + '" style="margin-bottom:10px">' + esc(TX("susc_precio_vale")) + ' <b>' + sFmt(sCount(cdp.ajuste)) + "</b></div>" : "") + '<div class="spch">' + S.map(function (p, i) {
         var left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
-        return '<button type="button" class="' + (prem ? "prem" : "") + '" data-spt="' + i + '"><b>' + esc(p.plan) + (prem ? " ✨" : "") + "</b><span>" + (p.precio > 0 ? money(p.precio) + " por mes" : "Precio a confirmar") + "</span><small>" + (left > 0 ? "Quedan " + left + " lugares" : "Cupo completo") + " · tocá para ver cómo es</small></button>";
+        return '<button type="button" class="' + (prem ? "prem" : "") + '" data-spt="' + i + '"><b>' + esc(p.plan) + (prem ? " ✨" : "") + "</b><span>" + (p.precio > 0 ? money(p.precio) + " por mes" : "Precio a confirmar") + "</span><small>" + (left > 0 ? "Quedan " + left + " lugares" : TX("susc_cupo_completo")) + " · tocá para ver cómo es</small></button>";
       }).join("") + "</div>";
       return;
     }
     var p = S[sSel], left = Math.max(0, p.cupos - p.usados), prem = /prem/i.test(p.plan);
     $("splans").innerHTML = '<button type="button" class="spback" data-spb="1">‹ Volver</button><article class="splan' + (prem ? " prem" : "") + '"><h3>' + esc(p.plan) + (prem ? " ✨" : "") + '</h3><div class="sprice">' + (p.precio > 0 ? money(p.precio) + " <small>por mes</small>" : "<small>Precio a confirmar</small>") + "</div>" +
-      '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : "Cupo completo · anotate en lista de espera") + "</span>" +
+      '<span class="scup' + (left <= 2 ? " low" : "") + '">' + (left > 0 ? (left === 1 ? "¡Queda 1 lugar este mes!" : "Quedan " + left + " lugares este mes") : TX("susc_cupo_completo_lista")) + "</span>" +
       (p.desc ? "<p>" + esc(p.desc) + "</p>" : "") +
-      (sCount(p.ajuste) ? '<div class="sadj sct" data-sc="' + esc(p.ajuste) + '">⏳ El precio actual vale solo por <b>' + sFmt(sCount(p.ajuste)) + "</b></div>" : "") +
-      '<button type="button" class="btn" data-splan="' + sSel + '">' + (left > 0 ? "Quiero suscribirme" : "Anotarme en la lista") + "</button></article>";
+      (sCount(p.ajuste) ? '<div class="sadj sct" data-sc="' + esc(p.ajuste) + '">' + esc(TX("susc_precio_vale")) + ' <b>' + sFmt(sCount(p.ajuste)) + "</b></div>" : "") +
+      '<button type="button" class="btn" data-splan="' + sSel + '">' + (left > 0 ? TX("susc_boton_suscribir") : TX("susc_boton_lista")) + "</button></article>";
   }
   document.addEventListener("click", function (e) {
     var T = e.target.closest ? e.target : null;
@@ -1700,7 +1740,7 @@ var DEFAULTS = {
     if (T && T.closest("[data-spb]")) { sSel = null; renderSusc(); return; }
     if (T && T.closest("[data-supg]")) { var pm2 = ((data.susc && data.susc.planes) || []).filter(function (p) { return /prem/i.test(p.plan); })[0], cu2 = mySus[0] || {}, up2 = Number(String(data.config.susc_upgrade_precio || "").replace(/[^\d.]/g, "")) || (pm2 ? Math.max(0, pm2.precio - (cu2.precio || 0)) : 0), w2 = digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp); window.open("https://wa.me/" + w2 + "?text=" + encodeURIComponent("¡Hola! Quiero pasar mi suscripción " + (cu2.plan || "") + " a Premium" + (up2 > 0 ? " (" + money(up2) + " por mes más)" : "") + "."), "_blank"); return; }
     var b = e.target.closest && e.target.closest("[data-splan]");
-    if (b) { $("spmodal").hidden = true; sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + "Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = ""; $("sm-go").disabled = false; $("sm-go").textContent = "Quiero anotarme"; $("smodal").querySelector(".sbox").classList.remove("sdone"); $("sm-c").value = zonasOk()[0] || ""; $("sm-h").textContent = "📍 Entregamos en " + zonasOk().join(" y ") + " (por ahora)"; $("smodal").hidden = false; return; }
+    if (b) { $("spmodal").hidden = true; sPlan = ((data.susc && data.susc.planes) || [])[Number(b.getAttribute("data-splan"))]; if (!sPlan) return; $("sm-t").textContent = "Suscripción " + sPlan.plan; $("sm-p").textContent = (sPlan.precio > 0 ? money(sPlan.precio) + " por mes. " : "") + TX("susc_gracias_pago"); $("sm-f").textContent = ""; $("sm-go").disabled = false; $("sm-go").textContent = "Quiero anotarme"; $("smodal").querySelector(".sbox").classList.remove("sdone"); $("sm-c").value = zonasOk()[0] || ""; $("sm-h").textContent = "📍 Entregamos en " + zonasOk().join(" y ") + " (por ahora)"; $("smodal").hidden = false; return; }
     if (e.target.closest && (e.target.closest("#sm-x") || e.target === $("smodal"))) { $("smodal").hidden = true; return; }
     if (e.target.closest && e.target.closest("#sm-go")) {
       var n = $("sm-n").value.trim(), w = $("sm-w").value.trim(), ci = $("sm-c").value.trim(), box = $("smodal").querySelector(".sbox");
@@ -1712,12 +1752,12 @@ var DEFAULTS = {
       $("sm-go").disabled = true; box.classList.add("sdone");
       if (!okz) { $("sm-t").textContent = "¡Gracias! Te vamos a avisar 💚"; $("sm-p").textContent = "Cuando lleguemos a " + ci + " te escribimos por WhatsApp."; $("sm-f").textContent = ""; return; }
       var wa = String(data.config.whatsapp || "").replace(/\D/g, "");
-      var txt = "¡Hola! Quiero suscribirme al plan " + sPlan.plan + (sPlan.precio > 0 ? " (" + money(sPlan.precio) + " por mes)" : "") + ". Soy " + n + ".";
-      $("sm-t").textContent = "¡Gracias por suscribirte! 💚"; $("sm-p").textContent = "Ya te anotamos. Te escribimos por WhatsApp para coordinar el pago y la entrega."; $("sm-f").textContent = "";
+      var txt = (TX("susc_wa_mensaje") + " ") + sPlan.plan + (sPlan.precio > 0 ? " (" + money(sPlan.precio) + " por mes)" : "") + ". Soy " + n + ".";
+      $("sm-t").textContent = "¡Gracias por suscribirte! 💚"; $("sm-p").textContent = TX("susc_ya_anotado"); $("sm-f").textContent = "";
       if (wa) window.open("https://wa.me/" + wa + "?text=" + encodeURIComponent(txt), "_blank");
     }
   });
-  document.addEventListener("input", function (e) { if (e.target && e.target.id === "sm-c") { var v = e.target.value.trim(), ok = !v || zonaOk(v); $("sm-go").textContent = ok ? "Quiero anotarme" : "Avisarme cuando lleguen"; $("sm-f").textContent = ok ? "" : "Aún no llegamos a tu zona. Dejanos tu contacto y te avisamos cuando lleguemos."; } });
+  document.addEventListener("input", function (e) { if (e.target && e.target.id === "sm-c") { var v = e.target.value.trim(), ok = !v || zonaOk(v); $("sm-go").textContent = ok ? "Quiero anotarme" : "Avisarme cuando lleguen"; $("sm-f").textContent = ok ? "" : TX("susc_fuera_zona"); } });
   function applyData(raw) {
     data = normalize(raw);
     loadCart();
@@ -1839,15 +1879,15 @@ var DEFAULTS = {
   function buildMessage() {
     var lines = chosen().map(function (p) { return qty[p.nombre] + " x " + p.nombre + " - " + money(qty[p.nombre] * p.precio); });
     var tt = totals();
-    if (tt.ahorro > 0) lines.push("Descuento por cantidad: -" + money(tt.ahorro));
+    if (tt.ahorro > 0) lines.push((TX("texto_desc_cantidad") + ": -") + money(tt.ahorro));
     chosenCombos().forEach(function (cb) { lines.push(cq[cb.nombre] + " x PACK " + cb.nombre + " (" + cb.items.map(function (it) { return it.c + " " + it.n; }).join(" + ") + ") - " + money(cb.precio * cq[cb.nombre])); });
     validPacks().forEach(function (k) { lines.push("PACK " + k.q + " frascos (" + packText(k) + ") - " + money(tierFor(k.q).p)); });
     if (tt.cupDesc > 0) lines.push("Cupón " + tt.cupon.nombre + " (-" + tt.cupon.pct + "%): -" + money(tt.cupDesc));
     return data.config.mensaje_inicial + "\n\n" +
       "Nombre: " + $("name").value.trim() + "\n\n" +
       lines.join("\n") + "\n\n" +
-      "Total: " + money(tt.t) + (discPct() ? "\nPagando por transferencia: " + money(transf(tt.t)) : "") + "\n" +
-      "Entrega: " + entregaTxt();
+      "Total: " + money(tt.t) + (discPct() ? "\n" + TX("texto_transferencia") + ": " + money(transf(tt.t)) : "") + "\n" +
+      (TX("texto_entrega") + " ") + entregaTxt();
   }
   function waUrl() { return "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=" + encodeURIComponent(buildMessage().replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u200d\ufe0f]/gu, "").replace(/ +\n/g, "\n").replace(/ +$/gm, "")); }
   function syncLinks() { var u = waUrl(); $("confirm").href = u; $("again").href = data.config.alias_transferencia ? "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=" + encodeURIComponent(fill(data.config.texto_comprobante, { id: orderId })) : u; }
@@ -1947,7 +1987,7 @@ var DEFAULTS = {
     var pr = mySus.some(isPrem), sb = mySus[0] || {}, m = $("starm"), wa = "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=";
     if (!m) { m = document.createElement("div"); m.id = "starm"; m.className = "smodal"; document.body.appendChild(m); }
     m.hidden = false;
-    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><h3>' + (pr ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p">' + esc(sb.estado === "Pendiente de pago" ? "Tu suscripción está pendiente de pago." : "Tu suscripción está activa" + (sb.pagado ? " · pagado: " + sb.pagado : "") + ".") + '</p><a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">Renovar mi suscripción</a>' + (pr ? "" : '<a class="btn" style="margin-top:8px;background:#E0B04A;color:#3b2b00" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">⭐ Pasar a Premium'+(Number(data.config.susc_upgrade_precio)>0?" por "+money(Number(data.config.susc_upgrade_precio))+" más":"")+'</a>') + "</div>";
+    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><h3>' + (pr ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p">' + esc(sb.estado === "Pendiente de pago" ? TX("susc_estado_pendiente") : TX("susc_estado_activa") + (sb.pagado ? " · pagado: " + sb.pagado : "") + ".") + '</p><a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">' + esc(TX("susc_renovar")) + '</a>' + (pr ? "" : '<a class="btn" style="margin-top:8px;background:#E0B04A;color:#3b2b00" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">⭐ Pasar a Premium'+(Number(data.config.susc_upgrade_precio)>0?" por "+money(Number(data.config.susc_upgrade_precio))+" más":"")+'</a>') + "</div>";
   }
   function loadCupones() {
     try { loadSus(); } catch (e9) {}
@@ -1976,7 +2016,7 @@ var DEFAULTS = {
       if (o.estado === "pendiente" || o.estado === "pago") act = ordAsk === o.id ? '<span class="oq">' + esc(c.texto_cancelar_confirmar) + '</span><button type="button" class="danger" data-oc="' + esc(o.id) + '">Sí, cancelar</button><button type="button" data-on="1">No</button>' : '<button type="button" class="danger" data-oa="' + esc(o.id) + '">' + esc(c.boton_cancelar_pedido) + "</button>";
       else if (o.estado === "cancelado_cocina") act = '<a class="solid" target="_blank" rel="noopener" href="https://wa.me/' + (digits(c.whatsapp_pedidos) || digits(c.whatsapp)) + "?text=" + encodeURIComponent(fill(c.texto_whatsapp_cocina, { id: o.id })) + '">' + esc(c.boton_whatsapp_cocina) + "</a>";
       return '<article class="ocard' + (bad ? " bad" : "") + '"><div class="oh"><b>' + esc(o.fecha) + "</b><span>#" + esc(o.id) + "</span></div><ul>" + items + '</ul><div class="ot"><span>Total</span><span>' + money(o.total) + '</span></div>' +
-        (o.entrega ? '<div class="oh"><span>Entrega: ' + esc(o.entrega) + "</span></div>" : "") + '<div class="os">' + esc(ordEst(o.estado)) + "</div>" + (act ? '<div class="oa">' + act + "</div>" : "") + "</article>";
+        (o.entrega ? '<div class="oh"><span>' + esc(TX("texto_entrega")) + ' ' + esc(o.entrega) + "</span></div>" : "") + '<div class="os">' + esc(ordEst(o.estado)) + "</div>" + (act ? '<div class="oa">' + act + "</div>" : "") + "</article>";
     }).join("");
   }
   function openOrders() {
@@ -1988,7 +2028,7 @@ var DEFAULTS = {
       fetch(ENDPOINT + "?mis=1&token=" + encodeURIComponent(tok)).then(function (r) { return r.json(); }).then(function (j) {
         if (!j || j.error) { memToken = ""; needLogin(); return; }
         ordData = j.pedidos || []; renderOrders();
-      }).catch(function () { renderOrders("No pudimos cargar tus pedidos. Probá de nuevo en un rato."); });
+      }).catch(function () { renderOrders(TX("texto_error_pedidos")); });
     });
   }
   function closeOrders() { $("orders").classList.remove("open"); $("orders").setAttribute("aria-hidden", "true"); }
@@ -2016,7 +2056,7 @@ var DEFAULTS = {
     $("m-lines").innerHTML = cartLinesHtml(false);
     setTransf($("m-transf"), x.t);
     $("m-total").textContent = money(x.t);
-    $("m-when").textContent = tandasOn() ? "Entrega: " + deliveryTxt + " (pedidos hasta el " + closeTxt + ")" : "Entrega: a coordinar por WhatsApp";
+    $("m-when").textContent = tandasOn() ? (TX("texto_entrega") + " ") + deliveryTxt + " (" + TX("texto_pedidos_hasta_min") + " " + closeTxt + ")" : (TX("texto_entrega") + " " + TX("texto_entrega_coordinar"));
     $("name-err").hidden = true; $("email-err").hidden = true; $("lim-err").hidden = true;
     var s = null;
     try { s = JSON.parse(localStorage.getItem("encurtidos-facu-cliente") || "null"); } catch (err) {}
@@ -2080,7 +2120,7 @@ var DEFAULTS = {
         '<div class="cside"><button type="button" class="ctrash" data-ci="' + i + '" data-d="-99" aria-label="Quitar ' + esc(p.nombre) + '">' + TRASH + '</button><span class="cprice">' + money(q * p.precio) + "</span></div></li>";
     }).join("");
     var x = totals();
-    if (!ctl && x.ahorro > 0) h += '<li class="disc"><span>Descuento por cantidad</span><span>−' + money(x.ahorro) + "</span></li>";
+    if (!ctl && x.ahorro > 0) h += '<li class="disc"><span>' + esc(TX("texto_desc_cantidad")) + '</span><span>−' + money(x.ahorro) + "</span></li>";
     h += chosenCombos().map(function (cb) {
       var j = comboList().indexOf(cb), q = cq[cb.nombre], comp = cb.items.map(function (it) { return it.c + " " + it.n; }).join(" + ");
       if (!ctl) return '<li><span class="nm">PACK ' + esc(cb.nombre) + "<small>" + esc(comp) + "</small></span><span>× " + q + "</span><span>" + money(cb.precio * q) + "</span></li>";
@@ -2106,20 +2146,20 @@ var DEFAULTS = {
     var pv = sc.filter(function (e) { return e.q <= n; }).pop(), from = pv ? pv.q : 0, f = nx.q - n;
     return { txt: fill(data.config.aviso_proxima_promo, { faltan: f, unidad: f === 1 ? "frasco" : "frascos", q: nx.q, precio: money(nx.p) }), pct: Math.max(8, Math.round((n - from) / (nx.q - from) * 100)) };
   }
-  function setTransf(el, total) { el.hidden = !discPct() || !total; if (!el.hidden) el.innerHTML = "<span>Pagando por transferencia (−" + discPct() + "%)</span><span>" + money(transf(total)) + "</span>"; }
+  function setTransf(el, total) { el.hidden = !discPct() || !total; if (!el.hidden) el.innerHTML = "<span>" + TX("texto_transferencia") + " (−" + discPct() + "%)</span><span>" + money(transf(total)) + "</span>"; }
   function renderCart() {
     var x = totals(), ok = x.n > 0 && (tandasOn() ? !!(cycle && deliveryTxt) : isYes(data.config.pedidos_activos));
     $("c-lines").innerHTML = cartLinesHtml(true);
     $("c-empty").hidden = x.n > 0;
     var ph = promoHint(), pe = $("c-promo"); pe.hidden = !ph; if (ph) pe.innerHTML = "<span>" + esc(ph.txt) + '</span><div class="bar"><i style="width:' + ph.pct + '%"></i></div>';
     var sm = $("c-sum"); sm.hidden = !(x.n > 0 && (x.ahorroTotal > 0 || x.cupDesc > 0));
-    if (!sm.hidden) sm.innerHTML = "<div><span>Subtotal</span><span>" + money(x.base + x.ahorroTotal) + "</span></div>" + (x.ahorroTotal > 0 ? '<div class="g"><span>' + esc(data.config.texto_ahorro_total) + "</span><span>−" + money(x.ahorroTotal) + "</span></div>" : "") + (x.cupDesc > 0 ? '<div class="g"><span>' + esc(fill(data.config.texto_cupon_aplicado, { nombre: x.cupon.nombre })) + " (−" + x.cupon.pct + "%)</span><span>−" + money(x.cupDesc) + "</span></div>" : "");
+    if (!sm.hidden) sm.innerHTML = "<div><span>" + esc(TX("texto_subtotal")) + "</span><span>" + money(x.base + x.ahorroTotal) + "</span></div>" + (x.ahorroTotal > 0 ? '<div class="g"><span>' + esc(data.config.texto_ahorro_total) + "</span><span>−" + money(x.ahorroTotal) + "</span></div>" : "") + (x.cupDesc > 0 ? '<div class="g"><span>' + esc(fill(data.config.texto_cupon_aplicado, { nombre: x.cupon.nombre })) + " (−" + x.cupon.pct + "%)</span><span>−" + money(x.cupDesc) + "</span></div>" : "");
     var ce = $("c-cup"), cb0 = cupones.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
     ce.hidden = !(cb0 && x.n > 0 && !x.cupon);
     if (!ce.hidden) ce.textContent = cb0.min > x.base ? fill(data.config.texto_cupon_minimo, { min: money(cb0.min), nombre: cb0.nombre, pct: cb0.pct }) : fill(data.config.texto_cupon, { texto: cb0.texto || cb0.nombre, nombre: cb0.nombre, pct: cb0.pct });
     $("c-total").textContent = money(x.t); setTransf($("c-transf"), x.t);
-    var note = $("c-note"); note.hidden = !(x.n > 0 && !ok); note.textContent = "Por ahora no estamos tomando pedidos.";
-    $("cart-go").disabled = !ok;
+    var note = $("c-note"); note.hidden = !(x.n > 0 && !ok); note.textContent = TX("texto_pedidos_cerrados");
+    var gb = $("cart-go"); gb.disabled = !ok && !(x.n > 0); gb.textContent = ok || !x.n ? data.config.boton_enviar : TX("cola_boton"); gb.setAttribute("data-cola", !ok && x.n > 0 ? "1" : "");
   }
   function openCart() {
     closeOrders(); renderCart(); if (cupones.length || (profile() || {}).g) getToken(function (t) { if (t && !cupones.length) loadCupones(); });
@@ -2138,7 +2178,7 @@ var DEFAULTS = {
   });
   $("cart-btn").addEventListener("click", function () { if ($("drawer").classList.contains("open")) closeCart(); else openCart(); });
   $("cart-x").addEventListener("click", closeCart);
-  $("cart-go").addEventListener("click", openModal);
+  $("cart-go").addEventListener("click", function () { if ($("cart-go").getAttribute("data-cola")) openCola(); else openModal(); });
   $("cart-close").addEventListener("click", closeCart);
   $("back").addEventListener("click", function () { closeModal(); openCart(); });
   var hp = $("help");
@@ -2160,7 +2200,7 @@ var DEFAULTS = {
     if (!okName || !okMail || !okPhone) { e.preventDefault(); showWho(false); (!okName ? $("name") : !okMail ? $("email") : $("phone")).focus(); return; }
     if (needsCheck() && ENDPOINT) {
       var em = $("email").value.trim().toLowerCase();
-      if (usoMail !== em) { e.preventDefault(); $("lim-err").textContent = "Verificando tu pedido… tocá de nuevo en un instante."; $("lim-err").hidden = false; loadUso(em, function () { $("lim-err").hidden = true; }); return; }
+      if (usoMail !== em) { e.preventDefault(); $("lim-err").textContent = TX("texto_verificando"); $("lim-err").hidden = false; loadUso(em, function () { $("lim-err").hidden = true; }); return; }
       var bad = overLimit();
       if (bad) { e.preventDefault(); $("lim-err").textContent = fill(data.config.texto_limite_error, { nombre: bad }); $("lim-err").hidden = false; return; }
     }
