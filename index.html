@@ -2015,24 +2015,52 @@ var DEFAULTS = {
     }).catch(function () {});
   }
   var STAR_D = "M12 2.6l2.75 5.86 6.4.82-4.7 4.42 1.2 6.38L12 17.1l-5.65 3 1.2-6.38-4.7-4.42 6.4-.82z";
-  function starSvg(fill, sz, id) { return '<svg viewBox="0 0 24 24" width="' + sz + '" height="' + sz + '" aria-hidden="true"' + (id ? ' id="' + id + '"' : "") + ' style="display:block;overflow:visible"><defs><linearGradient id="sg' + (id || "") + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A8"/><stop offset=".55" stop-color="#F0C14B"/><stop offset="1" stop-color="#D99A1E"/></linearGradient></defs><path d="' + STAR_D + '" fill="' + (fill ? "url(#sg" + (id || "") + ")" : "none") + '" stroke="' + (fill ? "#C98A1B" : "currentColor") + '" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>'; }
+  function starSvg(fill, sz, id, silver) { var gid = "sg" + (silver ? "s" : "") + (id || ""), c1 = silver ? "#FFFFFF" : "#FFE9A8", c2 = silver ? "#D5DAE0" : "#F0C14B", c3 = silver ? "#9AA3AE" : "#D99A1E", sk = silver ? "#7E8894" : "#C98A1B"; return '<svg viewBox="0 0 24 24" width="' + sz + '" height="' + sz + '" aria-hidden="true"' + (id ? ' id="' + id + '"' : "") + ' style="display:block;overflow:visible"><defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + c1 + '"/><stop offset=".55" stop-color="' + c2 + '"/><stop offset="1" stop-color="' + c3 + '"/></linearGradient></defs><path d="' + STAR_D + '" fill="' + (fill ? "url(#" + gid + ")" : "none") + '" stroke="' + (fill ? sk : "currentColor") + '" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>'; }
+
+  function rings(ov, x, y, col) {
+    for (var k = 0; k < 3; k++) { var r = document.createElement("i"); r.style.cssText = "position:absolute;left:" + (x - 20) + "px;top:" + (y - 20) + "px;width:40px;height:40px;border-radius:50%;border:3px solid " + col + ";box-sizing:border-box"; ov.appendChild(r); r.animate([{ transform: "scale(.3)", opacity: .9 }, { transform: "scale(" + (5 + k * 2.2) + ")", opacity: 0 }], { duration: 900 + k * 220, delay: k * 140, easing: "ease-out", fill: "forwards" }); }
+  }
+  function rain(ov, W, H) {
+    var cols = ["#F0C14B", "#FFE08A", "#E0457B", "#3FA9F5", "#4A6B3A", "#FFFFFF", "#F28C28"];
+    for (var i = 0; i < 70; i++) { var p = document.createElement("i"), w = 5 + Math.random() * 6, x = Math.random() * W; p.style.cssText = "position:absolute;left:" + x + "px;top:-20px;width:" + w + "px;height:" + (w * 1.7) + "px;background:" + cols[i % cols.length] + ";border-radius:" + (Math.random() < .3 ? "50%" : "2px"); ov.appendChild(p); p.animate([{ transform: "translate(0,0) rotate(0)", opacity: 1 }, { transform: "translate(" + ((Math.random() - .5) * 120) + "px," + (H + 40) + "px) rotate(" + (Math.random() * 900) + "deg)", opacity: 1 }], { duration: 1800 + Math.random() * 1400, delay: 350 + Math.random() * 900, easing: "cubic-bezier(.3,.1,.6,1)", fill: "forwards" }); }
+  }
+  function sparkles(ov, cx, cy, R, n, cols) {
+    for (var i = 0; i < n; i++) { var a = i / n * Math.PI * 2 + Math.random() * .5, d = R * (.6 + Math.random() * .6), p = document.createElement("i"), w = 4 + Math.random() * 5; p.style.cssText = "position:absolute;left:" + (cx + Math.cos(a) * d - w / 2) + "px;top:" + (cy + Math.sin(a) * d - w / 2) + "px;width:" + w + "px;height:" + w + "px;border-radius:50%;background:" + cols[i % cols.length] + ";box-shadow:0 0 8px " + cols[i % cols.length]; ov.appendChild(p); p.animate([{ transform: "scale(0)", opacity: 0 }, { transform: "scale(1.4)", opacity: 1, offset: .5 }, { transform: "scale(0)", opacity: 0 }], { duration: 700 + Math.random() * 400, delay: Math.random() * 500, fill: "forwards" }); }
+  }
+  function starIntroStd(b) {
+    var W = innerWidth, H = innerHeight, S = 130;
+    var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
+    var s1 = document.createElement("div"); s1.style.cssText = "position:absolute;left:" + (W / 2 - S / 2) + "px;top:" + (H / 2 - S / 2) + "px;width:" + S + "px;height:" + S + "px;filter:drop-shadow(0 0 18px rgba(190,200,215,.9));will-change:transform";
+    s1.innerHTML = starSvg(true, S, "", true); ov.appendChild(s1); document.body.appendChild(ov); b.style.visibility = "hidden";
+    setTimeout(function () { b.style.visibility = ""; try { ov.remove(); } catch (eo) {} }, 3000);
+    sparkles(ov, W / 2, H / 2, 90, 12, ["#FFFFFF", "#DDE3EA", "#BFC8D2"]);
+    var r = b.getBoundingClientRect(), tx = r.left + r.width / 2 - W / 2, ty = r.top + r.height / 2 - H / 2, fin = Math.max(20, r.height) / S;
+    var a1 = s1.animate([{ transform: "scale(.2) rotate(-40deg)", opacity: 0 }, { transform: "scale(1.12) rotate(6deg)", opacity: 1, offset: .6 }, { transform: "scale(1) rotate(0)", opacity: 1 }], { duration: 750, easing: "cubic-bezier(.2,.9,.3,1.1)", fill: "forwards" });
+    a1.onfinish = function () {
+      setTimeout(function () {
+        var a2 = s1.animate([{ transform: "translate(0,0) scale(1)" }, { transform: "translate(" + tx + "px," + ty + "px) scale(" + fin + ")" }], { duration: 620, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
+        a2.onfinish = function () { b.style.visibility = ""; b.animate([{ transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }], { duration: 380, easing: "ease-out" }); sparkles(ov, r.left + r.width / 2, r.top + r.height / 2, 26, 8, ["#FFFFFF", "#CBD3DC"]); s1.remove(); setTimeout(function () { ov.remove(); }, 1200); };
+      }, 250);
+    };
+  }
   function starIntro() {
     if (window.__starFx) return;
     var b = $("star"); if (!b || b.hidden || !mySus.length) return;
     window.__starFx = 1;
     if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     var pr = mySus.some(isPrem), W = innerWidth, H = innerHeight, big = Math.max(W, H) * 1.25;
+    if (!pr) { starIntroStd(b); return; }
     var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
     var st1 = document.createElement("div"); st1.style.cssText = "position:absolute;left:50%;top:50%;width:" + big + "px;height:" + big + "px;margin:" + (-big / 2) + "px 0 0 " + (-big / 2) + "px;filter:drop-shadow(0 0 30px rgba(240,193,75,.8));will-change:transform,opacity";
     st1.innerHTML = starSvg(true, big);
-    ov.appendChild(st1); document.body.appendChild(ov); b.style.visibility = "hidden"; setTimeout(function () { b.style.visibility = ""; try { ov.remove(); } catch (eo) {} }, 3200);
+    ov.appendChild(st1); document.body.appendChild(ov); b.style.visibility = "hidden"; setTimeout(function () { b.style.visibility = ""; try { ov.remove(); } catch (eo) {} }, 5400);
     var r = b.getBoundingClientRect(), tx = r.left + r.width / 2 - W / 2, ty = r.top + r.height / 2 - H / 2, fin = Math.max(20, r.height) / big;
     var a1 = st1.animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(.16)", opacity: 1, offset: .75 }, { transform: "scale(.07)", opacity: 1 }], { duration: 950, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
     a1.onfinish = function () {
       var a2 = st1.animate([{ transform: "translate(0,0) scale(.07)" }, { transform: "translate(" + tx + "px," + ty + "px) scale(" + fin + ")" }], { duration: 480, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
       a2.onfinish = function () {
         b.style.visibility = ""; b.animate([{ transform: "scale(1)" }, { transform: "scale(1.45) rotate(-12deg)" }, { transform: "scale(1)" }], { duration: 420, easing: "ease-out" });
-        if (pr) confetti(ov, r.left + r.width / 2, r.top + r.height / 2, W, H); setTimeout(function () { ov.remove(); }, pr ? 2400 : 100); st1.remove();
+        confetti(ov, r.left + r.width / 2, r.top + r.height / 2, W, H, 130); rings(ov, r.left + r.width / 2, r.top + r.height / 2, "#F0C14B"); rain(ov, W, H); sparkles(ov, r.left + r.width / 2, r.top + r.height / 2, 60, 18, ["#FFE08A", "#FFFFFF", "#F0C14B"]); setTimeout(function () { ov.remove(); }, 4200); st1.remove();
       };
     };
   }
@@ -2046,10 +2074,10 @@ var DEFAULTS = {
     if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     var pr = mySus.some(isPrem), r = b.getBoundingClientRect(), S = 110;
     var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
-    var s1 = document.createElement("div"); s1.style.cssText = "position:absolute;left:" + (cx - S / 2) + "px;top:" + (cy - S / 2) + "px;width:" + S + "px;height:" + S + "px;filter:drop-shadow(0 0 14px rgba(240,193,75,.9));will-change:transform";
-    s1.innerHTML = starSvg(true, S); ov.appendChild(s1); document.body.appendChild(ov); b.style.visibility = "hidden";
+    var s1 = document.createElement("div"); s1.style.cssText = "position:absolute;left:" + (cx - S / 2) + "px;top:" + (cy - S / 2) + "px;width:" + S + "px;height:" + S + "px;filter:drop-shadow(0 0 14px " + (pr ? "rgba(240,193,75,.9)" : "rgba(190,200,215,.95)") + ");will-change:transform";
+    s1.innerHTML = starSvg(true, S, "", !pr); ov.appendChild(s1); document.body.appendChild(ov); b.style.visibility = "hidden";
     setTimeout(function () { b.style.visibility = ""; try { ov.remove(); } catch (eo) {} }, 2600);
-    var cols = ["#F0C14B", "#FFE08A", "#FFFFFF", "#E0457B", "#3FA9F5"];
+    var cols = pr ? ["#F0C14B", "#FFE08A", "#FFFFFF", "#E0457B", "#3FA9F5"] : ["#FFFFFF", "#DDE3EA", "#BFC8D2"];
     for (var i = 0; i < 16; i++) {
       var p = document.createElement("i"), a = i / 16 * Math.PI * 2, d = 50 + Math.random() * 40, w = 5 + Math.random() * 5;
       p.style.cssText = "position:absolute;left:" + cx + "px;top:" + cy + "px;width:" + w + "px;height:" + w + "px;border-radius:50%;background:" + cols[i % cols.length]; ov.appendChild(p);
@@ -2061,15 +2089,15 @@ var DEFAULTS = {
       var a2 = s1.animate([{ transform: "translate(0,0) scale(1)" }, { transform: "translate(" + tx * .5 + "px," + (ty * .5 - 40) + "px) scale(.55)", offset: .5 }, { transform: "translate(" + tx + "px," + ty + "px) scale(" + fin + ")" }], { duration: 620, easing: "cubic-bezier(.5,0,.2,1)", fill: "forwards" });
       a2.onfinish = function () {
         b.style.visibility = ""; b.animate([{ transform: "scale(1)" }, { transform: "scale(1.45) rotate(-12deg)" }, { transform: "scale(1)" }], { duration: 420, easing: "ease-out" });
-        if (pr) confetti(ov, r.left + r.width / 2, r.top + r.height / 2, W, H);
-        s1.remove(); setTimeout(function () { ov.remove(); }, pr ? 2400 : 50);
+        if (pr) { confetti(ov, r.left + r.width / 2, r.top + r.height / 2, W, H, 100); rings(ov, r.left + r.width / 2, r.top + r.height / 2, "#F0C14B"); }
+        s1.remove(); setTimeout(function () { ov.remove(); }, pr ? 2600 : 50);
       };
     };
   }
   window.__starClose = starClose;
-  function confetti(ov, x, y, W, H) {
+  function confetti(ov, x, y, W, H, n) {
     var cols = ["#F0C14B", "#E0457B", "#4A6B3A", "#3FA9F5", "#F28C28", "#9B59B6", "#FFFFFF"];
-    for (var i = 0; i < 70; i++) {
+    for (var i = 0; i < (n || 70); i++) {
       var p = document.createElement("i"), w = 6 + Math.random() * 7, h = 10 + Math.random() * 12;
       p.style.cssText = "position:absolute;left:" + x + "px;top:" + y + "px;width:" + w + "px;height:" + h + "px;background:" + cols[i % cols.length] + ";border-radius:" + (Math.random() < .3 ? "50%" : "2px");
       ov.appendChild(p);
@@ -2079,7 +2107,7 @@ var DEFAULTS = {
   }
   function paintStar() {
     var st0 = $("star"); if (!st0) return; var pr = mySus.some(isPrem);
-    st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = starSvg(pr, 18) + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
+    st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = starSvg(true, 18, "", !pr) + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
   }
   try { var _cs = JSON.parse(localStorage.getItem("pk-sus") || "null"); if (_cs && _cs.length && (profile() || {}).g) { mySus = _cs; paintStar(); setTimeout(function () { try { starIntro(); } catch (eJ) {} }, 700); } } catch (e5) {}
   function susVig(sb) { var m = String(sb.pagado || "").match(/(\d{4})-(\d{2})/); return m ? new Date(+m[1], +m[2], 0, 23, 59, 59) : null; }
@@ -2090,7 +2118,7 @@ var DEFAULTS = {
     var vig = susVig(sb), pend = sb.estado === "Pendiente de pago", venc = !pend && vig && vig < now, ok = !pend && !venc;
     var estado = pend ? '<div class="svg pend">⏳ ' + esc(TX("susc_estado_pendiente")) + "</div>" : venc ? '<div class="svg venc">📬 ' + esc(TX("susc_vencida")) + "</div>" : '<div class="svg ok">✅ ' + esc(TX("susc_vigente")) + (vig ? " hasta el <b>" + longDate(vig) + "</b>" : "") + "</div>" + (sb.prox ? '<div class="svg prox">📦 Tu próxima caja llega el <b>' + esc(sb.prox) + "</b></div>" : "");
     var up = Number(String(data.config.susc_upgrade_precio || "").replace(/[^\d.]/g, "")) || 0;
-    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><div class="sstar">' + starSvg(true, 56) + '</div><h3>' + (pr ? "Sos suscriptor Premium" : "Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p"><b>¡Gracias por suscribirte con nosotros! 💚</b></p>' + estado +
+    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><div class="sstar">' + starSvg(true, 56, "", !pr) + '</div><h3>' + (pr ? "Sos suscriptor Premium" : "Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p"><b>¡Gracias por suscribirte con nosotros! 💚</b></p>' + estado +
       (ok ? "" : '<a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent(pend ? "¡Hola! Ya pagué mi suscripción " + (sb.plan || "") + "." : "¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">' + esc(pend ? "Avisar mi pago" : TX("susc_renovar")) + "</a>") +
       (pr ? "" : '<a class="btn up" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">' + esc(TX("susc_agrandar")) + (up > 0 ? " · " + money(up) + " más" : "") + "</a>") + "</div>";
   }
@@ -2377,7 +2405,7 @@ var DEFAULTS = {
 })();
 </script>
 
-<style>.star,.star.prem{background:none!important;box-shadow:none!important;border:0!important;padding:4px 6px!important;color:#7a5a00!important}.star svg{filter:drop-shadow(0 2px 4px rgba(224,176,74,.55))}</style>
+<style>.star,.star.prem{background:none!important;box-shadow:none!important;border:0!important;padding:4px 6px!important;color:#6b7480!important}.star.prem{color:#7a5a00!important}.star svg{filter:drop-shadow(0 2px 4px rgba(224,176,74,.55))}</style>
 <button type="button" id="totop" aria-label="Subir"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <script>
 (function(){
