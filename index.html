@@ -916,7 +916,7 @@ var DEFAULTS = {
     pedir_mail: "SI",
     carrusel_segundos: "4",
     cartel_mas_vendidas: "Más vendida",
-    google_client_id: "",
+    google_client_id: "138746441616-vi2j5772j53mkblujd7i2rof16urjqg7.apps.googleusercontent.com",
     titulo_quienes: "Quiénes somos",
     titulo_menu: "Nuestros productos",
     texto_menu: "Sumá la cantidad que quieras de cada uno. El total se arma solo.",
@@ -2050,7 +2050,7 @@ var DEFAULTS = {
     var st0 = $("star"); if (!st0) return; var pr = mySus.some(isPrem);
     st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = starSvg(pr, 18) + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
   }
-  try { var _cs = JSON.parse(localStorage.getItem("pk-sus") || "null"); if (_cs && _cs.length) { mySus = _cs; paintStar(); setTimeout(function () { try { starIntro(); } catch (eJ) {} }, 700); } } catch (e5) {}
+  try { var _cs = JSON.parse(localStorage.getItem("pk-sus") || "null"); if (_cs && _cs.length && (profile() || {}).g) { mySus = _cs; paintStar(); setTimeout(function () { try { starIntro(); } catch (eJ) {} }, 700); } } catch (e5) {}
   function susVig(sb) { var m = String(sb.pagado || "").match(/(\d{4})-(\d{2})/); return m ? new Date(+m[1], +m[2], 0, 23, 59, 59) : null; }
   function starOpen() {
     var pr = mySus.some(isPrem), sb = mySus[0] || {}, m = $("starm"), wa = "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=", now = new Date();

@@ -667,6 +667,7 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
     var nCj = cajasPend().length; if (ks.length || nCj) { var PA = catsOf(prepAll()), PK = catOrder(PA); h += '<div class="card" id="entregas" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px"><div style="min-width:0;flex:1"><button data-prep="1" style="border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;width:100%"><div class="nm">🥒 Qué tengo que preparar</div></button><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + (PK.length ? PK.map(function (k) { return '<button class="pchip" data-pcat="' + esc(k) + '">' + catDot(k) + PA[k].tot + " " + esc(k) + "</button>"; }).join("") : (nCj ? "" : '<span class="meta">Tocá para ver el detalle</span>')) + (nCj ? '<button class="pchip" data-pcaja="1">📦 ' + nCj + (nCj === 1 ? " caja" : " cajas") + "</button>" : "") + '</div></div><button data-prep="1" aria-label="Ver todo" style="border:0;background:none;font-size:1.4rem;color:var(--soft);padding:0 4px">›</button></div>'; }
     h += '<div class="nm" style="margin:6px 2px 8px">Atajos <span class="meta" style="font-weight:400">· acciones rápidas</span></div><div class="atj" id="atajos">' + [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["suscripciones", "📬", "Suscripciones"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["compras", "🛒", "Lista de compras"]].filter(function (x) { return x[0] === "compras" ? allowed("proveedores") : allowed(x[0]); }).map(function (x) { return '<button class="at" data-sc="' + x[0] + '"><i>' + x[1] + "</i><span>" + x[2] + "</span></button>"; }).join("") + "</div>";
+    h += faltHome();
     return todoH + h;
   }
   /* ---------- Más ---------- */
@@ -3123,7 +3124,7 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
     var buy = [];
     Object.keys(tot).forEach(function (kk) {
       var s0 = st.stock.filter(function (z) { return nrm(z.ins) === kk; })[0], have = s0 && s0.mov ? Number(s0.stock) || 0 : 0, m = tot[kk] - have;
-      if (m > 1e-9) { buy.push({ n: s0 ? s0.ins : nm[kk], uni: s0 ? s0.uni : un[kk], q: m, why: "p" }); short[kk] = 1; }
+      if (m > 1e-9) { buy.push({ n: s0 ? s0.ins : nm[kk], uni: s0 ? s0.uni : un[kk], q: m, why: "p", need: tot[kk], have: have }); short[kk] = 1; }
     });
     st.stock.forEach(function (x) { if (x.mov && x.nivel === "rojo" && x.min !== "" && !buy.some(function (b) { return nrm(b.n) === nrm(x.ins); })) { var m = Number(x.min) - (Number(x.stock) || 0); buy.push({ n: x.ins, uni: x.uni, q: m > 0 ? m : 0, why: "m" }); } });
     buy.sort(function (a, b) { return (a.why === b.why ? 0 : a.why === "p" ? -1 : 1) || a.n.localeCompare(b.n); });
@@ -3136,7 +3137,7 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
   function nameRed(n) { return blShort(n).length ? '<button type="button" class="miss" data-miss="' + esc(n) + '" style="border:0;background:none;padding:0;font:inherit;color:#B3261E;font-weight:800;text-align:left;text-decoration:underline dotted">' + esc(n) + " ⚠️</button>" : esc(n); }
   function missPop(n) {
     var sh = blShort(n), B = (st.blp && st.blp.buy) || [], d = popBase("missp", 340);
-    d.__c.innerHTML = popHead("⚠️ " + esc(n)) + '<div class="meta" style="margin-bottom:6px">Te falta para prepararlo:</div>' + (sh.length ? sh.map(function (x) { var b = B.filter(function (z) { return nrm(z.n) === nrm(x); })[0]; return '<div class="frow" style="padding:8px 0"><span style="color:#B3261E;font-weight:700">' + esc(x) + "</span><b>" + (b && b.q > 0 ? blFmt(b.q, b.uni) : "reponer") + "</b></div>"; }).join("") : '<div class="meta">Nada, tenés todo ✅</div>') + '<button class="sm" id="miss-buy" style="margin-top:10px">🛒 Ver lista de compras</button>';
+    d.__c.innerHTML = popHead("⚠️ " + esc(n)) + '<div class="meta" style="margin-bottom:6px">Te falta para prepararlo:</div>' + (sh.length ? sh.map(function (x) { var b = B.filter(function (z) { return nrm(z.n) === nrm(x); })[0]; return '<div class="frow" style="padding:8px 0;align-items:center"><span style="color:#B3261E;font-weight:700">' + esc(x) + '</span><span style="display:flex;align-items:center;gap:8px"><b>' + (b && b.q > 0 ? blFmt(b.q, b.uni) : "reponer") + '</b>' + cartBtn(x) + '</span></div>'; }).join("") : '<div class="meta">Nada, tenés todo ✅</div>') + '<button class="sm" id="miss-buy" style="margin-top:10px">🛒 Ver lista de compras</button>';
     d.querySelector("#miss-buy").onclick = function () { d.remove(); blBuy(); };
   }
   function cajasPop() {
@@ -3148,6 +3149,47 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
     d.addEventListener("click", function (e) { var b = e.target.closest("[data-cpr]"); if (b) { var o = blRd(CPK); o[b.getAttribute("data-cpr")] = 1; blWr(CPK, o); st.blp = blPlan(); d.__draw(); render(true); return; } if (e.target.closest("#cj-undo")) { blWr(CPK, {}); st.blp = blPlan(); d.__draw(); render(true); } });
   }
   document.addEventListener("click", function (e) { var t = e.target; if (!t.closest) return; var m = t.closest("[data-miss]"); if (m) { e.stopImmediatePropagation(); e.preventDefault(); missPop(m.getAttribute("data-miss")); return; } if (t.closest("[data-pcaja]")) { e.stopImmediatePropagation(); e.preventDefault(); cajasPop(); } }, true);
+
+  var CART_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.4 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.5L21 8H6"/><path d="M13 5v6M10 8h6"/></svg>';
+  function cartBtn(n) { return '<button type="button" data-cadd="' + esc(n) + '" aria-label="Agregar al carrito" style="width:38px;height:38px;border-radius:12px;border:1.5px solid var(--blue);background:#fff;color:var(--blue);display:grid;place-items:center;padding:0;flex:none">' + CART_SVG + "</button>"; }
+  function cartInfo(n) {
+    var B = (st.blp && st.blp.buy) || [], b = B.filter(function (z) { return nrm(z.n) === nrm(n); })[0], s0 = (st.stock || []).filter(function (z) { return nrm(z.ins) === nrm(n); })[0];
+    var uni = b ? b.uni : (s0 ? s0.uni : ""), miss = b && b.q > 0 ? b.q : 0, au = blRd(CKEY).auto || [], ex = au.filter(function (z) { return nrm(z.n) === nrm(n); })[0];
+    return { uni: uni, miss: miss, ex: ex };
+  }
+  var CU = { g: ["g", "kg"], ml: ["ml", "l"], u: ["unidad", "docena"], cm: ["cm", "m"] };
+  function cartAddPop(name) {
+    var I = cartInfo(name), base = UF[nrm(I.uni)], fam = base ? base[0] : null, units = fam ? CU[fam].slice() : [I.uni || "u"], bn = nrm(I.uni);
+    var cur = base ? (CU[fam].indexOf(I.uni) >= 0 ? I.uni : CU[fam][0]) : (I.uni || "u"), val = I.miss;
+    if (base && base[0] === "g" && val >= 1000) { cur = "kg"; val = val / 1000; } else if (base && base[0] === "ml" && val >= 1000) { cur = "l"; val = val / 1000; }
+    else if (base && nrm(cur) !== bn) val = val * base[1] / UF[nrm(cur)][1];
+    val = Math.ceil(val * 100 - 1e-9) / 100;
+    if (I.ex) { var pq = parseQty(I.ex.q, "") ; var mm = String(I.ex.q || "").match(/^([\d.,]+)\s*(.*)$/); if (mm) { val = parseAR(mm[1]); var uu = mm[2].trim(); if (uu && units.some(function (u) { return nrm(u) === nrm(uu); })) cur = units.filter(function (u) { return nrm(u) === nrm(uu); })[0]; } }
+    var d = popBase("cadd", 360); d.__u = cur;
+    function draw() {
+      d.__c.innerHTML = popHead("🛒 " + esc(name)) + (I.ex ? '<div class="meta" style="margin-bottom:6px;color:var(--ok);font-weight:700">Ya está en el carrito: se va a actualizar.</div>' : '<div class="meta" style="margin-bottom:6px">Confirmá cuánto agregar al carrito.</div>') +
+        '<div style="display:flex;gap:8px;align-items:center"><input class="inp" id="ca-q" inputmode="decimal" autocomplete="off" value="' + (val ? String(val).replace(".", ",") : "") + '" style="flex:1;min-width:0"><div style="display:flex;gap:6px">' + units.map(function (u) { return '<button type="button" class="sm' + (nrm(u) === nrm(d.__u) ? " on" : "") + '" data-ca-u="' + esc(u) + '" style="min-width:52px;' + (nrm(u) === nrm(d.__u) ? "background:var(--blue);color:#fff;border-color:var(--blue)" : "") + '">' + esc(u) + "</button>"; }).join("") + '</div></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn" id="ca-ok">' + (I.ex ? "Actualizar" : "Agregar") + '</button><button class="sm" id="ca-x">Cancelar</button></div>';
+    }
+    draw();
+    d.addEventListener("click", function (e) {
+      var t = e.target; if (!t.closest) return;
+      var u = t.closest("[data-ca-u]"); if (u) { var nu = u.getAttribute("data-ca-u"), n0 = parseAR(d.querySelector("#ca-q").value); if (n0 > 0 && UF[nrm(nu)] && UF[nrm(d.__u)] && UF[nrm(nu)][0] === UF[nrm(d.__u)][0]) val = Math.round(n0 * UF[nrm(d.__u)][1] / UF[nrm(nu)][1] * 1e4) / 1e4; else val = n0 > 0 ? n0 : val; d.__u = nu; draw(); return; }
+      if (t.closest("#ca-x")) { d.remove(); return; }
+      if (t.closest("#ca-ok")) {
+        var q = parseAR(d.querySelector("#ca-q").value); if (!(q > 0)) { toast("Poné la cantidad"); return; }
+        var o = blCarts(), txt = fm(q) + " " + d.__u, ex = o.auto.filter(function (z) { return nrm(z.n) === nrm(name); })[0];
+        if (ex) ex.q = txt; else o.auto.push({ n: (I.ex ? I.ex.n : name), q: txt, done: false });
+        blWr(CKEY, o); d.remove(); toast(ex ? "Carrito actualizado ✓" : "Agregado al carrito ✓"); if ($("buym") && $("buym").__draw) $("buym").__draw();
+      }
+    });
+  }
+  function faltHome() {
+    var B = ((st.blp && st.blp.buy) || []).filter(function (b) { return b.why === "p"; }); if (!B.length) return "";
+    return '<div class="nm" style="margin:14px 2px 8px">🛒 Insumos que faltan para los pedidos</div><div class="card" style="padding:6px 12px">' + B.map(function (b) {
+      return '<div class="frow" style="padding:9px 0;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:800;color:#B3261E">' + esc(b.n) + '</div><div class="meta">Tenés ' + blFmt(b.have > 0 ? b.have : 0, b.uni) + " · necesitás " + blFmt(b.need || 0, b.uni) + " · falta <b>" + blFmt(b.q, b.uni) + "</b></div></div>" + cartBtn(b.n) + "</div>";
+    }).join("") + "</div>";
+  }
+  document.addEventListener("click", function (e) { var c = e.target.closest && e.target.closest("[data-cadd]"); if (c) { e.stopImmediatePropagation(); e.preventDefault(); cartAddPop(c.getAttribute("data-cadd")); } }, true);
   function blShort(prod) {
     var P = st.blp, rec = (st.recetas || []).filter(function (r) { return nrm(r.nombre) === nrm(prod); })[0];
     if (!P || !rec || !rec.items) return [];
@@ -3382,7 +3424,7 @@ nav#nav,#nav{box-shadow:0 -4px 18px rgba(47,74,37,.10)}
   function blBuy(sel) {
     var d = popBase("buym", 440); if (sel) d.__sel = sel; d.__sel = d.__sel || "auto"; d.__ms = null; d.__ed = null; d.__pay = null; d.__imp = null; d.__mv = false; d.__pp = null;
     function cartOf(o, id) { return id === "auto" ? { id: "auto", n: "Automática", items: o.auto } : o.list.filter(function (c) { return c.id === id; })[0]; }
-    function autoRows() { var ck = blRd(BKEY), hx = blRd("uovo_adm_buyh"); return st.blp ? st.blp.buy.filter(function (b) { return hx[nrm(b.n) + "|" + b.q] == null; }).map(function (b) { var v = ck[nrm(b.n)]; return { k: nrm(b.n), n: b.n, q: b.q > 0 ? blFmt(b.q, b.uni) : "reponer", why: b.why, done: !!v, price: v && v !== 1 ? v : 0 }; }) : null; }
+    function autoRows() { var ck = blRd(BKEY), hx = blRd("uovo_adm_buyh"); var mn = (blRd(CKEY).auto || []).map(function (z) { return nrm(z.n); }); return st.blp ? st.blp.buy.filter(function (b) { return hx[nrm(b.n) + "|" + b.q] == null && mn.indexOf(nrm(b.n)) < 0; }).map(function (b) { var v = ck[nrm(b.n)]; return { k: nrm(b.n), n: b.n, q: b.q > 0 ? blFmt(b.q, b.uni) : "reponer", why: b.why, done: !!v, price: v && v !== 1 ? v : 0 }; }) : null; }
     function mrow(it, i) { return { k: "m" + i, n: it.n, q: it.q || "", man: i, done: !!it.done, price: it.price || 0 }; }
     function rowsOf(o, id) {
       if (id === "auto") { var A = autoRows() || []; return A.concat(o.auto.map(mrow)); }
