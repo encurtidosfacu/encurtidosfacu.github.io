@@ -2047,7 +2047,7 @@ var DEFAULTS = {
     if (window.__starFx) return;
     var b = $("star"); if (!b || b.hidden || !mySus.length) return;
     window.__starFx = 1;
-    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    
     var pr = mySus.some(isPrem), W = innerWidth, H = innerHeight, big = Math.max(W, H) * 1.25;
     if (!pr) { starIntroStd(b); return; }
     var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
@@ -2071,7 +2071,7 @@ var DEFAULTS = {
     var cx = br ? br.left + br.width / 2 : W / 2, cy = br ? br.top + Math.min(br.height / 2, 120) : H / 2;
     m.hidden = true;
     var b = $("star"); if (!b || b.hidden || !mySus.length) return;
-    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    
     var pr = mySus.some(isPrem), r = b.getBoundingClientRect(), S = 110;
     var ov = document.createElement("div"); ov.style.cssText = "position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden";
     var s1 = document.createElement("div"); s1.style.cssText = "position:absolute;left:" + (cx - S / 2) + "px;top:" + (cy - S / 2) + "px;width:" + S + "px;height:" + S + "px;filter:drop-shadow(0 0 14px " + (pr ? "rgba(240,193,75,.9)" : "rgba(190,200,215,.95)") + ");will-change:transform";
