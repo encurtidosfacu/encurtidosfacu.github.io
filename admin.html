@@ -234,6 +234,12 @@ body.nobadge #bell-n{display:none!important}
 .top{box-shadow:0 2px 10px rgba(47,74,37,.25)}
 .btn{box-shadow:0 2px 8px rgba(47,74,37,.22)}
 .sm.red.arm,.qx.arm{background-image:none}
+.atj.atedit .at{position:relative;touch-action:none;animation:atw .32s ease-in-out infinite alternate}
+.atj.atedit .at:nth-child(even){animation-delay:.12s}
+@keyframes atw{from{transform:rotate(-1.6deg)}to{transform:rotate(1.6deg)}}
+.at .atx{position:absolute;top:-6px;left:-6px;width:24px;height:24px;border-radius:50%;background:#B3261E;color:#fff;font:700 18px/22px sans-serif;text-align:center;text-decoration:none;box-shadow:0 1px 4px rgba(0,0,0,.3);z-index:2}
+.at.atplus{border:2px dashed var(--blue);background:transparent!important;color:var(--blue);animation:none!important}
+.at.atdrag{animation:none!important;z-index:5;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:.95}
 </style>
 </head>
 <body>
@@ -413,6 +419,7 @@ body.nobadge #bell-n{display:none!important}
   var SUB = ["tarjetas", "suscripciones", "tandas", "packs", "recetas", "textos", "proveedores", "stock", "puntos", "cupones", "accesos", "voz", "resenas"];
   function goto(v) {
     if (!allowed(v)) v = firstView();
+    st.atEdit = false;
     modFor(v);
     st.v = v; store("uovo_adm_v", v); var nk = (st.mod && st.mod !== "gen") ? v : (SUB.indexOf(v) >= 0 ? "mas" : v);
     Array.prototype.forEach.call($("nav").querySelectorAll("button"), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === nk); });
@@ -427,7 +434,9 @@ body.nobadge #bell-n{display:none!important}
   function fetchView(v) {
     if (v === "suscripciones" || v === "tarjetas") { loadSu(); return; }
     if (v === "textos") { fetchTextos(); return; }
+    if (v === "tandas") { st.__tl = 0; tLoad(true); return; }
     if (v === "voz") { api("vozEstado").then(function (j) { st.vz = !!(j && j.clave); st.loaded.voz = true; if (st.v === "voz") render(); }).catch(function () {}); return; }
+    if (v === "inicio" && allowed("suscripciones") && !st.su && !st.suf) { st.suf = 1; api("suscData").then(function (j) { if (j && j.ok) { st.su = j; st.blp = blPlan(); if (st.v === "inicio") render(true); } }).catch(function () {}); }
     if (v === "inicio" && allowed("proveedores") && !st.stkf) { st.stkf = 1; api("stock").then(function (j) { if (j && j.ok) { st.stock = j.stock; st.alertas = !!j.alertas; if (st.alertas) api("recetas2").then(function (k) { if (k && k.ok) { st.recetas = k.recetas; st.insumos = k.insumos; if (st.v === "inicio") render(true); } }).catch(function () {}); if (st.v === "inicio") render(true); } }).catch(function () {}); }
     var op = v === "puntos" ? "stock" : v === "inicio" ? "pedidos" : v === "resenas" ? "resenas" : v === "productos" ? "catalogo" : v === "recetas" ? "recetas2" : v === "packs" ? "packs2" : v;
     if ((v === "recetas" || v === "packs") && !st.loaded.productos) api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === v) render(true); } }).catch(function () {});
@@ -618,7 +627,7 @@ body.nobadge #bell-n{display:none!important}
     stkAlertLines().forEach(function (x) { al.push(x); });
     if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" ' + (x[1] === "__agot" ? 'data-agot="1"' : 'data-go="' + x[1] + '" data-fil="' + x[2] + '"') + ' style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
-    if (ks.length) { var PA = catsOf(prepAll()), PK = catOrder(PA); h += '<div class="card" id="entregas" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px"><div style="min-width:0;flex:1"><button data-prep="1" style="border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;width:100%"><div class="nm">🥒 Qué tengo que preparar</div></button><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + (PK.length ? PK.map(function (k) { return '<button class="pchip" data-pcat="' + esc(k) + '">' + catDot(k) + PA[k].tot + " " + esc(k) + "</button>"; }).join("") : '<span class="meta">Tocá para ver el detalle</span>') + '</div></div><button data-prep="1" aria-label="Ver todo" style="border:0;background:none;font-size:1.4rem;color:var(--soft);padding:0 4px">›</button></div>'; }
+    var nCj = cajasPend().length; if (ks.length || nCj) { var PA = catsOf(prepAll()), PK = catOrder(PA); h += '<div class="card" id="entregas" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px"><div style="min-width:0;flex:1"><button data-prep="1" style="border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;width:100%"><div class="nm">🥒 Qué tengo que preparar</div></button><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + (PK.length ? PK.map(function (k) { return '<button class="pchip" data-pcat="' + esc(k) + '">' + catDot(k) + PA[k].tot + " " + esc(k) + "</button>"; }).join("") : (nCj ? "" : '<span class="meta">Tocá para ver el detalle</span>')) + (nCj ? '<button class="pchip" data-pcaja="1">📦 ' + nCj + (nCj === 1 ? " caja" : " cajas") + "</button>" : "") + '</div></div><button data-prep="1" aria-label="Ver todo" style="border:0;background:none;font-size:1.4rem;color:var(--soft);padding:0 4px">›</button></div>'; }
     h += '<div class="nm" style="margin:6px 2px 8px">Atajos <span class="meta" style="font-weight:400">· acciones rápidas</span></div><div class="atj" id="atajos">' + [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["suscripciones", "📬", "Suscripciones"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["compras", "🛒", "Lista de compras"]].filter(function (x) { return x[0] === "compras" ? allowed("proveedores") : allowed(x[0]); }).map(function (x) { return '<button class="at" data-sc="' + x[0] + '"><i>' + x[1] + "</i><span>" + x[2] + "</span></button>"; }).join("") + "</div>";
     return todoH + h;
   }
@@ -1419,6 +1428,7 @@ body.nobadge #bell-n{display:none!important}
           '<div class="add" style="margin-top:10px"><div style="display:flex;gap:8px"><input class="inp" data-spf="precio" type="number" inputmode="numeric" placeholder="Precio $" value="' + (p.precio || "") + '"><input class="inp" data-spf="cupos" type="number" inputmode="numeric" placeholder="Cupos" value="' + (p.cupos || "") + '"></div>' +
           '<textarea class="inp" rows="2" data-spf="desc" placeholder="Descripción del plan">' + esc(p.desc) + '</textarea>' +
           '<div class="meta" style="margin-bottom:-2px"><b>📦 Qué lleva la caja</b> · tocá para sumar o quitar</div><div class="chips" style="flex-wrap:wrap" data-s2-chips="1">' + (all.length ? all.map(function (n) { var on = !!sel[nrm(n)]; return '<button class="chip' + (on ? " on" : "") + '" data-s2-chip="1" data-s2-line="' + esc(on ? sel[nrm(n)] : n) + '">' + esc(n) + "</button>"; }).join("") : '<span class="meta">Cargando productos…</span>') + '</div>' +
+          '<div style="display:flex;gap:6px"><input class="inp" data-s2-free="1" placeholder="Otro ítem (ej. Bondiola premium — 200 g)" style="flex:1;min-width:0"><button class="btn" data-s2-fadd="1" style="width:48px;padding:0;font-size:1.4rem" aria-label="Agregar ítem">＋</button></div>' +
           '<div class="meta" style="margin-bottom:-4px">Fecha límite del precio actual (cuenta regresiva en la tienda, opcional)</div><input class="inp" data-spf="ajuste" type="date" value="' + esc(p.ajuste) + '">' +
           '<div style="display:flex;gap:8px"><button class="btn" data-s2-psave="1">Guardar plan</button><button class="sm red" data-s2-pdel="1">Eliminar</button></div></div></article>';
       }).join("");
@@ -1470,6 +1480,7 @@ body.nobadge #bell-n{display:none!important}
     if (q("[data-s2-pnew]")) { stop(); st.s2pn = !st.s2pn; render(true); return; }
     if (q("[data-s2-pcreate]")) { stop(); var c0 = q(".card"); api("saveSuscPlan", { r: 0, plan: val(c0, "[data-s2n=plan]"), precio: Number(val(c0, "[data-s2n=precio]")) || 0, cupos: Number(val(c0, "[data-s2n=cupos]")) || 0, desc: val(c0, "[data-s2n=desc]"), contenido: "" }).then(function (j) { if (j && j.ok) st.s2pn = false; suSet(j, "Plan creado ✓"); }).catch(fail); return; }
     if ((x = q("[data-s2-chip]"))) { stop(); x.classList.toggle("on"); return; }
+    if ((x = q("[data-s2-fadd]"))) { stop(); var fc = x.closest(".add"), fi = fc.querySelector("[data-s2-free]"), ft = fi.value.trim(); if (!ft) { toast("Escribí el ítem"); return; } var fb = fc.querySelector("[data-s2-chips]"), fe = document.createElement("button"); fe.className = "chip on"; fe.setAttribute("data-s2-chip", "1"); fe.setAttribute("data-s2-line", ft); fe.textContent = s2Name(ft); fb.appendChild(fe); fi.value = ""; fi.focus(); return; }
     if (q("[data-s2-psave]")) {
       stop(); var card = q("[data-spr]"), pp = D.planes.filter(function (p) { return p.r === Number(card.getAttribute("data-spr")); })[0]; if (!pp) return;
       var lines = [].map.call(card.querySelectorAll("[data-s2-chip].on"), function (b) { return b.getAttribute("data-s2-line"); });
@@ -1544,7 +1555,7 @@ body.nobadge #bell-n{display:none!important}
     Promise.all([api("rondas"), api("cola"), api("espera")]).then(function (r) {
       st.rondas = r[0] && r[0].ok ? r[0].rondas : []; st.cola = r[1] && r[1].ok ? r[1].cola : []; st.espera = r[2] && r[2].ok ? r[2].espera : [];
       if (["tandas", "pdash", "inicio", "pedidos"].indexOf(st.v) >= 0) render(true);
-    }).catch(function () { st.rondas = st.rondas || []; st.cola = st.cola || []; st.espera = st.espera || []; st.__tl = 0; });
+    }).catch(function () { st.rondas = st.rondas || []; st.cola = st.cola || []; st.espera = st.espera || []; st.__tl = 0; if (st.v === "tandas") render(true); });
   }
   function colaBanner() {
     tLoad(); var n = (st.cola || []).filter(function (c) { return c.estado === "En cola"; }).length; if (!n) return "";
@@ -2319,6 +2330,8 @@ body.nobadge #bell-n{display:none!important}
     { t: "Fijar un punto de pedido rápido", k: "punto pedido minimo alerta stock avisar rapido", go: "inicio", p: ["Tocá el atajo Puntos de pedido.", "Elegí el insumo.", "Poné el mínimo y Guardar: la alerta queda creada."] },
     { t: "Cargar o corregir el precio de un insumo sin compra", k: "precio insumo cargar corregir olvide compra signo pesos", go: "proveedores", p: ["Abrí Insumos.", "Deslizá el insumo hacia la derecha.", "Tocá $ y poné el precio. El stock no cambia."] },
     { t: "Productos sin receta", k: "falta receta productos sin receta", go: "recetas", p: ["En Recetas, los productos sin receta aparecen con ❗ Falta receta.", "Tocá Cargar para armarla."] },
+    { t: "Mover, quitar y agregar atajos del inicio", k: "atajo atajos mover ordenar quitar agregar acciones rapidas mantener apretado", go: "inicio", p: ["Mantené apretado un atajo: todos se mueven. Arrastrá para ordenarlos, tocá el − rojo para quitar y el ＋ para agregar con interruptores.", "Tocá «Listo ✓» para terminar."] },
+    { t: "Qué tengo que preparar: cajas y faltantes", k: "preparar cajas suscripcion faltante rojo ingredientes falta", go: "inicio", p: ["Además de pedidos, aparecen las cajas de suscripción por enviar: tocá el chip 📦 y marcá cada una como Preparada.", "Si a un producto le falta un ingrediente se pinta en rojo: tocalo y ves qué te falta."] },
     { t: "Tandas: abrir y cerrar pedidos solos", k: "tanda tandas abrir cerrar pedidos programar apertura cierre entrega fecha", go: "tandas", p: ["En Más → Tandas y cola tocá «Nueva tanda» y cargá cuándo abren, cuándo cierran y cuándo entregás.", "Los pedidos se abren y cierran solos en esas fechas. Deslizá una tanda: izquierda abre hoy, derecha cierra o borra."] },
     { t: "Cola de pedidos y lista de espera", k: "cola espera lista añadir cola whatsapp mail avisar prioridad", go: "tandas", p: ["Con pedidos cerrados el cliente toca «Añadir a la cola» y deja su contacto.", "En Tandas y cola → Cola: deslizá a la izquierda para pasar a pedido, a la derecha para escribirle por WhatsApp o descartar. Mantené apretado para seleccionar varios."] },
     { t: "Editar todos los textos de la tienda", k: "textos editar tienda frases mensajes cola tanda suscripcion", go: "textos", p: ["En Textos están todos los mensajes de la tienda. La sección «9 · Textos extra» tiene los de tandas, cola y suscripciones."] },
@@ -2887,7 +2900,7 @@ body.nobadge #bell-n{display:none!important}
       var G = {}, tot = {}, order = [];
       (st.pedidos || []).forEach(function (p) { var e = estadoDe(p); if (e === "ent" || e === "canc" || e === "test") return; var k = p.entrega || "Sin fecha"; if (!G[k]) { G[k] = {}; order.push(k); } var it = pedItems(p); Object.keys(it.frascos).forEach(function (n) { G[k][n] = (G[k][n] || 0) + it.frascos[n]; tot[n] = (tot[n] || 0) + it.frascos[n]; }); });
       order.sort(function (a, b) { return (a === "Sin fecha") - (b === "Sin fecha"); });
-      function lst(o) { var C = catsOf(o), K = catOrder(C); return K.length ? K.map(function (c) { return '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-weight:800">' + catDot(c) + esc(c) + ' <span class="badge o">' + C[c].tot + "</span></div>" + Object.keys(C[c].prods).sort(function (a, b) { return C[c].prods[b] - C[c].prods[a]; }).map(function (n) { var sh = blShort(n); return '<div class="frow"><span>' + esc(n) + "</span><b>" + C[c].prods[n] + "</b></div>" + (sh.length ? '<div style="background:#FBE9E7;color:#B3261E;border-radius:10px;padding:6px 10px;margin:2px 0 6px;font-size:.85rem;font-weight:700">⚠️ Sin stock: ' + sh.map(esc).join(", ") + "</div>" : ""); }).join(""); }).join("") : '<div class="meta">Nada para preparar.</div>'; }
+      function lst(o) { var C = catsOf(o), K = catOrder(C); return K.length ? K.map(function (c) { return '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 2px;font-weight:800">' + catDot(c) + esc(c) + ' <span class="badge o">' + C[c].tot + "</span></div>" + Object.keys(C[c].prods).sort(function (a, b) { return C[c].prods[b] - C[c].prods[a]; }).map(function (n) { return '<div class="frow"><span>' + nameRed(n) + "</span><b>" + C[c].prods[n] + "</b></div>"; }).join(""); }).join("") : '<div class="meta">Nada para preparar.</div>'; }
       var d = document.createElement("div"); d.className = "modal"; d.id = "prepm";
       d.innerHTML = '<div class="card" style="width:min(440px,100%);margin:0;max-height:90vh;overflow:auto"><div class="nm" style="margin-bottom:8px">🥒 Qué tengo que preparar</div>' + (order.length ? '<div class="meta" style="font-weight:700">Todo junto</div>' + lst(tot) + order.map(function (k) { return '<div class="meta" style="margin-top:12px;font-weight:700">' + esc(k) + "</div>" + lst(G[k]); }).join("") : '<div class="empty">No hay nada pendiente 🎉</div>') + '<button class="btn" id="prep-x" style="margin-top:12px">Listo</button></div>';
       document.body.appendChild(d); d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("#prep-x")) d.remove(); });
@@ -2897,7 +2910,7 @@ body.nobadge #bell-n{display:none!important}
       var b = e.target.closest && e.target.closest("[data-pcat]"); if (!b) return; e.stopPropagation(); e.preventDefault();
       var c = b.getAttribute("data-pcat"), C = catsOf(prepAll()), o = C[c]; if (!o) return;
       var d = popBase("catm", 400);
-      d.__c.innerHTML = popHead(catDot(c) + " " + esc(c) + ' <span class="badge o">' + o.tot + "</span>") + Object.keys(o.prods).sort(function (x, y) { return o.prods[y] - o.prods[x]; }).map(function (n) { var sh = blShort(n); return '<div class="frow" style="padding:10px 0"><span>' + esc(n) + "</span><b>" + o.prods[n] + "</b></div>" + (sh.length ? '<div style="background:#FBE9E7;color:#B3261E;border-radius:10px;padding:6px 10px;margin:0 0 6px;font-size:.85rem;font-weight:700">⚠️ Sin stock: ' + sh.map(esc).join(", ") + "</div>" : ""); }).join("") + '<button class="sm" id="cat-all" style="margin-top:10px">Ver todo por categoría ›</button>'; d.querySelector("#cat-all").onclick = function () { d.remove(); prepModal(); };
+      d.__c.innerHTML = popHead(catDot(c) + " " + esc(c) + ' <span class="badge o">' + o.tot + "</span>") + Object.keys(o.prods).sort(function (x, y) { return o.prods[y] - o.prods[x]; }).map(function (n) { return '<div class="frow" style="padding:10px 0"><span>' + nameRed(n) + "</span><b>" + o.prods[n] + "</b></div>"; }).join("") + '<button class="sm" id="cat-all" style="margin-top:10px">Ver todo por categoría ›</button>'; d.querySelector("#cat-all").onclick = function () { d.remove(); prepModal(); };
     }, true);
     document.addEventListener("click", function (e) {
       var cr = e.target.closest && e.target.closest("[data-crumb]"), open = document.querySelector(".crdd");
@@ -3025,6 +3038,20 @@ body.nobadge #bell-n{display:none!important}
       });
       res[p.r] = { s: falta.length ? "falta" : (Object.keys(need).length ? "ok" : "sin"), falta: falta, noRec: noRec };
     });
+    cajasPend().forEach(function (c) {
+      var fr = {}, need = {}, noRec = [], falta = []; cajaLines(c).forEach(function (n) { fr[n] = (fr[n] || 0) + 1; });
+      Object.keys(fr).forEach(function (k) {
+        var rec = st.recetas.filter(function (r) { return nrm(r.nombre) === nrm(k); })[0];
+        if (!rec || !rec.y || !rec.items || !rec.items.length) { noRec.push(k); return; }
+        rec.items.forEach(function (x) { var kk = nrm(x.n); need[kk] = (need[kk] || 0) + x.q / rec.y * fr[k]; nm[kk] = x.n; un[kk] = un[kk] || x.u; });
+      });
+      Object.keys(need).forEach(function (kk) {
+        var a = av[kk] || (av[kk] = { q: 0, uni: un[kk], name: nm[kk] }); tot[kk] = (tot[kk] || 0) + need[kk];
+        if (a.q + 1e-9 < need[kk]) falta.push({ n: a.name, uni: a.uni || un[kk], need: need[kk], have: a.q, miss: need[kk] - a.q });
+        a.q = Math.max(0, a.q - need[kk]);
+      });
+      res["c:" + c.id] = { s: falta.length ? "falta" : (Object.keys(need).length ? "ok" : "sin"), falta: falta, noRec: noRec };
+    });
     var buy = [];
     Object.keys(tot).forEach(function (kk) {
       var s0 = st.stock.filter(function (z) { return nrm(z.ins) === kk; })[0], have = s0 && s0.mov ? Number(s0.stock) || 0 : 0, m = tot[kk] - have;
@@ -3034,6 +3061,25 @@ body.nobadge #bell-n{display:none!important}
     buy.sort(function (a, b) { return (a.why === b.why ? 0 : a.why === "p" ? -1 : 1) || a.n.localeCompare(b.n); });
     return { by: res, buy: buy, short: short, nor: Object.keys(nor) };
   }
+  var CPK = "uovo_adm_cajaprep";
+  function cajasPend() { var D = st.su; if (!D || !D.envios) return []; var pr = blRd(CPK); return D.envios.filter(function (e) { return !e.enviado && !e.entregado && !pr[e.id] && String(e.contenido || "").trim(); }); }
+  function cajaLines(c) { return String(c.contenido || "").split(/\n+/).map(function (z) { return z.trim(); }).filter(Boolean).map(function (l) { return l.split(/\s+[—-]\s+/)[0].trim(); }); }
+  function cajaWho(c) { var sb = ((st.su && st.su.suscriptores) || []).filter(function (x) { return x.id === c.sid; })[0] || {}; return { n: sb.nombre || "Suscriptor", p: sb.plan || "" }; }
+  function nameRed(n) { return blShort(n).length ? '<button type="button" class="miss" data-miss="' + esc(n) + '" style="border:0;background:none;padding:0;font:inherit;color:#B3261E;font-weight:800;text-align:left;text-decoration:underline dotted">' + esc(n) + " ⚠️</button>" : esc(n); }
+  function missPop(n) {
+    var sh = blShort(n), B = (st.blp && st.blp.buy) || [], d = popBase("missp", 340);
+    d.__c.innerHTML = popHead("⚠️ " + esc(n)) + '<div class="meta" style="margin-bottom:6px">Te falta para prepararlo:</div>' + (sh.length ? sh.map(function (x) { var b = B.filter(function (z) { return nrm(z.n) === nrm(x); })[0]; return '<div class="frow" style="padding:8px 0"><span style="color:#B3261E;font-weight:700">' + esc(x) + "</span><b>" + (b && b.q > 0 ? blFmt(b.q, b.uni) : "reponer") + "</b></div>"; }).join("") : '<div class="meta">Nada, tenés todo ✅</div>') + '<button class="sm" id="miss-buy" style="margin-top:10px">🛒 Ver lista de compras</button>';
+    d.querySelector("#miss-buy").onclick = function () { d.remove(); blBuy(); };
+  }
+  function cajasPop() {
+    var d = popBase("cajasp", 420); d.__draw = function () {
+      var L = cajasPend(), done = Object.keys(blRd(CPK)).length;
+      d.__c.innerHTML = popHead("📦 Cajas para preparar") + (L.length ? L.map(function (c) { var w = cajaWho(c), r = st.blp && st.blp.by["c:" + c.id];
+        return '<div class="card" style="margin:0 0 8px;padding:10px 12px"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><div class="nm">' + esc(w.n) + '</div><div class="meta">' + esc(w.p) + (r && r.s === "falta" ? ' · <span style="color:var(--err);font-weight:800">🔴 faltan ingredientes</span>' : "") + '</div></div><button class="sm" data-cpr="' + esc(c.id) + '">✅ Preparada</button></div><div style="margin-top:6px;line-height:1.7">' + String(c.contenido).split(/\n+/).filter(Boolean).map(function (l) { var n = l.split(/\s+[—-]\s+/)[0].trim(), f = r && r.falta.some(function (z) { return blShort(n).indexOf(z.n) >= 0; }); return '<div>• ' + (blShort(n).length ? nameRed(n) : esc(l)) + "</div>"; }).join("") + "</div></div>"; }).join("") : '<div class="empty">No hay cajas por preparar 🎉</div>') + (done ? '<button class="sm" id="cj-undo" style="margin-top:6px">Deshacer preparadas (' + done + ")</button>" : "");
+    }; d.__draw();
+    d.addEventListener("click", function (e) { var b = e.target.closest("[data-cpr]"); if (b) { var o = blRd(CPK); o[b.getAttribute("data-cpr")] = 1; blWr(CPK, o); st.blp = blPlan(); d.__draw(); render(true); return; } if (e.target.closest("#cj-undo")) { blWr(CPK, {}); st.blp = blPlan(); d.__draw(); render(true); } });
+  }
+  document.addEventListener("click", function (e) { var t = e.target; if (!t.closest) return; var m = t.closest("[data-miss]"); if (m) { e.stopImmediatePropagation(); e.preventDefault(); missPop(m.getAttribute("data-miss")); return; } if (t.closest("[data-pcaja]")) { e.stopImmediatePropagation(); e.preventDefault(); cajasPop(); } }, true);
   function blShort(prod) {
     var P = st.blp, rec = (st.recetas || []).filter(function (r) { return nrm(r.nombre) === nrm(prod); })[0];
     if (!P || !rec || !rec.items) return [];
@@ -3585,12 +3631,70 @@ body.nobadge #bell-n{display:none!important}
     var S = B.map(function (b, i) { return { b: b, i: i }; }).sort(function (a, c) { return idx(a.b.key) - idx(c.b.key) || a.i - c.i; });
     S.forEach(function (x) { x.b.els.forEach(function (e) { if (u.hide.indexOf(x.b.key) >= 0) e.remove(); else v.appendChild(e); }); });
     Array.prototype.forEach.call(v.querySelectorAll(".atj"), function (box) {
+      atExtras(box, u);
       var items = Array.prototype.slice.call(box.children), ik = function (e) { return e.getAttribute("data-sc") || e.getAttribute("data-go") || e.getAttribute("data-mod") || (e.hasAttribute("data-buy") ? "buy" : e.textContent.trim()); };
       items.forEach(function (e) { var k = ik(e), sp = e.querySelector("span"); if (u.atLab[k] && sp) sp.textContent = u.atLab[k]; });
       items.slice().sort(function (a, c) { var x = u.atOrd.indexOf(ik(a)), y = u.atOrd.indexOf(ik(c)); return (x < 0 ? 1000 : x) - (y < 0 ? 1000 : y); }).forEach(function (e) { if (u.atHide.indexOf(ik(e)) >= 0) e.remove(); else box.appendChild(e); });
+      atDecor(box, u);
     });
     if (ch) uiSave();
   }
+  /* ---------- Atajos editables (mantener apretado) ---------- */
+  var AT_QUICK = [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["suscripciones", "📬", "Suscripciones"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["compras", "🛒", "Lista de compras"]];
+  var AT_GO = [["pedidos", "📋", "Pedidos"], ["productos", "🥒", "Productos"], ["finanzas", "📊", "Finanzas"], ["tarjetas", "🖨️", "Tarjetas"], ["tandas", "📅", "Tandas y cola"], ["puntos", "🎯", "Puntos de pedido"], ["resenas", "⭐", "Reseñas"], ["accesos", "🔑", "Accesos"]];
+  function atKey(e) { return e.getAttribute("data-sc") || e.getAttribute("data-go") || e.getAttribute("data-mod") || (e.hasAttribute("data-buy") ? "buy" : e.textContent.trim()); }
+  function atCatalog() { var seen = {}, out = []; AT_QUICK.forEach(function (x) { if (x[0] === "compras" ? !allowed("proveedores") : !allowed(x[0])) return; seen[x[0]] = 1; out.push({ k: x[0], t: "sc", e: x[1], l: x[2] }); }); AT_GO.forEach(function (x) { if (seen[x[0]] || !allowed(x[0])) return; out.push({ k: x[0], t: "go", e: x[1], l: x[2] }); }); return out; }
+  function atExtras(box, u) {
+    if (box !== $("view").querySelector(".atj")) return; var have = {}; Array.prototype.forEach.call(box.children, function (e) { have[atKey(e)] = 1; });
+    (u.atExtra || []).forEach(function (x) { if (have[x.k]) return; var b = document.createElement("button"); b.className = "at"; b.setAttribute(x.t === "sc" ? "data-sc" : "data-go", x.k); b.innerHTML = "<i>" + x.e + "</i><span>" + esc(x.l) + "</span>"; box.appendChild(b); });
+  }
+  function atDecor(box, u) {
+    if (!st.atEdit || box !== $("view").querySelector(".atj")) return; box.classList.add("atedit");
+    Array.prototype.forEach.call(box.children, function (e) { if (e.classList.contains("atplus")) return; e.setAttribute("data-atk", atKey(e)); if (!e.querySelector(".atx")) { var x = document.createElement("u"); x.className = "atx"; x.textContent = "−"; x.setAttribute("data-atx", atKey(e)); e.appendChild(x); } });
+    var p = document.createElement("button"); p.className = "at atplus"; p.setAttribute("data-atadd", "1"); p.innerHTML = "<i>＋</i><span>Agregar</span>"; box.appendChild(p);
+    if (!document.getElementById("atdone")) { var d = document.createElement("div"); d.id = "atdone"; d.className = "meta"; d.style.cssText = "display:flex;align-items:center;gap:8px;margin:-4px 2px 8px"; d.innerHTML = '<span style="flex:1">Arrastrá para ordenar · − para quitar · ＋ para agregar</span><button class="sm" data-atdone="1">Listo ✓</button>'; box.parentNode.insertBefore(d, box); }
+  }
+  function atSave(u) { uiSave(); st.atEdit = true; render(true); }
+  function atPop() {
+    var m = st.mod || "gen", u = uiM(m); u.atExtra = u.atExtra || []; var d = popBase("atpop", 400);
+    function draw() {
+      var box = $("view").querySelector(".atj"), cur = {}; if (box) Array.prototype.forEach.call(box.children, function (e) { if (e.getAttribute("data-atk")) cur[e.getAttribute("data-atk")] = 1; });
+      d.__c.innerHTML = popHead("Atajos de este inicio") + '<div class="meta" style="margin-bottom:8px">Activá los que quieras ver. Los nuevos aparecen al final; después los acomodás arrastrando.</div>' + atCatalog().map(function (c) {
+        return '<div class="frow" style="padding:10px 0;align-items:center"><span style="flex:1">' + c.e + " " + esc(c.l) + ' <span class="meta">· ' + (c.t === "sc" ? "rápido (popup)" : "ir a la sección") + '</span></span><button class="cf-sw' + (cur[c.k] ? " on" : "") + '" data-atsw="' + c.k + '" aria-label="' + esc(c.l) + '"><i></i></button></div>';
+      }).join("");
+    }
+    draw();
+    d.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-atsw]"); if (!b) { if (e.target === d || e.target.closest("[data-pclose]")) { d.remove(); } return; }
+      var k = b.getAttribute("data-atsw"), on = b.classList.contains("on"), c = atCatalog().filter(function (z) { return z.k === k; })[0];
+      if (on) { var ix = u.atExtra.map(function (z) { return z.k; }).indexOf(k); if (ix >= 0) u.atExtra.splice(ix, 1); else if (u.atHide.indexOf(k) < 0) u.atHide.push(k); }
+      else { var hi = u.atHide.indexOf(k); if (hi >= 0) u.atHide.splice(hi, 1); else if (u.atExtra.map(function (z) { return z.k; }).indexOf(k) < 0) u.atExtra.push({ k: k, t: c.t, e: c.e, l: c.l }); u.atOrd = u.atOrd.filter(function (z) { return z !== k; }).concat(hi >= 0 ? [] : []); }
+      uiSave(); st.atEdit = true; render(true); setTimeout(draw, 30);
+    });
+  }
+  (function atEvents() {
+    var LP = null, sup = 0, drag = null;
+    document.addEventListener("pointerdown", function (e) {
+      var t = e.target.closest ? e.target.closest("#view .atj .at") : null; if (!t) return;
+      if (st.atEdit) { if (t.classList.contains("atplus") || e.target.closest(".atx")) return; drag = { el: t, x: e.clientX, y: e.clientY, on: 0, id: e.pointerId }; return; }
+      clearTimeout(LP); LP = setTimeout(function () { sup = Date.now(); st.atEdit = true; if (navigator.vibrate) try { navigator.vibrate(20); } catch (x) {} render(true); }, 480);
+    });
+    ["pointerup", "pointercancel"].forEach(function (n) { document.addEventListener(n, function () { clearTimeout(LP); if (drag && drag.on) { sup = Date.now(); drag.el.classList.remove("atdrag"); drag.el.style.transform = ""; var box = drag.el.parentNode, u = uiM(st.mod || "gen"); u.atOrd = Array.prototype.map.call(box.children, function (z) { return z.getAttribute("data-atk"); }).filter(Boolean); uiSave(); } drag = null; }); });
+    document.addEventListener("pointermove", function (e) {
+      if (LP && (Math.abs(e.movementX) > 6 || Math.abs(e.movementY) > 6)) { clearTimeout(LP); LP = null; }
+      if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (!drag.on && Math.abs(dx) + Math.abs(dy) < 8) return; drag.on = 1; drag.el.classList.add("atdrag"); drag.el.style.transform = "translate(" + dx + "px," + dy + "px) scale(1.06)";
+      drag.el.style.pointerEvents = "none"; var o = document.elementFromPoint(e.clientX, e.clientY); drag.el.style.pointerEvents = ""; o = o && o.closest ? o.closest("#view .atj .at") : null;
+      if (o && o !== drag.el && !o.classList.contains("atplus") && o.parentNode === drag.el.parentNode) { var box = o.parentNode, kids = Array.prototype.slice.call(box.children), a = kids.indexOf(drag.el), b = kids.indexOf(o); box.insertBefore(drag.el, a < b ? o.nextSibling : o); drag.x = e.clientX; drag.y = e.clientY; drag.el.style.transform = "scale(1.06)"; }
+    });
+    document.addEventListener("click", function (e) {
+      var t = e.target; if (!t.closest) return;
+      if (Date.now() - sup < 400 && t.closest("#view .atj")) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+      if (t.closest("[data-atdone]")) { e.stopImmediatePropagation(); st.atEdit = false; render(true); return; }
+      if (!st.atEdit || !t.closest("#view .atj")) return; e.preventDefault(); e.stopImmediatePropagation();
+      var x = t.closest("[data-atx]"); if (x) { var k = x.getAttribute("data-atx"), u = uiM(st.mod || "gen"); u.atExtra = u.atExtra || []; var ix = u.atExtra.map(function (z) { return z.k; }).indexOf(k); if (ix >= 0) u.atExtra.splice(ix, 1); else if (u.atHide.indexOf(k) < 0) u.atHide.push(k); atSave(u); return; }
+      if (t.closest("[data-atadd]")) atPop();
+    }, true);
+  })();
   function uiHomeScan(m) {
     var f = { gen: renderInicio, ped: renderPDash, prod: renderPrDash }[m], t = document.createElement("div"), items = [];
     try { t.innerHTML = f(); } catch (e) {} var B = uiScan(t);
