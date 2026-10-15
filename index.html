@@ -637,7 +637,10 @@ body.has-obar footer{padding-bottom:90px}
 .sbox h3 { margin: 0; font: 600 1.35rem var(--font-display); color: var(--blue-deep); }
 .sbox label { display: grid; gap: 4px; font-weight: 700; font-size: .85rem; color: var(--ink); }
 .sbox input { font: inherit; padding: 11px 12px; border-radius: 12px; border: 2px solid #DCCFAE; background: #fff; }
-.sbox .dx { position: absolute; top: 10px; right: 12px; background: none; border: 0; font-size: 1.6rem; cursor: pointer; }
+.sbox .dx { position: absolute; top: 6px; right: 8px; width:44px; height:44px; z-index:2; background: rgba(0,0,0,.06); border: 0; font-size: 1.6rem; cursor: pointer; touch-action:manipulation; }
+#totop{position:fixed;right:20px;bottom:88px;z-index:29;width:44px;height:44px;border-radius:50%;border:0;background:#fff;color:var(--blue);box-shadow:0 6px 18px rgba(0,0,0,.25);display:grid;place-items:center;cursor:pointer;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .25s,transform .25s}
+#totop.on{opacity:1;transform:none;pointer-events:auto}
+body.has-obar #totop{bottom:154px}
 .sbox .sm-p, .sbox .sm-f { margin: 0; font-size: .85rem; color: var(--ink); }
 
 /* fix recorte en tarjetas */
@@ -2343,3 +2346,17 @@ var DEFAULTS = {
 })();
 </script>
 
+<button type="button" id="totop" aria-label="Subir"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<script>
+(function(){
+function cl(){var m=document.getElementById("starm");if(m)m.hidden=true;}
+function hit(e){var t=e.target,m=document.getElementById("starm");return m&&!m.hidden&&t&&(t===m||(t.closest&&t.closest("#star-x")));}
+document.addEventListener("click",function(e){if(hit(e)){e.preventDefault();e.stopPropagation();cl();}},true);
+document.addEventListener("touchend",function(e){if(hit(e)){e.preventDefault();cl();}},true);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")cl();});
+var b=document.getElementById("totop");
+function sc(){b.classList.toggle("on",(window.pageYOffset||document.documentElement.scrollTop)>400);}
+window.addEventListener("scroll",sc,{passive:true});sc();
+b.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"});});
+})();
+</script>
