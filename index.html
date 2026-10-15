@@ -669,6 +669,28 @@ body.has-obar footer{padding-bottom:90px}
 .pmos{background:transparent!important;gap:0!important}.pmos img{filter:drop-shadow(0 6px 8px rgba(60,40,10,.18))}.pcard{background:rgba(255,255,255,.4)!important}
 .star{background:linear-gradient(135deg,#F2F2F2,#B9BFC6)!important;color:#2d3238!important;box-shadow:0 0 0 2px #fff,0 0 10px rgba(150,160,170,.7)}.star.prem{background:linear-gradient(135deg,#F3D27A,#E0B04A)!important;color:#3b2b00!important;box-shadow:0 0 0 2px #fff,0 0 12px rgba(224,176,74,.7)}
 .sbox.sdone label,.sbox.sdone #cm-go,.sbox.sdone #sm-go,.sbox.sdone #sm-h{display:none}.sbox .sh{font-size:.8rem;color:var(--ink-soft);margin-top:-4px}.sbox .sthx{text-align:center;padding:6px 0}.sbox .sthx b{display:block;font:600 1.3rem var(--font-display);color:var(--blue-deep)}
+
+/* ===== Pasada UX/UI ===== */
+.media{background:radial-gradient(120% 90% at 50% 0%,rgba(255,255,255,.65),rgba(255,255,255,.12) 70%),linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0))!important;backdrop-filter:blur(2px)}
+.slide{background:transparent!important}
+.media img[src*='.jpg'],.media img{background:transparent}
+.card{border-radius:22px;box-shadow:0 6px 22px rgba(47,74,37,.10);transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(47,74,37,.16)}
+.card.on{box-shadow:0 0 0 2px var(--blue),0 12px 28px rgba(47,74,37,.2)}
+.btn{background:linear-gradient(90deg,#2F4A25,#4A6B3A 55%,#6B8F4A)!important;border-radius:16px;box-shadow:0 6px 16px rgba(47,74,37,.28);font-weight:800}
+.btn:active{transform:scale(.98)}
+.about .in,.menu-head{border-radius:22px;box-shadow:0 6px 22px rgba(47,74,37,.10)}
+.sbox{border-radius:28px!important;box-shadow:0 24px 60px rgba(10,20,10,.35);text-align:center}
+.sstar{font-size:2.6rem;line-height:1;margin:2px 0 4px;background:linear-gradient(135deg,#F3D27A,#E0B04A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 4px rgba(224,176,74,.5))}
+.sbox .svg{margin:10px 0;padding:11px 14px;border-radius:14px;font-weight:600;font-size:.92rem}
+.svg.ok{background:#E3F4E8;color:#1B5E32}.svg.pend{background:#FFF1D6;color:#8a6100}.svg.venc{background:#FDE7E5;color:#B3261E}.svg.prox{background:#EEF3E6;color:var(--blue-deep)}
+.sbox .btn{display:block;margin-top:10px;text-decoration:none;text-align:center}
+.sbox .btn.up{background:linear-gradient(135deg,#F3D27A,#E0B04A)!important;color:#3b2b00;box-shadow:0 6px 16px rgba(224,176,74,.4)}
+.clock .sec i{background:rgba(255,255,255,.28);animation:secp 1s steps(1) infinite}
+@keyframes secp{50%{opacity:.82}}
+#box-close.urgent{box-shadow:0 0 0 3px rgba(224,176,74,.55),0 10px 26px rgba(224,176,74,.35)}
+#box-close.last{box-shadow:0 0 0 3px rgba(217,58,47,.5),0 10px 26px rgba(217,58,47,.3)}
+.pchip,.chip,.cat,.cats-in button{border-radius:999px}
 </style>
 
 <div class="topbar" id="topbar" hidden></div>
@@ -1006,7 +1028,7 @@ var DEFAULTS = {
       cur = nx;
     }, secs * 1000);
   }
-  var TXD = {"tanda_pedidos_hasta": "Pedidos hasta el", "tanda_se_entrega": "Se entrega el", "tanda_hasta_hoy": "🔥 Pedidos hasta hoy 🔥", "tanda_ultimo_dia": "¡ÚLTIMO DÍA!", "tanda_manana_cierra": "¡MAÑANA CIERRA!", "tanda_cierran_en": "Cierran los pedidos en", "tanda_proxima": "Próxima tanda", "tanda_muy_pronto": "Muy pronto", "tanda_abre_el": "Abren los pedidos el", "tanda_enterate": "Enterate", "tanda_instagram": "En nuestro Instagram", "texto_pedidos_cerrados": "Por ahora no estamos tomando pedidos.", "texto_entrega": "Entrega:", "texto_entrega_coordinar": "a coordinar por WhatsApp", "texto_pedidos_hasta_min": "pedidos hasta el", "texto_transferencia": "Pagando por transferencia", "texto_subtotal": "Subtotal", "texto_verificando": "Verificando tu pedido… tocá de nuevo en un instante.", "texto_error_pedidos": "No pudimos cargar tus pedidos. Probá de nuevo en un rato.", "texto_tocar_enviar": "Tocá para revisar y enviar", "texto_desc_cantidad": "Descuento por cantidad", "texto_agotada": "Agotada", "susc_intro": "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:", "susc_boton_lista": "Anotarme en la lista", "susc_boton_suscribir": "Quiero suscribirme", "susc_fuera_zona": "Aún no llegamos a tu zona. Dejanos tu contacto y te avisamos cuando lleguemos.", "susc_cupo_completo": "Cupo completo", "susc_cupo_completo_lista": "Cupo completo · anotate en lista de espera", "susc_ya_anotado": "Ya te anotamos. Te escribimos por WhatsApp para coordinar el pago y la entrega.", "susc_gracias_pago": "Te escribimos por WhatsApp para coordinar el pago y la entrega.", "susc_estado_activa": "Tu suscripción está activa", "susc_estado_pendiente": "Tu suscripción está pendiente de pago.", "susc_renovar": "Renovar mi suscripción", "susc_tu_caja": "Tu caja mensual", "susc_gracias_cliente": "¡Gracias por confiar en nosotros! 💚", "susc_precio_vale": "⏳ El precio actual vale solo por", "susc_plazo_manana": "⏳ ¡Mañana se termina el plazo!", "susc_plazo_ultima": "🔥 ¡Última hora! Termina en", "susc_plazo_disponible": "Disponible por", "susc_wa_mensaje": "¡Hola! Quiero suscribirme al plan", "cola_boton": "Añadir a la cola", "cola_titulo": "Dejanos tu contacto", "cola_texto": "Ahora no estamos tomando pedidos. Dejanos tu contacto y te escribimos cuando los abramos de nuevo: tu pedido queda anotado primero.", "cola_enviar": "Anotar mi pedido", "cola_gracias": "¡Listo! Tu pedido quedó en la cola. Te escribimos apenas abramos pedidos."};
+  var TXD = {"tanda_abren_en": "Abren los pedidos en", "tanda_abren_hoy": "⏰ ¡Abren hoy!", "tanda_abren_manana": "¡Abren mañana!", "susc_vigente": "Tu suscripción está vigente", "susc_vencida": "Para recibir tu próxima caja, renová tu suscripción", "susc_agrandar": "⭐ Agrandar mi caja: pasar a Premium", "tanda_pedidos_hasta": "Pedidos hasta el", "tanda_se_entrega": "Se entrega el", "tanda_hasta_hoy": "🔥 Pedidos hasta hoy 🔥", "tanda_ultimo_dia": "¡ÚLTIMO DÍA!", "tanda_manana_cierra": "¡MAÑANA CIERRA!", "tanda_cierran_en": "Cierran los pedidos en", "tanda_proxima": "Próxima tanda", "tanda_muy_pronto": "Muy pronto", "tanda_abre_el": "Abren los pedidos el", "tanda_enterate": "Enterate", "tanda_instagram": "En nuestro Instagram", "texto_pedidos_cerrados": "Por ahora no estamos tomando pedidos.", "texto_entrega": "Entrega:", "texto_entrega_coordinar": "a coordinar por WhatsApp", "texto_pedidos_hasta_min": "pedidos hasta el", "texto_transferencia": "Pagando por transferencia", "texto_subtotal": "Subtotal", "texto_verificando": "Verificando tu pedido… tocá de nuevo en un instante.", "texto_error_pedidos": "No pudimos cargar tus pedidos. Probá de nuevo en un rato.", "texto_tocar_enviar": "Tocá para revisar y enviar", "texto_desc_cantidad": "Descuento por cantidad", "texto_agotada": "Agotada", "susc_intro": "Cada mes te llega a casa una caja con productos distintos, y se va ajustando a lo que más te gusta. Elegí tu camino:", "susc_boton_lista": "Anotarme en la lista", "susc_boton_suscribir": "Quiero suscribirme", "susc_fuera_zona": "Aún no llegamos a tu zona. Dejanos tu contacto y te avisamos cuando lleguemos.", "susc_cupo_completo": "Cupo completo", "susc_cupo_completo_lista": "Cupo completo · anotate en lista de espera", "susc_ya_anotado": "Ya te anotamos. Te escribimos por WhatsApp para coordinar el pago y la entrega.", "susc_gracias_pago": "Te escribimos por WhatsApp para coordinar el pago y la entrega.", "susc_estado_activa": "Tu suscripción está activa", "susc_estado_pendiente": "Tu suscripción está pendiente de pago.", "susc_renovar": "Renovar mi suscripción", "susc_tu_caja": "Tu caja mensual", "susc_gracias_cliente": "¡Gracias por confiar en nosotros! 💚", "susc_precio_vale": "⏳ El precio actual vale solo por", "susc_plazo_manana": "⏳ ¡Mañana se termina el plazo!", "susc_plazo_ultima": "🔥 ¡Última hora! Termina en", "susc_plazo_disponible": "Disponible por", "susc_wa_mensaje": "¡Hola! Quiero suscribirme al plan", "cola_boton": "Añadir a la cola", "cola_titulo": "Dejanos tu contacto", "cola_texto": "Ahora no estamos tomando pedidos. Dejanos tu contacto y te escribimos cuando los abramos de nuevo: tu pedido queda anotado primero.", "cola_enviar": "Anotar mi pedido", "cola_gracias": "¡Listo! Tu pedido quedó en la cola. Te escribimos apenas abramos pedidos."};
   function TX(k) { var v = data && data.config ? data.config[k] : null; return v != null && v !== "" ? String(v) : (TXD[k] || ""); }
   var data = null;       // { config, tandas, productos } ya normalizado
   var qty = {};          // nombre de frasco -> cantidad
@@ -1069,14 +1091,16 @@ var DEFAULTS = {
   /* ---------- Pintar ---------- */
   var closeEnd = null, tickT = null;
   function two(n) { return (n < 10 ? "0" : "") + n; }
+  var cdMode = "";
   function tick() {
     var el = $("clock");
     if (!el || !closeEnd) return;
-    var ms = Math.max(0, closeEnd - new Date()), m = Math.floor(ms / 60000);
-    var d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60;
-    el.innerHTML = '<span><i>' + two(d) + '</i>días</span><span><i>' + two(h) + '</i>horas</span><span><i>' + two(mi) + '</i>min</span>';
+    var ms = Math.max(0, closeEnd - new Date()), sc = Math.floor(ms / 1000), m = Math.floor(sc / 60);
+    var d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60, ss = sc % 60;
+    el.innerHTML = '<span><i>' + two(d) + '</i>días</span><span><i>' + two(h) + '</i>horas</span><span><i>' + two(mi) + '</i>min</span><span class="sec"><i>' + two(ss) + '</i>seg</span>';
+    if (ms === 0 && cdMode === "sched" && !tick._r) { tick._r = 1; try { renderTop(); } catch (e) {} setTimeout(function () { tick._r = 0; }, 3000); }
   }
-  if (!tickT) tickT = setInterval(tick, 20000);
+  if (!tickT) tickT = setInterval(tick, 1000);
 
   function renderTop() {
     var c = data.config, now = new Date();
@@ -1098,7 +1122,7 @@ var DEFAULTS = {
       var bc = $("box-close");
       bc.classList.toggle("urgent", cl <= 3);
       bc.classList.toggle("last", cl <= 0); bc.classList.toggle("mana", cl === 1);
-      closeEnd = dc;
+      closeEnd = dc; cdMode = "open";
       if (cl <= 0) { $("k-close").textContent = TX("tanda_hasta_hoy"); }
       var ttl = cl <= 0 ? TX("tanda_ultimo_dia") : (cl === 1 ? TX("tanda_manana_cierra") : TX("tanda_cierran_en"));
       $("cd-close").innerHTML = '<b class="ttl">' + ttl + '</b><span class="clock" id="clock"></span>';
@@ -1110,13 +1134,20 @@ var DEFAULTS = {
       if (sched) {
         $("k-close").textContent = TX("tanda_abre_el"); $("d-close").textContent = longDate(parseDay(sched.apertura));
         $("k-deliv").textContent = TX("tanda_se_entrega"); $("d-deliv").textContent = longDate(parseDay(sched.entrega));
+        var ap1 = parseDay(sched.apertura); ap1.setHours(0, 0, 0, 0); closeEnd = ap1; cdMode = "sched";
+        var dl2 = Math.floor((ap1 - now) / 864e5), bc2 = $("box-close");
+        bc2.classList.toggle("urgent", dl2 <= 3); bc2.classList.toggle("last", dl2 <= 0); bc2.classList.toggle("mana", false);
+        $("cd-close").innerHTML = '<b class="ttl">' + (dl2 <= 0 ? TX("tanda_abren_hoy") : dl2 === 1 ? TX("tanda_abren_manana") : TX("tanda_abren_en")) + '</b><span class="clock" id="clock"></span>';
+        tick();
       } else {
         $("k-close").textContent = TX("tanda_proxima");
         $("d-close").textContent = TX("tanda_muy_pronto");
         $("k-deliv").textContent = TX("tanda_enterate");
         $("d-deliv").textContent = TX("tanda_instagram");
+        closeEnd = null; cdMode = "";
+        $("box-close").classList.remove("urgent", "last", "mana");
       }
-      $("cd-close").hidden = true; $("cd-deliv").hidden = true;
+      $("cd-close").hidden = !sched; $("cd-deliv").hidden = true;
     }
     setPortada(c);
     $("box-close").hidden = $("box-deliv").hidden = !tandasOn();
@@ -1580,6 +1611,7 @@ var DEFAULTS = {
     if (got.length) toast(fill(data.config.aviso_promo_aplicada, { nombre: got.join(", ") }));
   }
   function refresh() {
+    try { paintStar(); } catch (eS) {}
     if (data) autoPromos();
     saveCart(); if (data) updLimits();
     data.productos.forEach(function (p, i) {
@@ -1973,9 +2005,9 @@ var DEFAULTS = {
   function isPrem(x) { return /premium/i.test(x.plan); }
   function loadSus() {
     var st0 = $("star"); if (!st0) return;
-    if (!ENDPOINT || !memToken) return;
+    if (!ENDPOINT || !memToken) { try { paintStar(); } catch (e0) {} return; }
     fetch(ENDPOINT + "?misusc=1&token=" + encodeURIComponent(memToken)).then(function (r) { return r.json(); }).then(function (j) {
-      if (!j || j.error || !j.susc) return; mySus = j.susc; try { localStorage.setItem("pk-sus", JSON.stringify(mySus)); } catch (e) {} paintStar(); try { if (data) renderSusc(); } catch (e2) {}
+      if (!j || j.error || !j.susc) return; if (!j.susc.length) { mySus = []; try { localStorage.removeItem("pk-sus"); } catch (e1) {} paintStar(); return; } mySus = j.susc; try { localStorage.setItem("pk-sus", JSON.stringify(mySus)); } catch (e) {} paintStar(); try { if (data) renderSusc(); } catch (e2) {}
     }).catch(function () {});
   }
   function paintStar() {
@@ -1983,11 +2015,17 @@ var DEFAULTS = {
     st0.hidden = !mySus.length; st0.className = "star" + (pr ? " prem" : ""); st0.innerHTML = (pr ? "★" : "☆") + "<span>" + (pr ? "Premium" : "Suscriptor") + "</span>";
   }
   try { var _cs = JSON.parse(localStorage.getItem("pk-sus") || "null"); if (_cs && _cs.length) { mySus = _cs; paintStar(); } } catch (e5) {}
+  function susVig(sb) { var m = String(sb.pagado || "").match(/(\d{4})-(\d{2})/); return m ? new Date(+m[1], +m[2], 0, 23, 59, 59) : null; }
   function starOpen() {
-    var pr = mySus.some(isPrem), sb = mySus[0] || {}, m = $("starm"), wa = "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=";
+    var pr = mySus.some(isPrem), sb = mySus[0] || {}, m = $("starm"), wa = "https://wa.me/" + (digits(data.config.whatsapp_pedidos) || digits(data.config.whatsapp)) + "?text=", now = new Date();
     if (!m) { m = document.createElement("div"); m.id = "starm"; m.className = "smodal"; document.body.appendChild(m); }
     m.hidden = false;
-    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><h3>' + (pr ? "★ Sos suscriptor Premium" : "☆ Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p">' + esc(sb.estado === "Pendiente de pago" ? TX("susc_estado_pendiente") : TX("susc_estado_activa") + (sb.pagado ? " · pagado: " + sb.pagado : "") + ".") + '</p><a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">' + esc(TX("susc_renovar")) + '</a>' + (pr ? "" : '<a class="btn" style="margin-top:8px;background:#E0B04A;color:#3b2b00" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">⭐ Pasar a Premium'+(Number(data.config.susc_upgrade_precio)>0?" por "+money(Number(data.config.susc_upgrade_precio))+" más":"")+'</a>') + "</div>";
+    var vig = susVig(sb), pend = sb.estado === "Pendiente de pago", venc = !pend && vig && vig < now, ok = !pend && !venc;
+    var estado = pend ? '<div class="svg pend">⏳ ' + esc(TX("susc_estado_pendiente")) + "</div>" : venc ? '<div class="svg venc">📬 ' + esc(TX("susc_vencida")) + "</div>" : '<div class="svg ok">✅ ' + esc(TX("susc_vigente")) + (vig ? " hasta el <b>" + longDate(vig) + "</b>" : "") + "</div>" + (sb.prox ? '<div class="svg prox">📦 Tu próxima caja llega el <b>' + esc(sb.prox) + "</b></div>" : "");
+    var up = Number(String(data.config.susc_upgrade_precio || "").replace(/[^\d.]/g, "")) || 0;
+    m.innerHTML = '<div class="sbox"><button type="button" class="dx" id="star-x" aria-label="Cerrar">×</button><div class="sstar">' + (pr ? "★" : "☆") + '</div><h3>' + (pr ? "Sos suscriptor Premium" : "Sos suscriptor " + esc(sb.plan || "")) + '</h3><p class="sm-p"><b>¡Gracias por suscribirte con nosotros! 💚</b></p>' + estado +
+      (ok ? "" : '<a class="btn" target="_blank" rel="noopener" href="' + wa + encodeURIComponent(pend ? "¡Hola! Ya pagué mi suscripción " + (sb.plan || "") + "." : "¡Hola! Quiero renovar mi suscripción " + (sb.plan || "") + ".") + '">' + esc(pend ? "Avisar mi pago" : TX("susc_renovar")) + "</a>") +
+      (pr ? "" : '<a class="btn up" target="_blank" rel="noopener" href="' + wa + encodeURIComponent("¡Hola! Quiero pasar mi suscripción a Premium.") + '">' + esc(TX("susc_agrandar")) + (up > 0 ? " · " + money(up) + " más" : "") + "</a>") + "</div>";
   }
   function loadCupones() {
     try { loadSus(); } catch (e9) {}
