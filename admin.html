@@ -205,7 +205,7 @@ body.sh-open{overflow:hidden}
 .ssw .sa.l button{background:#4A6B3A}.ssw .sa.r .m{background:#C98A1B}.ssw .sa.r .d{background:#d93a2f}
 .ssw>.ssc{margin:0;position:relative;transition:transform .2s;touch-action:pan-y;background:#fff}.ssw .sa button.txt{font-size:.8rem}.ssw.pw .sa.l{width:84px}.ssw.pw.ol>.ssc,.ssw.pw.ol>article{transform:translateX(84px)}.ssw.pw .sa.r{width:168px}.ssw.pw.one .sa.r{width:84px}.ssw.pw.one.or>.ssc,.ssw.pw.one.or>article{transform:translateX(-84px)}.ssw.pw .trow.ssc{padding:10px 4px;border-bottom:1px solid #EEF0E4}.ssw.pw{margin-bottom:0;border-radius:0}.ssw.pw:has(>article){margin-bottom:12px;border-radius:16px}
 .cjp{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}.cjp .sm{grid-row:1/3;grid-column:2}.tcard{box-sizing:border-box;border:calc(var(--mm)*.6) solid;border-radius:calc(var(--mm)*3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--mm)*2);padding:calc(var(--mm)*3);text-align:center;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.15;-webkit-print-color-adjust:exact;print-color-adjust:exact}.tcard.rnd{border-radius:50%;padding:calc(var(--mm)*6)}.tcard.row{flex-direction:row;text-align:left}.tcard .tt{display:flex;flex-direction:column;gap:calc(var(--mm)*1);align-items:inherit;min-width:0}.tcard.row .tt{align-items:flex-start;flex:1}.tcard .th{font-weight:800}.tcard .tq{background:#fff;padding:calc(var(--mm)*1.2);border-radius:calc(var(--mm)*1.5);flex:none;box-sizing:content-box}.tcard .tq svg{width:100%;height:100%;display:block}.tjrow{display:flex;gap:10px}.tjc{flex:1;display:flex;flex-direction:column;gap:4px;font-size:.78rem;color:var(--soft)}.tjc input{width:100%;height:42px;border:1px solid #E3E0D0;border-radius:10px;padding:2px;background:#fff}#printSheet{display:none}@media print{body.printing>*:not(#printSheet){display:none !important}body.printing{background:#fff !important;padding:0 !important}body.printing #printSheet{display:flex;flex-wrap:wrap;gap:3mm;align-content:flex-start}@page{size:A4;margin:8mm}}
-.ssw.ol>.ssc{transform:translateX(84px)}.ssw.or>.ssc{transform:translateX(-168px)}.ssw.one .sa.r{width:84px}.ssw.one.or>.ssc{transform:translateX(-84px)}.rhd{display:flex;gap:8px;margin-bottom:12px;align-items:center}.rhd .btn{flex:1;margin:0}.rfab{width:46px;height:46px;border-radius:50%;border:0;color:#fff;font-size:1.5rem;font-weight:700;flex:none;display:grid;place-items:center}.rfab.g{background:#2f9e44}.rfab.b{background:#1c7ed6}.rfab.spin svg{animation:rsp .8s linear infinite}@keyframes rsp{to{transform:rotate(360deg)}}.rl2{background:#fff}.ssw.ri{margin-bottom:6px;border-radius:10px}.ssw.ri .ssc{box-shadow:0 0 0 2px #fff}.ssw.ri .sa.l{width:60px}.ssw.ri .sa.r{width:120px}.ssw.ri.ol>.ssc{transform:translateX(60px)}.ssw.ri.or>.ssc{transform:translateX(-120px)}.ssw.ri .sa button{font-size:1.1rem}
+.ssw.st2 .sa.r{width:84px}.ssw.st2 .sa.r .d{display:none}.ssw.st2.ri .sa.r{width:60px}.ssw.st2.or>article,.ssw.st2.or>.ssc{transform:translateX(-84px)}.ssw.st2.ri.or>.ssc{transform:translateX(-60px)}.ssw.ol>.ssc{transform:translateX(84px)}.ssw.or>.ssc{transform:translateX(-168px)}.ssw.one .sa.r{width:84px}.ssw.one.or>.ssc{transform:translateX(-84px)}.rhd{display:flex;gap:8px;margin-bottom:12px;align-items:center}.rhd .btn{flex:1;margin:0}.rfab{width:46px;height:46px;border-radius:50%;border:0;color:#fff;font-size:1.5rem;font-weight:700;flex:none;display:grid;place-items:center}.rfab.g{background:#2f9e44}.rfab.b{background:#1c7ed6}.rfab.spin svg{animation:rsp .8s linear infinite}@keyframes rsp{to{transform:rotate(360deg)}}.rl2{background:#fff}.ssw.ri{margin-bottom:6px;border-radius:10px}.ssw.ri .ssc{box-shadow:0 0 0 2px #fff}.ssw.ri .sa.l{width:60px}.ssw.ri .sa.r{width:120px}.ssw.ri.ol>.ssc{transform:translateX(60px)}.ssw.ri.or>.ssc{transform:translateX(-120px)}.ssw.ri .sa button{font-size:1.1rem}
 .ssw.ol:has(.sa.l button+button)>.ssc,.ssw.ol:has(.sa.l button+button)>article{transform:translateX(168px)}.ssw .sa.l:has(button+button){width:168px}.ssw.ol>article{transform:translateX(84px)}.ssw.or>article{transform:translateX(-168px)}
 .todo-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:10px 0;font:inherit;color:inherit}
 .card.todo.open .todo-h{border-bottom:1px solid #EEF0E4}
@@ -2126,22 +2126,34 @@ body.sh-open .nav{opacity:0;pointer-events:none}
 
   /* ---------- Deslizar en Stock ---------- */
   (function () {
-    var el = null, sx = 0, sy = 0, dir = 0, base = 0, cur = 0, LW = 84, RW = 168;
+    var el = null, sx = 0, sy = 0, dir = 0, base = 0, cur = 0, LW = 84, RW = 168, wasOr = false;
     function closeAll() { st.ssw = null; Array.prototype.forEach.call(document.querySelectorAll(".ssw.ol,.ssw.or"), function (w) { w.classList.remove("ol", "or"); }); }
     document.addEventListener("touchstart", function (e) {
       var a = e.target.closest && e.target.closest(".ssw > article, .ssw > .ssc"); if (!a || (e.target.closest("input,textarea,select") && !e.target.closest(".ri"))) { if (!(e.target.closest && e.target.closest(".ssw .sa"))) closeAll(); return; }
-      el = a; var w = a.parentNode; sx = e.touches[0].clientX; sy = e.touches[0].clientY; dir = 0; LW = w.classList.contains("ri") ? 60 : 84; RW = w.classList.contains("ri") ? 120 : w.classList.contains("one") ? 84 : 168; base = w.classList.contains("ol") ? LW : w.classList.contains("or") ? -RW : 0; cur = base;
+      el = a; var w = a.parentNode; if (w.querySelector(".sa.r .m") && w.querySelector(".sa.r .d")) w.classList.add("st2"); sx = e.touches[0].clientX; sy = e.touches[0].clientY; dir = 0; LW = w.classList.contains("ri") ? 60 : 84; RW = w.classList.contains("ri") ? 120 : w.classList.contains("one") ? 84 : 168; if (w.classList.contains("st2")) { RW = w.classList.contains("ri") ? 60 : 84; LW = Math.round(w.offsetWidth * 0.9); }
+      base = w.classList.contains("ol") ? (w.classList.contains("st2") ? 84 : LW) : w.classList.contains("or") ? -RW : 0; cur = base; wasOr = w.classList.contains("or");
       Array.prototype.forEach.call(document.querySelectorAll(".ssw.ol,.ssw.or"), function (o) { if (o !== w) o.classList.remove("ol", "or"); });
     }, { passive: true });
     document.addEventListener("touchmove", function (e) {
       if (!el) return; var x = e.touches[0].clientX - sx, y = e.touches[0].clientY - sy;
       if (!dir) { if (Math.abs(x) > 8 || Math.abs(y) > 8) dir = Math.abs(x) > Math.abs(y) ? 1 : 2; else return; }
-      if (dir !== 1) return; cur = Math.max(-RW, Math.min(LW, base + x)); el.style.transition = "none"; el.style.transform = "translateX(" + cur + "px)";
+      if (dir !== 1) return; cur = w2().classList.contains("st2") ? Math.max(-RW - 90, Math.min(LW, base + x)) : Math.max(-RW, Math.min(LW, base + x)); el.style.transition = "none"; el.style.transform = "translateX(" + cur + "px)";
     }, { passive: true });
+    function w2() { return el.parentNode; }
     function end() {
       if (!el) return; var a = el, w = a.parentNode; el = null; a.style.transition = ""; a.style.transform = "";
       if (dir !== 1) return; msSwiped = Date.now();
       w.classList.remove("ol", "or"); st.ssw = null;
+      if (w.classList.contains("st2")) {
+        var W2 = w.offsetWidth, lbtn = w.querySelector(".sa.l button"), dbtn = w.querySelector(".sa.r .d"), RW2 = w.classList.contains("ri") ? 60 : 84;
+        if (cur > W2 * 0.6 && lbtn) { lbtn.click(); return; }
+        if (wasOr && cur < -(RW2 + 45) && dbtn) {
+          var nmx = (w.getAttribute("data-ssw") || "").replace(/^[a-z]:/, ""), cf = popBase("delc", 320); cf.__c.innerHTML = popHead("¿Eliminar?") + '<div style="margin-bottom:12px">' + esc(nmx || "este ítem") + '</div><div style="display:flex;gap:8px"><button class="btn" id="dc-ok" style="flex:1;background:#d93a2f">Eliminar</button><button class="sm" data-pclose="1">Cancelar</button></div>';
+          cf.querySelector("#dc-ok").addEventListener("click", function () { cf.remove(); dbtn.click(); if (!dbtn.hasAttribute("data-idel")) dbtn.click(); }); return;
+        }
+        if (cur > 40) { w.classList.add("ol"); st.ssw = { k: w.getAttribute("data-ssw"), s: "l" }; } else if (cur < -40) { w.classList.add("or"); st.ssw = { k: w.getAttribute("data-ssw"), s: "r" }; }
+        return;
+      }
       var lb = w.querySelector(".sa.l [data-pact]");
       if (cur > 70 && lb && /:(ap|he|en)$/.test(lb.getAttribute("data-pact"))) { var pq0 = lb.getAttribute("data-pact").split(":"); patchPedido(Number(pq0[0]), pq0[1], true); toast(pq0[1] === "ap" ? "Aprobado ✓" : pq0[1] === "he" ? "Hecho ✓" : "Entregado ✓"); return; }
       if (cur > 40) { w.classList.add("ol"); st.ssw = { k: w.getAttribute("data-ssw"), s: "l" }; } else if (cur < -Math.min(50, RW - 10)) { w.classList.add("or"); st.ssw = { k: w.getAttribute("data-ssw"), s: "r" }; }
@@ -2175,6 +2187,11 @@ body.sh-open .nav{opacity:0;pointer-events:none}
       }
     }, true);
   })();
+  document.addEventListener("click", function (e) {
+    if (e.defaultPrevented || MS.on) return; var T = e.target; if (!T.closest || T.closest("button,a,input,select,textarea,label,summary,.add,.sa,[data-ms],#sheet,.pop,.ovl")) return;
+    var a = T.closest("#view article.card, #view .ssw > article, #view .ssw > .ssc"); if (!a) return; var pen = a.querySelector(".pen"); if (!pen) return;
+    if (Date.now() - msJust < 700 || Date.now() - msSwiped < 450) return; pen.click();
+  });
   var msSwiped = 0;
   function qtyAsk(name, add) {
     var old = document.getElementById("qtyask"); if (old) old.remove();
@@ -2719,10 +2736,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     mm: ["cm", .1], cm: ["cm", 1], m: ["cm", 100], metro: ["cm", 100], metros: ["cm", 100] };
   var FAM = { g: ["mg", "g", "kg", "oz", "lb"], ml: ["ml", "cl", "l", "cucharita", "cuchara", "taza"], u: ["unidad", "docena"], cm: ["mm", "cm", "m"] };
   function unitSel(base) {
-    var b = UF[nrm(base)]; if (!b) return "";
-    var L = FAM[b[0]].slice(), bn = nrm(base);
-    if (L.indexOf(bn) < 0) L = [base].concat(L);
-    return '<select class="inp usel" data-usel="' + esc(base) + '" aria-label="Unidad" style="flex:none;width:auto;min-width:78px">' + L.map(function (u) { return "<option" + (nrm(u) === bn ? " selected" : "") + ">" + esc(u) + "</option>"; }).join("") + "</select>";
+    return '<input class="inp usel" data-usel="' + esc(base) + '" list="u-all" value="' + esc(base) + '" aria-label="Unidad" autocomplete="off" placeholder="unid." style="flex:none;width:78px">';
   }
   function withUnit(raw, selEl) {
     raw = String(raw || "").trim(); if (!selEl) return raw;
@@ -2730,7 +2744,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     return raw;
   }
   function parseQty(txt, base) {
-    var m = nrm(txt).match(/^([\d.,]+)\s*([a-z]*)$/); if (!m) return null;
+    var m = nrm(txt).match(/^([\d.,]+)\s*([a-z]*)(?:\s.*)?$/); if (!m) return null;
     var n = parseAR(m[1]); if (!(n > 0)) return null;
     var b = UF[nrm(base)] || null, f = m[2] ? UF[m[2]] : null;
     if (f && b && f[0] === b[0]) return { n: Math.round(n * f[1] / b[1] * 1e6) / 1e6, conv: m[2] && f[1] !== b[1] ? m[1] + " " + m[2] : "" };
@@ -3647,8 +3661,8 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   function blBuy(sel) {
     var d = popBase("buym", 440); if (sel) d.__sel = sel; d.__sel = d.__sel || "auto"; d.__ms = null; d.__ed = null; d.__pay = null; d.__imp = null; d.__mv = false; d.__pp = null;
     function cartOf(o, id) { return id === "auto" ? { id: "auto", n: "Automática", items: o.auto } : o.list.filter(function (c) { return c.id === id; })[0]; }
-    function autoRows() { var ck = blRd(BKEY), hx = blRd("uovo_adm_buyh"); var mn = (blRd(CKEY).auto || []).map(function (z) { return nrm(z.n); }); return st.blp ? st.blp.buy.filter(function (b) { return hx[nrm(b.n) + "|" + b.q] == null && mn.indexOf(nrm(b.n)) < 0; }).map(function (b) { var v = ck[nrm(b.n)]; return { k: nrm(b.n), n: b.n, q: b.q > 0 ? blFmt(b.q, b.uni) : "reponer", why: b.why, done: !!v, price: v && v !== 1 ? v : 0 }; }) : null; }
-    function mrow(it, i) { return { k: "m" + i, n: it.n, q: it.q || "", man: i, done: !!it.done, price: it.price || 0 }; }
+    function autoRows() { var ck = blRd(BKEY), hx = blRd("uovo_adm_buyh"); var mn = (blRd(CKEY).auto || []).map(function (z) { return nrm(z.n); }); return st.blp ? st.blp.buy.filter(function (b) { return hx[nrm(b.n) + "|" + b.q] == null && mn.indexOf(nrm(b.n)) < 0; }).map(function (b) { var v = ck[nrm(b.n)], ov = blRd("uovo_adm_cov")[nrm(b.n)] || {}; return { k: nrm(b.n), n: ov.n || b.n, q: ov.q != null ? ov.q : (b.q > 0 ? blFmt(b.q, b.uni) : "reponer"), why: b.why, done: !!v, price: v && v !== 1 ? v : 0, pl: ov.p || 0 }; }) : null; }
+    function mrow(it, i) { return { k: "m" + i, n: it.n, q: it.q || "", man: i, done: !!it.done, price: it.price || 0, pl: it.pl || 0 }; }
     function rowsOf(o, id) {
       if (id === "auto") { var A = autoRows() || []; return A.concat(o.auto.map(mrow)); }
       var c = cartOf(o, id); return c ? c.items.map(mrow) : [];
@@ -3681,7 +3695,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
         var h = '<div class="crow" data-ri="' + i + '" style="padding:9px 6px;border-radius:10px;' + (sel ? "background:#E6F0FF;" : "") + (x.done ? "opacity:.55;" : "") + '"><div style="display:flex;align-items:center;gap:10px">' +
           (MS ? '<span style="width:24px;height:24px;flex:none;border-radius:50%;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;background:' + (sel ? "var(--blue);color:#fff" : "#fff") + '">' + (sel ? "✓" : "") + "</span>" : '<button type="button" data-ck="' + i + '" aria-label="Comprado" style="width:26px;height:26px;flex:none;border-radius:7px;border:2px solid var(--blue);background:' + (x.done ? "var(--blue);color:#fff" : "#fff") + ';padding:0;font-size:1rem">' + (x.done ? "✓" : "") + "</button>") +
           (ed ? '<input class="inp" id="cs-ed" value="' + esc(x.n) + '" style="flex:1;min-width:0;padding:6px 8px">' : '<span data-rn="' + i + '" style="flex:1;' + (x.done ? "text-decoration:line-through" : "") + '">' + esc(x.n) + (x.why === "m" ? ' <span class="meta">· punto de pedido</span>' : "") + "</span>") +
-          (x.q ? "<b>" + esc(x.q) + "</b>" : "") + (x.done && x.price ? '<span class="meta" style="color:var(--ok);font-weight:700">$' + fm(x.price) + "</span>" : "") + (x.done ? '<button type="button" data-cpen="' + i + '" aria-label="Editar compra" style="border:0;background:none;font-size:1.05rem;padding:2px">✏️</button>' : "") + (!MS && x.man != null && !x.done ? '<button type="button" class="sm red" data-cx="' + i + '" style="padding:2px 8px">✕</button>' : "") + "</div>";
+          (MS || x.done ? (x.q ? "<b>" + esc(x.q) + "</b>" : "") : '<input class="inp ghost" data-cq="' + i + '" value="' + esc(x.q === "reponer" ? "" : x.q) + '" placeholder="cant." autocomplete="off" style="width:88px;flex:none;padding:6px;text-align:right;font-weight:800">') + (x.done && x.price ? '<span class="meta" style="color:var(--ok);font-weight:700">$' + fm(x.price) + "</span>" : "") + (x.done ? '<button type="button" data-cpen="' + i + '" aria-label="Editar compra" style="border:0;background:none;font-size:1.05rem;padding:2px">✏️</button>' : "") + (!MS && x.man != null && !x.done ? '<button type="button" class="sm red" data-cx="' + i + '" style="padding:2px 8px">✕</button>' : "") + "</div>";
         if (pay) { var pp = d.__pp || {}; h += '<div style="margin:8px 0 2px 36px;background:#F3F7EE;border-radius:10px;padding:8px"><div style="display:flex;gap:6px;align-items:center"><span class="meta">Pagué $</span><input class="inp" id="pp-p" inputmode="decimal" value="' + esc(pp.p != null ? pp.p : (x.price || "")) + '" placeholder="total" style="flex:1;min-width:0"><button class="sm" data-pvt="1" title="Cambiar proveedor" style="font-size:1rem">✏️</button><button class="btn" data-pok="' + i + '" style="padding:6px 14px">OK</button></div>' + (d.__pv ? '<div style="display:flex;gap:6px;margin-top:6px">' + provIn("pp-v", pp.v != null ? pp.v : provOf(x.n)) + "</div>" : '<div class="meta" style="margin-top:4px">' + (provOf(x.n) ? "Proveedor: " + esc(provOf(x.n)) : "Sin proveedor") + '</div>') + '<div style="margin-top:6px"><button class="sm" data-pskip="' + i + '">Marcar sin precio</button> <button class="sm" data-pno="1">Cancelar</button></div></div>'; }
         return h + "</div>";
       }).join("") : '<div class="empty" style="padding:14px 0">' + (id === "auto" ? ((st.blp && st.blp.nor && st.blp.nor.length) ? "⚠️ No puedo calcular qué falta: estos productos no tienen receta cargada (o no están en el catálogo): <b>" + st.blp.nor.map(esc).join(", ") + "</b>.<br>Cargala en Productos › Editar › 🥒 Receta." : "No te falta nada por ahora ✅") : "Carrito vacío. Agregá lo que necesites.") + "</div>";
@@ -3700,6 +3714,28 @@ body.sh-open .nav{opacity:0;pointer-events:none}
       if (keep) { $("cs-n").value = keep[0]; $("cs-q").value = keep[1]; $("cs-n").focus(); }
       if (d.__ed && $("cs-ed")) { $("cs-ed").focus(); } if (d.__pay && $("pp-p") && !d.__ppf) { d.__ppf = 1; $("pp-p").focus(); }
     };
+    function rowSet(o, id, rw, f) {
+      if (rw.man != null) { var it = cartOf(o, id).items[rw.man]; if (!it) return; if (f.n != null) it.n = f.n; if (f.q != null) it.q = f.q; if (f.p != null) it.pl = f.p; blWr(CKEY, o); }
+      else { var cv = blRd("uovo_adm_cov"), z = cv[rw.k] || {}; if (f.n != null) z.n = f.n; if (f.q != null) z.q = f.q; if (f.p != null) z.p = f.p; cv[rw.k] = z; blWr("uovo_adm_cov", cv); }
+    }
+    function rowPrice(rw) {
+      if (rw.pl > 0) return rw.pl; var r = insRow(rw.n), qn = rw.q && rw.q !== "reponer" ? parseQty(rw.q, r && r.uni || "") : null;
+      return r && r.costo > 0 && qn ? Math.round(r.costo * qn.n * 100) / 100 : 0;
+    }
+    function cartEdit(rw) {
+      var r = insRow(rw.n), vp = rowPrice(rw), p = popBase("cedp", 360);
+      p.__c.innerHTML = popHead("✏️ " + esc(rw.n)) + '<div class="add"><input class="inp" id="ce-n" value="' + esc(rw.n) + '" placeholder="Nombre"><input class="inp" id="ce-q" value="' + esc(rw.q === "reponer" ? "" : rw.q) + '" placeholder="Cantidad y unidad (ej. 2 kg)" autocomplete="off"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:800">$</span><input class="inp" id="ce-p" inputmode="decimal" value="' + esc(rw.done ? (rw.price || "") : (vp || "")) + '" placeholder="Precio total" style="flex:1;min-width:0"></div><div style="display:flex;gap:8px"><button class="btn" id="ce-ok" style="flex:1">Guardar</button><button class="sm" data-pclose="1">Cancelar</button></div></div>';
+      p.querySelector("#ce-ok").addEventListener("click", function () {
+        var o = blCarts(), id = d.__sel, cur = rowsOf(o, id).filter(function (x) { return x.k === rw.k; })[0] || rw, pv = parseAR(p.querySelector("#ce-p").value) || 0;
+        if (cur.done) { setDone(o, id, cur, true, pv); blWr(CKEY, o); } else rowSet(o, id, cur, { n: p.querySelector("#ce-n").value.trim() || cur.n, q: p.querySelector("#ce-q").value.trim(), p: pv });
+        p.remove(); d.__draw();
+      });
+    }
+    d.addEventListener("change", function (e) { var t = e.target; if (!t.matches || !t.matches("[data-cq]")) return; var o = blCarts(), id = d.__sel, rw = rowsOf(o, id)[Number(t.getAttribute("data-cq"))]; if (!rw) return; rowSet(o, id, rw, { q: t.value.trim() }); d.__draw(); });
+    (function () { var sx = 0, sy = 0, row = null; d.addEventListener("touchstart", function (e) { row = e.target.closest(".crow"); if (!row || d.__ms || e.target.closest("input")) { row = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+      d.addEventListener("touchend", function (e) { if (!row) return; var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy, r = row; row = null; if (Math.abs(dx) < 90 || Math.abs(dx) < Math.abs(dy) * 2) return; d.__sw = Date.now(); var i = Number(r.getAttribute("data-ri")), o = blCarts(), id = d.__sel, rw = rowsOf(o, id)[i]; if (!rw) return;
+        if (dx > 0) { var ckb = r.querySelector("[data-ck]"); if (ckb) ckb.click(); }
+        else { var ck3 = blRd(BKEY); if (rw.man != null) cartOf(o, id).items.splice(rw.man, 1); else { ck3[rw.k] = 1; blWr(BKEY, ck3); } blWr(CKEY, o); d.__draw(); toast("Quitado ✓"); } }); })();
     d.__draw();
     if (!st.prov) api("proveedores").then(function (j) { if (j && j.ok) { st.prov = j.proveedores; if ($("buym") === d) d.__draw(); } }).catch(function () {});
     function sel2rows(o, id) { var R = rowsOf(o, id), MS = d.__ms || {}; return R.filter(function (x) { return MS[x.k]; }); }
@@ -3742,7 +3778,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     ["pointerup", "pointerleave", "pointermove", "pointercancel"].forEach(function (ev) { d.addEventListener(ev, function () { if (LP) { clearTimeout(LP); LP = null; } }); });
     d.addEventListener("click", function (e) {
       var t = e.target, o = blCarts(), id = d.__sel, b;
-      if (d.__lp && Date.now() - d.__lp < 600) return;
+      if (d.__lp && Date.now() - d.__lp < 600) return; if (d.__sw && Date.now() - d.__sw < 450) return;
       if (t.closest("[data-pclose]")) return;
       if (d.__imp != null) {
         if (t.closest("[data-iback]")) { d.__imp = null; d.__draw(); return; }
@@ -3785,7 +3821,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
         var rw0 = t.closest(".crow"); if (rw0) { var rr0 = rowsOf(o, id)[Number(rw0.getAttribute("data-ri"))]; if (rr0) { if (d.__ms[rr0.k]) delete d.__ms[rr0.k]; else d.__ms[rr0.k] = 1; if (!Object.keys(d.__ms).length) d.__ms = null; d.__draw(); } return; }
         return;
       }
-      if ((b = t.closest("[data-ck]"))) { var i0 = Number(b.getAttribute("data-ck")), rw1 = rowsOf(o, id)[i0]; if (rw1.done) { setDone(o, id, rw1, false); blWr(CKEY, o); d.__draw(); } else payPop(rw1, false); return; }
+      if ((b = t.closest("[data-ck]"))) { var i0 = Number(b.getAttribute("data-ck")), rw1 = rowsOf(o, id)[i0]; if (rw1.done) { setDone(o, id, rw1, false); blWr(CKEY, o); d.__draw(); } else { var pr0 = rowPrice(rw1); if (pr0 > 0) { b.disabled = true; doBuy(o, id, [rw1], [pr0], null).catch(function () { b.disabled = false; toast("No se pudo registrar"); }); } else payPop(rw1, false); } return; }
       if ((b = t.closest("[data-cpen]"))) { payPop(rowsOf(o, id)[Number(b.getAttribute("data-cpen"))], true); return; }
       if ((b = t.closest("[data-pok]"))) {
         var rw4 = rowsOf(o, id)[Number(b.getAttribute("data-pok"))], pv = parseAR($("pp-p").value) || 0, vv = $("pp-v") ? $("pp-v").value.trim() : null;
@@ -3793,6 +3829,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
         if (rw4.done) { /* edición de una compra ya registrada: solo actualiza el precio visible */ setDone(o, id, rw4, true, pv); blWr(CKEY, o); d.__pay = null; d.__draw(); toast("Precio anotado (no se vuelve a sumar al stock)"); return; }
         b.disabled = true; doBuy(o, id, [rw4], [pv], vv ? [vv] : null).catch(function () { b.disabled = false; toast("No se pudo registrar"); }); return;
       }
+      if (!d.__ms && (b = t.closest(".crow")) && !t.closest("button,input,select,textarea")) { var rw6 = rowsOf(o, id)[Number(b.getAttribute("data-ri"))]; if (rw6) cartEdit(rw6); return; }
       if ((b = t.closest("[data-rn]"))) { var rw5 = rowsOf(o, id)[Number(b.getAttribute("data-rn"))]; if (rw5.man == null || rw5.done) return; d.__ed = rw5.k; d.__draw(); return; }
       if ((b = t.closest("[data-cx]"))) { e.preventDefault(); var rw = rowsOf(o, id)[Number(b.getAttribute("data-cx"))], arr = cartOf(o, id).items; arr.splice(rw.man, 1); blWr(CKEY, o); d.__draw(); return; }
       if (t.closest("#cs-add")) { var nn = $("cs-n").value.trim(); if (!nn) { toast("Escribí qué querés comprar"); return; } cartOf(o, id).items.push({ n: nn, q: $("cs-q").value.trim(), done: false }); blWr(CKEY, o); d.__draw(); setTimeout(function () { if ($("cs-n")) $("cs-n").focus(); }, 30); return; }
