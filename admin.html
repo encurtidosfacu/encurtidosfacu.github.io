@@ -501,7 +501,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   function goto(v) {
     if (!allowed(v)) v = firstView();
     st.atEdit = false;
-    modFor(v);
+    modFor(v); paintTop(v);
     st.v = v; store("uovo_adm_v", v); var nk = (st.mod && st.mod !== "gen") ? v : (SUB.indexOf(v) >= 0 ? "mas" : v);
     Array.prototype.forEach.call($("nav").querySelectorAll("button"), function (b) { b.classList.toggle("on", b.getAttribute("data-v") === nk); });
     if (v === "mas") st.loaded.mas = true;
@@ -581,7 +581,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     if (!st.loaded.productos && !st.pprf) { st.pprf = 1; api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === "pedidos") render(true); } }).catch(function () {}); }
     if (!st.plz && !st.plzf) { st.plzf = 1; plzLoad(function () { if (st.v === "pedidos") render(true); }); }
     var PP = [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]];
-    var h = colaBanner() + '<button class="sm" data-ghoy="1" style="margin-bottom:8px">📋 Gestionados hoy</button><button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
+    var h = colaBanner() + '<button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
       '<input class="search" id="pq" type="search" placeholder="Buscar por nombre, código o pedido…" value="' + esc(st.q) + '">' +
       '<button class="chip" data-pdtog="1" style="margin:0 0 8px">📅 ' + esc((PP.filter(function (x) { return x[0] === (st.pdp || "todo"); })[0] || ["", "Rango"])[1]) + ' · fecha del pedido ' + (st.pdo ? "▴" : "▾") + '</button><div' + (st.pdo ? "" : ' hidden') + '><div class="chips">' + PP.map(function (x) { return '<button class="chip' + ((st.pdp || "todo") === x[0] ? " on" : "") + '" data-pdp="' + x[0] + '">' + x[1] + "</button>"; }).join("") + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><label class="meta">Desde<input class="inp" type="date" id="pd-d" value="' + esc(st.pdd || "") + '"></label><label class="meta">Hasta<input class="inp" type="date" id="pd-h" value="' + esc(st.pdh || "") + '"></label></div></div>' +
       '<div class="chips">' + FILS.map(function (f) { var n = f[0] === "todos" ? base.length : f[0] === "apr" ? base.filter(function (p) { return p.ap && !p.cc && !p.cl; }).length : (cnt[f[0]] || 0); return '<button class="chip' + (st.fil === f[0] ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "<b>" + n + "</b></button>"; }).join("") + "</div>";
@@ -718,6 +718,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     if (al.length) alH = '<div class="menu" id="alertas" style="margin-bottom:12px">' + al.map(function (x) { return '<button class="mi" ' + (x[1] === "__agot" ? 'data-agot="1"' : 'data-go="' + x[1] + '" data-fil="' + x[2] + '"') + ' style="padding:12px 16px"><div><b style="font-weight:600">' + x[0] + "</b></div></button>"; }).join("") + "</div>";
     var ks = Object.keys(ent).sort(function (a, b) { return ent[b].n - ent[a].n; }).slice(0, 3);
     var nCj = cajasPend().length; if (ks.length || nCj) { var PA = catsOf(prepAll()), PK = catOrder(PA); h += '<div class="card" id="entregas" style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px"><div style="min-width:0;flex:1"><button data-prep="1" style="border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;width:100%"><div class="nm">🥒 Qué tengo que preparar</div></button><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + (PK.length ? PK.map(function (k) { return '<button class="pchip" data-pcat="' + esc(k) + '">' + catDot(k) + PA[k].tot + " " + esc(k) + "</button>"; }).join("") : (nCj ? "" : '<span class="meta">Tocá para ver el detalle</span>')) + (nCj ? '<button class="pchip" data-pcaja="1">📦 ' + nCj + (nCj === 1 ? " caja" : " cajas") + "</button>" : "") + '</div></div><button data-prep="1" aria-label="Ver todo" style="border:0;background:none;font-size:1.4rem;color:var(--soft);padding:0 4px">›</button></div>'; }
+    h += '<button class="sm" data-ghoy="1" style="margin:6px 0 10px">📋 Gestionados hoy</button>';
     h += '<div class="nm" style="margin:6px 2px 8px">Atajos <span class="meta" style="font-weight:400">· acciones rápidas</span></div><div class="atj" id="atajos">' + [["proveedores", "🧾", "Insumos"], ["stock", "📦", "Stock"], ["recetas", "🥒", "Recetas"], ["packs", "🎁", "Packs y combos"], ["suscripciones", "📬", "Suscripciones"], ["cupones", "🏷️", "Cupones"], ["textos", "✏️", "Textos página"], ["compras", "🛒", "Lista de compras"]].filter(function (x) { return x[0] === "compras" ? allowed("proveedores") : allowed(x[0]); }).map(function (x) { return '<button class="at" data-sc="' + x[0] + '"><i>' + x[1] + "</i><span>" + x[2] + "</span></button>"; }).join("") + "</div>";
     h += faltHome();
     return todoH + h;
@@ -2455,7 +2456,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     var an = [];
     P.forEach(function (p) { if (p.cc || p.cl || p.te) return; if (p.ev && !p.he) an.push("🚚 " + p.nombre + ": enviado sin estar hecho"); if (p.en && !p.ap) an.push("⚠️ " + p.nombre + ": entregado sin aprobar"); if (p.he && !p.ap) an.push("⚠️ " + p.nombre + ": hecho sin aprobar"); if (p.en && !p.he) an.push("⚠️ " + p.nombre + ": entregado sin estar hecho"); });
     var sec = function (t, a, em) { return '<div class="nm" style="margin:10px 2px 4px">' + t + ' <span class="badge o">' + a.length + "</span></div>" + (a.length ? a.map(function (x) { return '<div class="frow" style="padding:6px 0"><span>' + x + "</span></div>"; }).join("") : '<div class="meta">' + em + "</div>"); };
-    d.innerHTML = popHead("📋 Gestionados hoy") + '<div style="padding:0 14px 14px">' + sec("🆕 Pedidos nuevos", nuevos.map(function (p) { return esc(p.nombre) + " · " + money(p.total); }), "Ninguno") + sec("🚚 Enviados", enviados.map(function (p) { return esc(p.nombre); }), "Ninguno") + sec("⚠️ Anomalías", an.map(esc), "Sin anomalías ✓") + sec("🕘 Actividad de hoy", L.map(function (x) { var t = new Date(x.t); return '<span class="meta">' + ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2) + "</span> " + esc(x.x); }), "Sin movimientos registrados") + "</div>";
+    d.__c.innerHTML = popHead("📋 Gestionados hoy") + '<div style="padding:0 14px 14px">' + sec("🆕 Pedidos nuevos", nuevos.map(function (p) { return esc(p.nombre) + " · " + money(p.total); }), "Ninguno") + sec("🚚 Enviados", enviados.map(function (p) { return esc(p.nombre); }), "Ninguno") + sec("⚠️ Anomalías", an.map(esc), "Sin anomalías ✓") + sec("🕘 Actividad de hoy", L.map(function (x) { var t = new Date(x.t); return '<span class="meta">' + ("0" + t.getHours()).slice(-2) + ":" + ("0" + t.getMinutes()).slice(-2) + "</span> " + esc(x.x); }), "Sin movimientos registrados") + "</div>";
   }
   document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest("[data-ghoy]"); if (b) { e.stopPropagation(); gesHoy(); } }, true);
   function msAction(a) {
@@ -2691,7 +2692,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     { t: "Actualizar los datos", k: "actualizar refrescar recargar nuevos pedidos no aparece", go: "", p: ["Tocá Más → Actualizar datos para traer lo más nuevo."] },
     { t: "Instalar la app en el celular", k: "instalar celular icono pantalla inicio app descargar", go: "", p: ["Abrí esta página en Chrome (Android) o Safari (iPhone).", "Android: menú ⋮ → Instalar app. iPhone: Compartir → Agregar a pantalla de inicio."] },
     { t: "Personalizar un módulo (orden, colores, nombres)", k: "personalizar configuracion ajustes orden ocultar esconder color nombre modulo tarjetas atajos pestañas barra", go: "pset", p: ["Entrá al módulo y tocá Ajustes abajo (en Admin: Más → Configuraciones de la app).", "Usá los interruptores para mostrar u ocultar, las flechas ↑ ↓ para ordenar y ✏️ para renombrar.", "Abajo podés cambiar el nombre y el color del módulo."] },
-    { t: "Ver qué se gestionó hoy", k: "gestionados hoy anomalias enviado sin hecho actividad registro movimientos", go: "pdash", p: ["En Pedidos, tocá Gestionados hoy.", "Ves pedidos nuevos, enviados, anomalías (ej. enviado sin estar hecho) y la actividad del día."] },
+    { t: "Ver qué se gestionó hoy", k: "gestionados hoy anomalias enviado sin hecho actividad registro movimientos", go: "pdash", p: ["En Inicio, tocá Gestionados hoy.", "Ves pedidos nuevos, enviados, anomalías (ej. enviado sin estar hecho) y la actividad del día."] },
     { t: "Cambiar el estado de varios pedidos a la vez", k: "seleccion multiple varios pedidos mantener apretado masivo aprobar hecho entregado deshacer", go: "pedidos", p: ["En Pedidos, mantené apretado un pedido.", "Tocá otros para sumarlos y elegí Aprobar, Hecho, Entregado o Cancelar.", "Si te equivocás, tocá Deshacer (aparece 8 segundos)."] },
     { t: "Ver el registro de actividad", k: "registro actividad historial quien cambio que cuando log", go: "pset", p: ["Tocá Ajustes en Pedidos y después Registro de actividad.", "Muestra quién cambió cada pedido y cuándo."] },
     { t: "Cambiar los medios de pago", k: "medios pago efectivo transferencia editar agregar tarjeta", go: "pset", p: ["Pedidos → Ajustes → Medios de pago → Editar.", "Agregá, renombrá, ordená o borrá. Se usan al crear un pedido."] },
@@ -4248,8 +4249,12 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     var m = st.mod || "gen", nav = $("nav");
     var u = uiM(m), no = function (k) { var i = u.nav.indexOf(k); return i < 0 ? 1000 : i; }, NV = MODNAV[m].map(function (x, i) { return { x: x, i: i }; }).sort(function (a, c) { return no(a.x[0]) - no(c.x[0]) || a.i - c.i; }).map(function (o) { return o.x; }).filter(function (x) { return u.navHide.indexOf(x[0]) < 0 || NOHIDE.indexOf(x[0]) >= 0; });
     nav.innerHTML = NV.map(function (x) { var lb = esc(u.navLab[x[0]] || x[1]); return x[0] === "compras" ? '<button data-buy="1"><svg viewBox="0 0 24 24">' + ICO.cart + "</svg>" + lb + "</button>" : '<button data-v="' + x[0] + '"><svg viewBox="0 0 24 24">' + ICO[x[2]] + "</svg>" + lb + "</button>"; }).join("");
-    var mb = $("modname"); if (mb) mb.textContent = u.name || MODS[m][1]; var col = u.color || MODC[m]; document.documentElement.style.setProperty("--blue", col); var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", col);
+    var mb = $("modname"); if (mb) mb.textContent = u.name || MODS[m][1]; paintTop(st.v || "inicio");
     applyPerms();
+  }
+  function paintTop(v) {
+    var m = MODEX[v] || (MODV.ped.indexOf(v) >= 0 ? "ped" : MODV.prod.indexOf(v) >= 0 ? "prod" : v === "finanzas" ? "fin" : "gen");
+    var col = uiM(m).color || MODC[m] || MODC.gen; document.documentElement.style.setProperty("--blue", col); var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", col);
   }
   function modFor(v) {
     var m = st.mod || "gen", n = m;
