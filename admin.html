@@ -1035,6 +1035,33 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     if (st.fm === "pat" && !st.stock && !st.stkf2) { st.stkf2 = 1; api("stock").then(function (j) { st.stock = j && j.ok ? j.stock : []; if (st.v === "finanzas") render(true); }).catch(function () { st.stock = []; }); }
     if (st.fm === "pat" && !st.bal && !st.balf) { st.balf = 1; api("balance").then(function (j) { st.bal = j && j.ok ? j.items : []; if (st.v === "finanzas") render(true); }).catch(function () { st.bal = []; }); }
   }
+  /* ---------- Chips: orden a gusto (mantener apretado y arrastrar) ---------- */
+  var CHK = "uovo_adm_chord", CHD = null, DG = null, DT = null, DX = 0, DY = 0, DJust = false;
+  function chOrd() { if (!CHD) { try { CHD = blRd(CHK) || {}; } catch (e) { CHD = {}; } } return CHD; }
+  function chKey(c) { var f = c.children[0]; if (!f) return null; var at = Array.prototype.filter.call(f.attributes, function (a) { return /^data-/.test(a.name); })[0]; if (!at) return null; var vals = Array.prototype.map.call(c.children, function (x) { return x.getAttribute(at.name) || ""; }).sort(); return at.name + "|" + vals.join(","); }
+  function applyChOrd(c) {
+    var k = chKey(c); if (!k) return; var o = chOrd()[k]; if (!o || !o.length) return; var an = k.split("|")[0], kids = Array.prototype.slice.call(c.children), out = [];
+    o.forEach(function (v) { kids.forEach(function (x) { if (out.indexOf(x) < 0 && x.getAttribute(an) === v) out.push(x); }); });
+    kids.forEach(function (x) { if (out.indexOf(x) < 0) out.push(x); }); out.forEach(function (x) { c.appendChild(x); });
+  }
+  function chSave(c) { var k = chKey(c); if (!k) return; var an = k.split("|")[0]; chOrd()[k] = Array.prototype.map.call(c.children, function (x) { return x.getAttribute(an) || ""; }); blWr(CHK, CHD); }
+  function chEnd() { clearTimeout(DT); DT = null; if (DG) { DG.classList.remove("chdrag"); chSave(DG.parentNode); DJust = true; setTimeout(function () { DJust = false; }, 400); } DG = null; }
+  document.addEventListener("pointerdown", function (e) {
+    var el = e.target.closest && e.target.closest(".chips > .chip"); if (!el || e.button > 0) return;
+    DX = e.clientX; DY = e.clientY; clearTimeout(DT); DT = setTimeout(function () { DT = null; DG = el; el.classList.add("chdrag"); if (navigator.vibrate) navigator.vibrate(15); }, 380);
+  }, true);
+  document.addEventListener("pointermove", function (e) {
+    if (DT && (Math.abs(e.clientX - DX) > 8 || Math.abs(e.clientY - DY) > 8)) { clearTimeout(DT); DT = null; }
+    if (!DG) return; var x = e.clientX, prev = DG.previousElementSibling, next = DG.nextElementSibling;
+    if (prev && prev.classList.contains("chip") && x < prev.getBoundingClientRect().left + prev.getBoundingClientRect().width / 2) DG.parentNode.insertBefore(DG, prev);
+    else if (next && next.classList.contains("chip") && x > next.getBoundingClientRect().left + next.getBoundingClientRect().width / 2) DG.parentNode.insertBefore(next, DG);
+  }, true);
+  document.addEventListener("pointerup", chEnd, true);
+  document.addEventListener("pointercancel", chEnd, true);
+  document.addEventListener("touchmove", function (e) { if (DG) e.preventDefault(); }, { passive: false });
+  window.addEventListener("click", function (e) { if (DJust) { DJust = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  document.addEventListener("contextmenu", function (e) { if (DT || DG) e.preventDefault(); });
+  var chCss = document.createElement("style"); chCss.textContent = ".chdrag{box-shadow:0 8px 18px rgba(0,0,0,.25)!important;transform:scale(1.07);opacity:.92;position:relative;z-index:3}"; document.head.appendChild(chCss);
   /* ---------- Reportería ---------- */
   var RPK = "uovo_adm_rp", RPC = ["#4A6B3A", "#C9A55C", "#8A4F36", "#2F6B5E", "#6B8F4A", "#A8803F", "#7A9E9F", "#B5651D", "#9AA08F"];
   function rpSt() { if (!st.rp) st.rp = Object.assign({ by: "mes", met: "tot", ch: "bar", rg: "todo", d: "", h: "" }, blRd(RPK) || {}); return st.rp; }
@@ -1208,6 +1235,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     cp.id = "s" + Date.now(); cp.n = "Escenario " + (C.sc.length + 1); C.sc.push(cp); escSave(); render(true); escEdit(cp.id);
   }, true);
   function renderFinanzas() {
+    try { blWr("uovo_adm_fin", { fm: st.fm, fp: st.fp, fd: st.fd, fh: st.fh }); } catch (e) {}
     if (!st.fm || st.fm === "m") st.fm = "r";
     if (!st.fd) finPreset("mes");
     finLoads();
@@ -2689,7 +2717,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     if (st.mod && st.mod !== "gen" && h.indexOf(BACK) === 0) h = h.slice(BACK.length);
     else if (SUB.indexOf(st.v) >= 0 && h.indexOf(BACK) === 0 && NAMES[st.v]) h = '<div class="bk">' + BACK + '<button class="crumb" data-crumb="1" aria-haspopup="true" style="border:0;font-family:inherit">' + NAMES[st.v] + " ▾</button></div>" + h.slice(BACK.length);
     var act = document.activeElement, id = act && act.id, pos = act && act.selectionStart;
-    $("view").innerHTML = h; Array.prototype.forEach.call(document.querySelectorAll(".chips,.tabs"), function (c, i) { if (chS[i]) c.scrollLeft = chS[i]; }); try { uiApply(); } catch (e9) {} try { costSnap(); } catch (e8) {}
+    $("view").innerHTML = h; Array.prototype.forEach.call(document.querySelectorAll(".chips"), applyChOrd); Array.prototype.forEach.call(document.querySelectorAll(".chips,.tabs"), function (c, i) { if (chS[i]) c.scrollLeft = chS[i]; }); try { uiApply(); } catch (e9) {} try { costSnap(); } catch (e8) {}
     if (id === "pq" || id === "cq" || id === "pvq" || id === "sk-q" || id === "sk-s") { var e = $(id); e.focus(); try { e.setSelectionRange(pos, pos); } catch (x) {} }
     if (keepScroll) window.scrollTo(0, y);
     if (!keepScroll) maybeTour();
@@ -2832,6 +2860,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
 
   /* ---------- Bot de ayuda (sin IA, gratis) ---------- */
   var KB = [
+    { t: "Ordenar las pestañas (Ventas, Pendientes, Escenarios…)", k: "ordenar orden pestañas chips mover arrastrar izquierda derecha filtros", go: "finanzas", p: ["Mantené apretada una pestaña y arrastrala a izquierda o derecha.", "Soltala en el lugar que quieras: queda guardado en este celular."] },
     { t: "Ver reportes y gráficos", k: "reporte reportes grafico graficos torta barras linea numeros estadistica reporteria", go: "reportes", p: ["Tocá el atajo Reportería (o el menú arriba → Reportería).", "Elegí período, Agrupar por y Medir.", "Elegí el gráfico: barras, torta, dona, línea, área o números."] },
     { t: "Simular escenarios (estado de resultados)", k: "escenario escenarios simulador estado resultados utilidad amortizacion categoria", go: "escenarios", p: ["Tocá el atajo Escenarios (o Finanzas → Escenarios).", "Tocá un escenario para editarlo: líneas en $ o %, y meses para amortizar.", "＋ Escenario o ＋ Categoría para sumar más."] },
     { t: "Deslizar para editar o borrar", k: "deslizar swipe borrar eliminar editar precio stock insumos productos carrito multiseleccion", go: "inicio", p: ["Deslizá una fila a la derecha o izquierda: aparecen sus acciones.", "En Productos mantené apretado para seleccionar varios (mostrar, ocultar, eliminar).", "El ojo 👁 del producto lo muestra u oculta en la tienda."] },
@@ -4412,6 +4441,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   if (UI.badge === false) document.body.classList.add("nobadge");
   if (UI.fil) st.fil = UI.fil; if (UI.pdp) st.pdp = UI.pdp;
   try { var lfil = blRd("uovo_adm_fil"); if (lfil) st.fil = lfil; } catch (e) {}
+  try { var fs = blRd("uovo_adm_fin"); if (fs && fs.fm) { st.fm = fs.fm; if (fs.fp) st.fp = fs.fp; if (fs.fd) st.fd = fs.fd; if (fs.fh) st.fh = fs.fh; } } catch (e) {}
   /* ---------- Módulos: General / Pedidos / Producción ---------- */
   var MODS = { gen: ["🏠", "Admin"], ped: ["📋", "Pedidos"], prod: ["🥒", "Producción"], fin: ["💰", "Finanzas"], rep: ["📈", "Reportería"] }, MODC = { gen: "#4A6B3A", ped: "#A8803F", prod: "#8A4F36", fin: "#2F6B5E", rep: "#3F6F8F" };
   var MODEX = { reportes: "rep", pdash: "ped", pset: "ped", prdash: "prod", prset: "prod" }, MODV = { fin: ["finanzas"], ped: ["pdash", "pedidos", "pset"], rep: ["reportes"], prod: ["prdash", "prset", "stock", "proveedores", "recetas", "puntos"] };
