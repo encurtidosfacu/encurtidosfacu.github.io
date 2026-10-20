@@ -2698,6 +2698,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
 
   /* ---------- Asistente (wizard) ---------- */
   var TOUR = {
+    reportes: [[".chips", "Armá tu reporte", "Elegí período, agrupación y medida. Abajo cambiás el tipo de gráfico: barras, torta, dona, línea, área o números."]],
     inicio: [["#hero", "Tu panel", "Acá ves cuánto vendiste este mes y cuántos pedidos y frascos fueron."],
       ["#kp-ped", "Pedidos por atender", "Cada número es una etapa. Tocalo y vas directo a esos pedidos."],
       ["#atajos", "Atajos", "Creá un producto, abrí Packs, Textos o Insumos con un toque."],
@@ -2730,7 +2731,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
       ["[data-rvedit]", "Editar", "Cambiá puntuación, comentario o foto. También podés eliminarla."]],
     mas: [[".menu", "Más funciones", "Entrá a cada una. Arriba a la izquierda, ‹ Más te devuelve acá."]],
     finanzas: [["#fin-rng", "Calendario", "Elegí de qué día a qué día querés ver. También hay atajos (Hoy, Esta semana, Este mes…)."],
-      ["#fin-pre", "Atajos", "Un toque para ver hoy, esta semana, este mes, etc. Arriba cambiás entre Ventas, Resultados, Patrimonio y Reportes."],
+      ["#fin-pre", "Atajos", "Un toque para ver hoy, esta semana, este mes, etc. Arriba cambiás entre Ventas, Resultados, Patrimonio, Costos, Reportes y Escenarios."],
       ["#fin-res", "Lo que te quedó", "Lo que ganaste después de todos los costos y gastos."],
       ["#fin-lines", "¿A dónde fue la plata?", "El detalle: descuentos, insumos, mano de obra y gastos."]],
     packs: [["[data-knew=Pack]", "Nuevo pack o combo", "Un pack es X frascos a un precio; un combo es una selección fija de frascos."],
@@ -2830,6 +2831,10 @@ body.sh-open .nav{opacity:0;pointer-events:none}
 
   /* ---------- Bot de ayuda (sin IA, gratis) ---------- */
   var KB = [
+    { t: "Ver reportes y gráficos", k: "reporte reportes grafico graficos torta barras linea numeros estadistica reporteria", go: "reportes", p: ["Tocá el atajo Reportería (o el menú arriba → Reportería).", "Elegí período, Agrupar por y Medir.", "Elegí el gráfico: barras, torta, dona, línea, área o números."] },
+    { t: "Simular escenarios (estado de resultados)", k: "escenario escenarios simulador estado resultados utilidad amortizacion categoria", go: "escenarios", p: ["Tocá el atajo Escenarios (o Finanzas → Escenarios).", "Tocá un escenario para editarlo: líneas en $ o %, y meses para amortizar.", "＋ Escenario o ＋ Categoría para sumar más."] },
+    { t: "Deslizar para editar o borrar", k: "deslizar swipe borrar eliminar editar precio stock insumos productos carrito multiseleccion", go: "inicio", p: ["Deslizá una fila a la derecha o izquierda: aparecen sus acciones.", "En Productos mantené apretado para seleccionar varios (mostrar, ocultar, eliminar).", "El ojo 👁 del producto lo muestra u oculta en la tienda."] },
+    { t: "Ver lo gestionado hoy", k: "gestionados hoy actividad movimientos", go: "inicio", p: ["En Inicio, debajo de los Atajos, tocá 📋 Gestionados hoy."] },
     { t: "Dictar una receta por voz", k: "receta dictar voz hablar micrófono microfono ingredientes decir", go: "recetas", p: ["Abrí Producción → Recetas (o el producto → Receta).", "Tocá 🎤 Dictar o pegar la receta.", "Hablá: «rinde 12 frascos, 300 gramos de berenjenas, 1 litro de vinagre».", "Tocá Interpretar y cargar y revisá los ingredientes."] },
     { t: "Fijar un punto de pedido rápido", k: "punto pedido minimo alerta stock avisar rapido", go: "inicio", p: ["Tocá el atajo Puntos de pedido.", "Elegí el insumo.", "Poné el mínimo y Guardar: la alerta queda creada."] },
     { t: "Cargar o corregir el precio de un insumo sin compra", k: "precio insumo cargar corregir olvide compra signo pesos", go: "proveedores", p: ["Abrí Insumos.", "Deslizá el insumo hacia la derecha.", "Tocá $ y poné el precio. El stock no cambia."] },
