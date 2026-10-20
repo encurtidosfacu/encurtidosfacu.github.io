@@ -4414,7 +4414,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   try { var lfil = blRd("uovo_adm_fil"); if (lfil) st.fil = lfil; } catch (e) {}
   /* ---------- Módulos: General / Pedidos / Producción ---------- */
   var MODS = { gen: ["🏠", "Admin"], ped: ["📋", "Pedidos"], prod: ["🥒", "Producción"], fin: ["💰", "Finanzas"], rep: ["📈", "Reportería"] }, MODC = { gen: "#4A6B3A", ped: "#A8803F", prod: "#8A4F36", fin: "#2F6B5E", rep: "#3F6F8F" };
-  var MODEX = { reportes: "rep", pdash: "ped", pset: "ped", prdash: "prod", prset: "prod" }, MODV = { ped: ["pdash", "pedidos", "pset"], rep: ["reportes"], prod: ["prdash", "prset", "stock", "proveedores", "recetas", "puntos"] };
+  var MODEX = { reportes: "rep", pdash: "ped", pset: "ped", prdash: "prod", prset: "prod" }, MODV = { fin: ["finanzas"], ped: ["pdash", "pedidos", "pset"], rep: ["reportes"], prod: ["prdash", "prset", "stock", "proveedores", "recetas", "puntos"] };
   var ICO = {
     home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/>', box: '<path d="M4 10h16l-1.6 9a1 1 0 0 1-1 .8H6.6a1 1 0 0 1-1-.8z"/><path d="M8 10l3-6M16 10l-3-6M9.5 13v4M12 13v4M14.5 13v4"/>',
     set: '<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>',
@@ -4424,6 +4424,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   var MODNAV = {
     gen: [["inicio", "Inicio", "home"], ["pedidos", "Pedidos", "box"], ["productos", "Productos", "jar"], ["finanzas", "Finanzas", "peso"], ["mas", "Más", "dots"]],
     rep: [["reportes", "Reportes", "chart"]],
+    fin: [["finanzas", "Finanzas", "peso"]],
     ped: [["pdash", "Inicio", "home"], ["pedidos", "Pedidos", "box"], ["pset", "Ajustes", "set"]],
     prod: [["prdash", "Inicio", "home"], ["stock", "Stock", "stock"], ["proveedores", "Insumos", "jar"], ["recetas", "Recetas", "jar"], ["compras", "Compras", "cart"], ["prset", "Ajustes", "set"]]
   };
@@ -4441,7 +4442,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   }
   function modFor(v) {
     var m = st.mod || "gen", n = m;
-    if (MODEX[v]) n = MODEX[v]; else if (m !== "gen" && MODV[m].indexOf(v) < 0) n = "gen";
+    if (MODEX[v]) n = MODEX[v]; else if (m !== "gen" && (MODV[m] || []).indexOf(v) < 0) n = "gen";
     if (n !== m) { st.mod = n; store("uovo_adm_mod", n); buildNav(); }
   }
   function modMenu(btn) {
@@ -4450,7 +4451,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     dd.innerHTML = Object.keys(MODS).map(function (k) { return '<button type="button" data-mod="' + k + '"' + (k === (st.mod || "gen") ? ' class="on"' : "") + "><span>" + MODS[k][0] + "</span>" + esc(uiM(k).name || MODS[k][1]) + (k === (st.mod || "gen") ? " ✓" : "") + "</button>"; }).join("");
     document.body.appendChild(dd);
   }
-  function modGo(k) { var o = document.querySelector(".crdd"); if (o) o.remove(); if (k === "fin") { location.href = "finanzas.html" + (DEMO ? "?demo=1" : ""); return; } st.mod = k; store("uovo_adm_mod", k); buildNav(); goto(MODNAV[k][0][0]); }
+  function modGo(k) { var o = document.querySelector(".crdd"); if (o) o.remove(); st.mod = k; store("uovo_adm_mod", k); buildNav(); goto(MODNAV[k][0][0]); }
   document.addEventListener("click", function (e) {
     var t = e.target.closest ? e.target : null; if (!t) return;
     var m = t.closest("[data-mod]"); if (m) { e.stopPropagation(); e.preventDefault(); modGo(m.getAttribute("data-mod")); return; }
