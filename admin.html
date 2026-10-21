@@ -559,9 +559,9 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   }
   function pedCard(p) {
       var c = p.cc || p.cl, wa = waLink(p.tel), e = estadoDe(p), sb = ESTL[e], open = st.pdx === p.r;
-      var b = '<article class="card pc' + (c ? " dim" : "") + '" data-r="' + p.r + '"><button class="row" data-pdx="' + p.r + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center;gap:10px"><div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:7px;min-width:0"><div class="nm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">' + esc(p.nombre) + (p.notas ? " 📝" : "") + '</div><span style="flex:none;font-size:.7rem;font-weight:800;padding:3px 10px;border-radius:999px;border:1.5px solid ' + sb[2] + ';background:' + sb[1] + ';color:' + sb[2] + ';box-shadow:0 1px 3px rgba(0,0,0,.1);white-space:nowrap">' + sb[0] + '</span></div><div class="id">' + esc(p.id) + " · " + pedCats(p) + "" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + ((e === "pend" || e === "coc") ? blBadge(p) : "") + '</div><div style="text-align:right"><div class="tot" style="font-size:1rem">' + money(p.total) + '</div></div><span class="pen">' + PEN + "</span></button>";
+      var b = '<article class="card pc' + (c ? " dim" : "") + '" data-r="' + p.r + '"><button class="row" data-pdx="' + p.r + '" style="width:100%;border:0;background:none;padding:0;text-align:left;align-items:center;gap:10px"><div style="min-width:0;flex:1"><div style="display:flex;align-items:center;gap:7px;min-width:0"><div class="nm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">' + esc(p.nombre) + (p.notas ? " 📝" : "") + (psPedHas(p) ? " ✅" : "") + '</div><span style="flex:none;font-size:.7rem;font-weight:800;padding:3px 10px;border-radius:999px;border:1.5px solid ' + sb[2] + ';background:' + sb[1] + ';color:' + sb[2] + ';box-shadow:0 1px 3px rgba(0,0,0,.1);white-space:nowrap">' + sb[0] + '</span></div><div class="id">' + esc(p.id) + " · " + pedCats(p) + "" + (p.entrega ? " · " + esc(p.entrega) : "") + '</div>' + ((e === "pend" || e === "coc") ? blBadge(p) : "") + '</div><div style="text-align:right"><div class="tot" style="font-size:1rem">' + money(p.total) + '</div></div><span class="pen">' + PEN + "</span></button>";
       if (open) {
-        b += '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" +
+        b += '<div class="items" style="margin-top:10px">' + esc(p.pedido) + "</div>" + psPedAlert(p) +
           '<div class="meta">' + esc(p.fecha) + (p.pago ? " · " + esc(p.pago) : "") + (p.cupon ? " · Cupón " + esc(p.cupon) : "") + (p.desc ? " · −" + p.desc + "%" : "") + (p.ev ? " · 🚚 Enviado" + (p.fev ? " " + fdm(p.fev) : "") : "") + '</div><div class="meta" style="margin-top:2px">' + pedPromTxt(p) + "</div>" +
           (wa ? '<a class="sm" target="_blank" rel="noopener" href="' + wa + '" style="margin-top:8px">💬 ' + esc(p.tel) + "</a>" : "") +
           '<textarea class="inp" rows="2" data-pnota="1" placeholder="Nota del pedido…" style="margin-top:8px">' + esc(p.notas) + "</textarea>" +
@@ -584,7 +584,9 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     if (!st.loaded.productos && !st.pprf) { st.pprf = 1; api("catalogo").then(function (j) { if (j && j.ok) { st.productos = j.catalogo; st.loaded.productos = true; if (st.v === "pedidos") render(true); } }).catch(function () {}); }
     if (!st.plz && !st.plzf) { st.plzf = 1; plzLoad(function () { if (st.v === "pedidos") render(true); }); }
     var PP = [["todo", "Todo"], ["hoy", "Hoy"], ["sem", "Esta semana"], ["mes", "Este mes"], ["anio", "Este año"]];
-    var h = colaBanner() + '<button class="btn" data-pnew="1" style="margin-bottom:10px">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + "</button>" + (st.pnew ? pedForm() : "") +
+    if (!PS.rows && !PS.ld) psLoad(function () { if (st.v === "pedidos") render(true); });
+    var sobN = PS.rows ? psSobList().filter(function (x) { return x.sob > 0; }).length : 0;
+    var h = colaBanner() + '<div style="display:flex;gap:8px;margin-bottom:10px"><button class="btn" data-pnew="1" style="margin:0;flex:1">' + (st.pnew ? "✕ Cerrar" : "＋ Nuevo pedido") + '</button><button class="btn" data-pssob="1" style="margin:0;flex:none;width:auto;padding-left:14px;padding-right:14px;background:#fff;color:#3E5B30;border:1.5px solid #C9D6B8">🥒 Sobrantes' + (sobN ? " <b>" + sobN + "</b>" : "") + "</button></div>" + (st.pnew ? pedForm() : "") +
       '<input class="search" id="pq" type="search" placeholder="Buscar por nombre, código o pedido…" value="' + esc(st.q) + '">' +
       '<button class="chip" data-pdtog="1" style="margin:0 0 8px">📅 ' + esc((PP.filter(function (x) { return x[0] === (st.pdp || "todo"); })[0] || ["", "Rango"])[1]) + ' · fecha del pedido ' + (st.pdo ? "▴" : "▾") + '</button><div' + (st.pdo ? "" : ' hidden') + '><div class="chips">' + PP.map(function (x) { return '<button class="chip' + ((st.pdp || "todo") === x[0] ? " on" : "") + '" data-pdp="' + x[0] + '">' + x[1] + "</button>"; }).join("") + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><label class="meta">Desde<input class="inp" type="date" id="pd-d" value="' + esc(st.pdd || "") + '"></label><label class="meta">Hasta<input class="inp" type="date" id="pd-h" value="' + esc(st.pdh || "") + '"></label></div></div>' +
       '<div class="chips">' + FILS.map(function (f) { var n = f[0] === "todos" ? base.length : f[0] === "apr" ? base.filter(function (p) { return p.ap && !p.cc && !p.cl; }).length : (cnt[f[0]] || 0); return '<button class="chip' + (st.fil === f[0] ? " on" : "") + '" data-f="' + f[0] + '">' + f[1] + "<b>" + n + "</b></button>"; }).join("") + "</div>";
@@ -640,13 +642,14 @@ body.sh-open .nav{opacity:0;pointer-events:none}
 
   /* ---------- Productos ---------- */
   function renderProductos() {
+    if (!PS.rows && !PS.ld) psLoad(function () { if (st.v === "productos") render(true); });
     var h = '<button class="btn" id="newp" data-newp="1" style="margin-bottom:12px">＋ Nuevo producto</button>';
     if (st.newp) h += '<div class="card" id="npform"><div class="nm" style="margin-bottom:8px">Nuevo producto</div><div class="add"><datalist id="cat-list">' + catOpts() + '</datalist><input class="inp" id="np-n" placeholder="Nombre (ej: Zanahorias)" autocomplete="off"><textarea class="inp" id="np-d" rows="2" placeholder="Descripción"></textarea><input class="inp" id="np-p" type="number" inputmode="numeric" placeholder="Precio"><input class="inp" id="np-c" placeholder="Categoría (opcional)"><input class="inp" id="np-i" placeholder="Ingredientes para el buscador (opcional)"><button class="btn" id="np-ok">Crear producto</button></div><div class="meta" style="margin-top:6px">Después de crearlo, cargale la receta en Más → Recetas y las fotos con el clip 📎.</div></div>';
     if (!st.productos.length) return h + '<div class="empty">No hay productos.</div>';
     return h + '<div class="help">Tocá un producto para editarlo. Mantené apretado para elegir varios.</div>' + st.productos.map(function (p) {
       var mg = p.costo != null && p.precio > 0 ? Math.round((p.precio - p.costo) / p.precio * 100) : null, ed = st.edit === p.r;
       var info = esc(p.cat || "Sin categoría") + (p.costo != null ? " · costo " + money(p.costo) + (mg != null ? " · margen " + mg + "%" : "") : " · falta receta") + (p.ag ? " · agotada" : "") + (p.vi ? "" : " · oculto");
-      if (!ed) return '<div class="ssw" data-ssw="pr:' + p.r + '" data-nm="' + esc(p.nombre) + '"><div class="sa l"><button class="txt" data-pvis="' + p.r + '">' + (p.vi ? "Ocultar" : "Mostrar") + '</button></div><div class="sa r"><button class="m txt" data-pago="' + p.r + '">' + (p.ag ? "Disponible" : "Agotado") + '</button><button class="d" data-pdelx="' + p.r + '" aria-label="Eliminar">🗑</button></div><article class="card prow" data-r="' + p.r + '" style="position:relative;' + (p.ag ? "background:#F6E3E1!important;" : "") + '"><button type="button" data-pvis="' + p.r + '" aria-label="' + (p.vi ? "Visible: tocá para ocultar" : "Oculto: tocá para mostrar") + '" title="' + (p.vi ? "Visible: tocá para ocultar" : "Oculto: tocá para mostrar") + '" style="position:absolute;left:0;top:0;width:30px;height:30px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer;color:' + (p.ag ? "#B3261E" : p.vi ? "#3E5B30" : "#8A8F85") + ';line-height:0">' + (p.vi ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>' : '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-7 0-11-7-11-7a19.8 19.8 0 0 1 5.06-5.94M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 7 11 7a19.8 19.8 0 0 1-3.17 4.19M1 1l22 22"/></svg>') + '</button><div class="row" data-edit="1" style="align-items:center;gap:8px;cursor:pointer;padding-left:20px"><div style="flex:1;min-width:0"><div class="nm" style="font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + (p.ag ? "color:#B3261E" : "") + '">' + esc(p.nombre) + '</div><div class="meta" style="font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + info + '</div></div><b style="color:var(--blue);font-size:1rem">' + money(p.precio) + '</b><span style="color:var(--blue);font-weight:800">›</span></div></article></div>';
+      if (!ed) return '<div class="ssw" data-ssw="pr:' + p.r + '" data-nm="' + esc(p.nombre) + '"><div class="sa l"><button class="txt" data-pvis="' + p.r + '">' + (p.vi ? "Ocultar" : "Mostrar") + '</button></div><div class="sa r"><button class="m txt" data-pago="' + p.r + '">' + (p.ag ? "Disponible" : "Agotado") + '</button><button class="d" data-pdelx="' + p.r + '" aria-label="Eliminar">🗑</button></div><article class="card prow" data-r="' + p.r + '" style="position:relative;' + (p.ag ? "background:#F6E3E1!important;" : "") + '"><button type="button" data-pvis="' + p.r + '" aria-label="' + (p.vi ? "Visible: tocá para ocultar" : "Oculto: tocá para mostrar") + '" title="' + (p.vi ? "Visible: tocá para ocultar" : "Oculto: tocá para mostrar") + '" style="position:absolute;left:0;top:0;width:30px;height:30px;padding:0;border:0;background:none;display:grid;place-items:center;cursor:pointer;color:' + (p.ag ? "#B3261E" : p.vi ? "#3E5B30" : "#8A8F85") + ';line-height:0">' + (p.vi ? '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>' : '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-7 0-11-7-11-7a19.8 19.8 0 0 1 5.06-5.94M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 7 11 7a19.8 19.8 0 0 1-3.17 4.19M1 1l22 22"/></svg>') + '</button><div class="row" data-edit="1" style="align-items:center;gap:8px;cursor:pointer;padding-left:20px"><div style="flex:1;min-width:0"><div class="nm" style="font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;' + (p.ag ? "color:#B3261E" : "") + '">' + esc(p.nombre) + psBadge(p.nombre) + '</div><div class="meta" style="font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + info + '</div></div><b style="color:var(--blue);font-size:1rem">' + money(p.precio) + '</b><span style="color:var(--blue);font-weight:800">›</span></div></article></div>';
       var R = (st.recetas || []).filter(function (x) { return nrm(x.nombre) === nrm(p.nombre); })[0];
       var rec = R ? '<div class="meta" style="margin-bottom:6px">Una preparación rinde <b>' + esc(R.y || R.q || "?") + "</b> · " + (R.items || []).length + " insumos</div>" + (R.items || []).map(function (it) { var sp = sinPrecio(it.n); return '<div class="frow" style="padding:5px 0;align-items:center"><span>' + (sp ? '<button type="button" data-rpp="' + esc(it.n) + '" style="border:0;background:none;padding:0;color:#B3261E;font-weight:800;text-align:left">' + esc(it.n) + ' <small style="font-weight:600;text-decoration:underline dotted">sin precio ›</small></button>' : esc(it.n)) + "</span><b>" + esc(blFmt(it.q, it.u || "")) + "</b></div>"; }).join("") : '<div class="meta">Todavía no tiene receta.</div>';
       return '<article class="card" data-r="' + p.r + '"><button class="pen" data-edit="1" aria-label="Cerrar">Cerrar</button><div class="add">' +
@@ -661,6 +664,113 @@ body.sh-open .nav{opacity:0;pointer-events:none}
         '<button class="sm red" data-pdelprod="1">🗑 Eliminar producto</button></div></article>';
     }).join("");
   }
+
+  /* ---------- Stock de productos (v17): disponible, presentaciones, sobrantes, motivos ---------- */
+  var PSK = "uovo_pstk", PRK = "uovo_pres", PS = { rows: null, movs: null, ld: 0, local: false, warn: 0 };
+  var PT = { hecho: ["🧺 Hecho (tanda)", 1], sobrante: ["🥒 Sobrante", 1], venta: ["💵 Venta", -1], consumo: ["🙋 Consumo personal", -1], perdida: ["🗑 Pérdida", -1], ajuste: ["🔢 Contado", 0] };
+  var PETAPAS = ["Maceración", "Envasado", "Esterilizado", "Transporte", "Otra"];
+  function psNow() { var d = new Date(), z = function (n) { return ("0" + n).slice(-2); }; return z(d.getDate()) + "/" + z(d.getMonth() + 1) + "/" + d.getFullYear() + " " + z(d.getHours()) + ":" + z(d.getMinutes()); }
+  function psLocal() { try { return JSON.parse(localStorage.getItem(PSK) || "[]"); } catch (e) { return []; } }
+  function psLocW(a) { try { localStorage.setItem(PSK, JSON.stringify(a.slice(-2000))); } catch (e) {} }
+  function psSums(L) { var o = {}; L.forEach(function (m) { var k = nrm(m.prod) + "|" + nrm(m.pres); (o[k] = o[k] || { prod: m.prod, pres: m.pres || "", stock: 0 }).stock += Number(m.cant) || 0; }); return Object.keys(o).map(function (k) { return o[k]; }); }
+  function psFromLocal() { PS.local = true; var L = psLocal(); PS.rows = psSums(L); PS.movs = L.slice().reverse().slice(0, 300).map(function (m, i) { return { r: L.length - i, fecha: m.fecha, prod: m.prod, pres: m.pres, tipo: m.tipo, cant: m.cant, motivo: m.motivo, nota: m.nota }; }); }
+  function psPresAll() { try { return JSON.parse(localStorage.getItem(PRK) || "{}") || {}; } catch (e) { return {}; } }
+  function psPresW(o, nopush) { try { localStorage.setItem(PRK, JSON.stringify(o)); } catch (e) {} if (!nopush && !DEMO) api("kvSet", { k: "pres", v: JSON.stringify(o) }).catch(function () {}); }
+  function psPres(prod) { var o = psPresAll(), l = (o[prod] || []).slice(); (PS.rows || []).forEach(function (r) { if (nrm(r.prod) === nrm(prod) && r.pres && l.indexOf(r.pres) < 0) l.push(r.pres); }); return l; }
+  function psLoad(cb, force) {
+    if (PS.ld) return; if (PS.rows && !force) { if (cb) cb(); return; } PS.ld = 1;
+    Promise.all([api("pstock"), api("pmovs"), api("kvGet", { keys: ["pres"] })]).then(function (r) {
+      if (r[0] && r[0].ok && Array.isArray(r[0].pstock)) { PS.local = false; PS.rows = r[0].pstock; PS.movs = r[1] && r[1].ok && Array.isArray(r[1].movs) ? r[1].movs : []; }
+      else psFromLocal();
+      var kv = r[2] && r[2].ok && r[2].kv && r[2].kv.pres;
+      if (kv && !PS.local) { try { var o = JSON.parse(kv.v), cur = psPresAll(); Object.keys(o || {}).forEach(function (k) { (o[k] || []).forEach(function (n) { cur[k] = cur[k] || []; if (cur[k].indexOf(n) < 0) cur[k].push(n); }); }); psPresW(cur, 1); } catch (e) {} }
+    }).catch(psFromLocal).then(function () { PS.ld = 0; if (cb) cb(); });
+  }
+  function psReload() { PS.ld = 0; return new Promise(function (res) { psLoad(function () { res(true); }, true); }); }
+  function psQ(prod, pres) { var t = 0, f = 0; (PS.rows || []).forEach(function (r) { if (nrm(r.prod) === nrm(prod) && (pres == null || nrm(r.pres) === nrm(pres))) { t += Number(r.stock) || 0; f = 1; } }); return f ? Math.round(t) : 0; }
+  function psMov(prod, pres, tipo, cant, motivo, nota) {
+    var rid = Date.now() + "-" + Math.random().toString(36).slice(2);
+    function loc() {
+      var L = psLocal(), cur = psQ(prod, pres || ""), d = tipo === "ajuste" ? cant - cur : PT[tipo][1] * cant;
+      L.push({ fecha: psNow(), prod: prod, pres: pres || "", tipo: tipo, cant: d, motivo: motivo || "", nota: nota || "" }); psLocW(L); psFromLocal();
+      if (!PS.warn && !DEMO) { PS.warn = 1; toast("Guardado en este dispositivo (falta actualizar la planilla)"); }
+      return Promise.resolve(true);
+    }
+    if (PS.local || DEMO) return loc();
+    return api("pmov", { prod: prod, pres: pres || "", tipo: tipo, cant: cant, motivo: motivo || "", nota: nota || "", rid: rid }).then(function (j) {
+      if (j && j.ok) return psReload();
+      if (j && j.error === "valor") { toast(j.msg || "No se pudo guardar"); return false; }
+      PS.local = true; return loc();
+    }).catch(function () { PS.local = true; return loc(); });
+  }
+  function psBadge(nm) { if (!PS.rows) return ""; var q = psQ(nm); return '<span data-psk="' + esc(nm) + '" style="color:' + (q > 0 ? "#8A8F85" : "#B3261E") + ';font-weight:600;font-size:.82rem;margin-left:5px;padding:2px 4px">(' + q + ")</span>"; }
+  function psPop(prod, tipo0) {
+    var S = { pres: "", tipo: tipo0 || "venta", n: "", nota: "", et: "" }, d = popBase("pstk", 460);
+    var pl0 = psPres(prod); S.pres = pl0[0] || "";
+    function draw() {
+      var pl = psPres(prod), P = pl.length ? pl : [""];
+      var rows = P.map(function (p) { var q = psQ(prod, p); return '<div class="frow" style="align-items:center;gap:8px"><div style="flex:1;min-width:0"><div class="nm" style="font-size:.95rem">' + esc(p || "Único") + '</div><div class="meta">' + (q > 0 ? "Disponible" : '<span style="color:#B3261E;font-weight:700">Agotado</span>') + '</div></div><button class="sm" data-psm="' + esc(p) + '" style="padding:4px 14px">−</button><b style="min-width:34px;text-align:center;font-size:1.15rem">' + q + '</b><button class="sm" data-psp="' + esc(p) + '" style="padding:4px 14px">＋</button></div>'; }).join("");
+      var tp = Object.keys(PT).map(function (k) { return '<button class="chip' + (S.tipo === k ? " on" : "") + '" data-pst="' + k + '" style="flex:none">' + PT[k][0] + "</button>"; }).join("");
+      var pc = P.length > 1 ? '<div class="meta" style="margin-top:8px">Presentación</div><div class="chips" style="flex-wrap:wrap">' + P.map(function (p) { return '<button class="chip' + (S.pres === p ? " on" : "") + '" data-psr="' + esc(p) + '">' + esc(p || "Único") + "</button>"; }).join("") + "</div>" : "";
+      var et = S.tipo === "perdida" ? '<div class="meta" style="margin-top:8px">Etapa donde se perdió</div><div class="chips" style="flex-wrap:wrap">' + PETAPAS.map(function (e) { return '<button class="chip' + (S.et === e ? " on" : "") + '" data-pse="' + e + '">' + e + "</button>"; }).join("") + "</div>" : "";
+      var mv = (PS.movs || []).filter(function (m) { return nrm(m.prod) === nrm(prod); }).slice(0, 6).map(function (m) { return '<div class="frow"><span>' + esc(String(m.fecha).slice(0, 10)) + " · " + esc(PT[m.tipo] ? PT[m.tipo][0].replace(/^\S+\s/, "") : m.tipo) + " " + (m.cant > 0 ? "+" : "") + m.cant + (m.pres ? " · " + esc(m.pres) : "") + (m.motivo ? " · " + esc(m.motivo) : "") + '</span><button class="sm red" data-psdel="' + m.r + '" style="padding:2px 8px">✕</button></div>'; }).join("");
+      d.__c.innerHTML = popHead("📦 " + esc(prod) + ' <small style="color:#8A8F85">(' + psQ(prod) + ")</small>") + '<div style="padding:0 2px 12px">' + rows +
+        '<div class="meta" style="margin-top:12px">Motivo / tipo de movimiento</div><div class="chips" style="flex-wrap:wrap">' + tp + "</div>" + pc + et +
+        '<div style="display:flex;gap:8px;margin-top:10px"><input class="inp" data-psn inputmode="numeric" placeholder="Cantidad (entero)" value="' + esc(S.n) + '" style="flex:1;min-width:0"><button class="btn" data-psgo="1" style="flex:none;width:auto;margin:0;padding:0 18px">Registrar</button></div>' +
+        '<input class="inp" data-psnota placeholder="Nota (opcional)" value="' + esc(S.nota) + '" style="margin-top:8px">' +
+        '<div style="display:flex;gap:8px;margin-top:12px"><input class="inp" data-psnew placeholder="Nueva presentación (ej. 300/330 g)" style="flex:1;min-width:0"><button class="sm" data-psadd="1">＋</button></div>' +
+        (mv ? '<div class="meta" style="margin:12px 0 2px">Últimos movimientos (✕ deshace)</div>' + mv : "") + (PS.local && !DEMO ? '<div class="meta" style="margin-top:10px">⚠️ Guardando solo en este dispositivo hasta actualizar el backend.</div>' : "") + "</div>";
+    }
+    function after(ok) { draw(); if (st.v === "productos" || st.v === "pedidos") render(true); }
+    d.__c.addEventListener("input", function (e) { var t = e.target; if (t.hasAttribute("data-psn")) S.n = t.value; else if (t.hasAttribute("data-psnota")) S.nota = t.value; });
+    d.__c.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-psp")) { var tp1 = PT[S.tipo][1] > 0 ? S.tipo : "hecho"; psMov(prod, b.getAttribute("data-psp"), tp1, 1, "", "").then(after); }
+      else if (b.hasAttribute("data-psm")) { var tp2 = PT[S.tipo][1] < 0 ? S.tipo : "venta"; psMov(prod, b.getAttribute("data-psm"), tp2, 1, tp2 === "consumo" ? "Consumo personal" : "", "").then(after); }
+      else if (b.hasAttribute("data-pst")) { S.tipo = b.getAttribute("data-pst"); draw(); }
+      else if (b.hasAttribute("data-psr")) { S.pres = b.getAttribute("data-psr"); draw(); }
+      else if (b.hasAttribute("data-pse")) { S.et = b.getAttribute("data-pse"); draw(); }
+      else if (b.hasAttribute("data-psgo")) {
+        var n = parseInt(String(S.n).replace(/\D/g, ""), 10); if (!(n >= 0) || (n === 0 && S.tipo !== "ajuste")) { toast("Poné una cantidad entera"); return; }
+        var mot = S.tipo === "consumo" ? "Consumo personal" : S.tipo === "perdida" ? "Pérdida" + (S.et ? " · " + S.et : "") : S.tipo === "sobrante" ? "Sobrante de tanda" : "";
+        psMov(prod, S.pres, S.tipo, n, mot, S.nota).then(function (ok) { if (ok) { S.n = ""; S.nota = ""; toast("Guardado ✓"); } after(); });
+      }
+      else if (b.hasAttribute("data-psadd")) { var inp = d.__c.querySelector("[data-psnew]"), nm = inp && inp.value.trim(); if (!nm) return; var o = psPresAll(); o[prod] = o[prod] || []; if (o[prod].indexOf(nm) < 0) o[prod].push(nm); psPresW(o); S.pres = nm; draw(); }
+      else if (b.hasAttribute("data-psdel")) {
+        var r = Number(b.getAttribute("data-psdel"));
+        if (PS.local || DEMO) { var L = psLocal(); L.splice(r - 1, 1); psLocW(L); psFromLocal(); after(); }
+        else api("delPMov", { r: r, prod: prod }).then(function () { return psReload(); }).then(after).catch(function () { toast("No se pudo deshacer"); });
+      }
+    });
+    draw();
+  }
+  function psDemand() { var need = {}; (st.pedidos || []).forEach(function (p) { if (p.cc || p.cl || p.en) return; var it = pedItems(p); Object.keys(it.frascos).forEach(function (k) { need[nrm(k)] = (need[nrm(k)] || 0) + it.frascos[k]; }); }); return need; }
+  function psSobList() {
+    var need = psDemand(), seen = {}, out = [];
+    (PS.rows || []).forEach(function (r) { var k = nrm(r.prod); if (seen[k]) return; seen[k] = 1; var q = psQ(r.prod), dm = need[k] || 0; if (q > 0 || dm > 0) out.push({ prod: r.prod, q: q, dm: dm, sob: q - dm }); });
+    return out.sort(function (a, b) { return b.sob - a.sob; });
+  }
+  function psSobLines() {
+    if (!PS.rows) { if (!PS.ld) { var v0 = st.v; psLoad(function () { if (st.v === v0) render(true); }); } return []; }
+    var L = psSobList().filter(function (x) { return x.sob > 0; }); if (!L.length) return [];
+    return [["🥒 Sobrantes: " + L.slice(0, 3).map(function (x) { return x.sob + " " + x.prod; }).join(", ") + (L.length > 3 ? " y " + (L.length - 3) + " más" : ""), "pedidos", ""]];
+  }
+  function psSobPop() {
+    var d = popBase("pssob", 460), L = psSobList();
+    d.__c.innerHTML = popHead("🥒 Sobrantes y disponibles") + '<div style="padding:0 2px 12px"><div class="meta" style="margin-bottom:8px">Hechas en stock menos lo que piden los pedidos sin entregar. Tocá un producto para sumar, restar o registrar un sobrante.</div>' +
+      (L.length ? L.map(function (x) { return '<div class="frow" style="align-items:center;gap:8px"><button class="sm" data-pspp="' + esc(x.prod) + '" style="flex:1;text-align:left;border:0;background:none;padding:6px 0"><b>' + esc(x.prod) + '</b><div class="meta">Hechas ' + x.q + " · pedidas " + x.dm + "</div></button><b style=\"color:" + (x.sob > 0 ? "#1B7A3A" : x.sob < 0 ? "#B3261E" : "#8A8F85") + '">' + (x.sob > 0 ? "sobran " + x.sob : x.sob < 0 ? "faltan " + (-x.sob) : "justo") + "</b></div>"; }).join("") : '<div class="empty">Todavía no hay stock de productos cargado.</div>') +
+      '<div class="meta" style="margin:12px 0 4px">Cargar stock de un producto</div><div class="chips" style="flex-wrap:wrap">' + (st.productos || []).map(function (p) { return '<button class="chip" data-pspp="' + esc(p.nombre) + '">' + esc(p.nombre) + "</button>"; }).join("") + "</div></div>";
+    d.__c.addEventListener("click", function (e) { var b = e.target.closest("[data-pspp]"); if (!b) return; var pn = b.getAttribute("data-pspp"); d.remove(); psPop(pn, "sobrante"); });
+  }
+  function psPedHas(p) { if (!PS.rows || p.he || p.en || p.cc || p.cl) return false; var f = pedItems(p).frascos, ks = Object.keys(f); return ks.length > 0 && ks.every(function (k) { return psQ(k) >= f[k]; }); }
+  function psPedAlert(p) {
+    if (!PS.rows || p.he || p.en || p.cc || p.cl) return ""; var f = pedItems(p).frascos, l = Object.keys(f).filter(function (k) { return psQ(k) > 0; }).map(function (k) { return Math.min(psQ(k), f[k]) + " de " + f[k] + " " + k; });
+    return l.length ? '<div class="meta" style="margin-top:6px;color:#1B7A3A">✅ Ya hechas en stock: ' + esc(l.join(", ")) + "</div>" : "";
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-psk]"); if (b) { e.stopPropagation(); e.preventDefault(); var pn = b.getAttribute("data-psk"); psLoad(function () { psPop(pn); }); return; }
+    var c = e.target.closest && e.target.closest("[data-pssob]"); if (c) { e.stopPropagation(); e.preventDefault(); psLoad(function () { psSobPop(); }, true); }
+  }, true);
   function patchProducto(r, campo, valor) {
     var p = st.productos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
     var key = campo === "ag" ? "ag" : campo === "vi" ? "vi" : "precio", old = p[key]; p[key] = valor; if (campo !== "pr") render(true);
@@ -1161,7 +1271,15 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     o.sc.forEach(function (s) { if (!s.c) { s.c = {}; o.cats.forEach(function (c) { s.c[c.id] = ((s.v && s.v[c.id]) || []).map(function (l) { var t = l.p ? "(" + (Number(l.v) || 0) + "%)" : String(Number(l.v) || 0); return Number(l.m) > 1 ? "(" + t + ")/" + l.m : t; }).join("+"); }); delete s.v; } });
     ESD = o; blWr(ESK, o); return o;
   }
-  function escSave() { blWr(ESK, ESD); }
+  function escSave() { blWr(ESK, ESD); try { localStorage.setItem("uovo_adm_esc_at", String(Date.now())); } catch (e) {} if (DEMO) return; clearTimeout(escSave.t); escSave.t = setTimeout(function () { api("kvSet", { k: "esc", v: JSON.stringify(ESD) }).catch(function () {}); }, 1200); }
+  function escPull() {
+    if (DEMO || escPull.d) return; escPull.d = 1;
+    api("kvGet", { keys: ["esc"] }).then(function (j) {
+      var r = j && j.ok && j.kv && j.kv.esc; if (!r) { if (ESD && j && j.ok) api("kvSet", { k: "esc", v: JSON.stringify(ESD) }).catch(function () {}); return; }
+      var at = pf(r.at), la = Number(localStorage.getItem("uovo_adm_esc_at") || 0);
+      if (at && at.getTime() > la + 5000) { try { var o = JSON.parse(r.v); if (o && o.cats && o.sc) { ESD = o; blWr(ESK, o); try { localStorage.setItem("uovo_adm_esc_at", String(Date.now())); } catch (e) {} if (st.v === "finanzas") render(true); } } catch (e) {} }
+    }).catch(function () {});
+  }
   function escEval(raw, V) {
     var s = String(raw == null ? "" : raw).replace(/^\s*=/, "").replace(/\$/g, "").replace(/\s+/g, "").replace(/,/g, ".").replace(/\.(?=\d{3}(\D|$))/g, "");
     if (!s) return 0;
@@ -1187,6 +1305,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   }
   var EC_TYPES = [["ing", "Ingreso"], ["cmv", "CMV"], ["gas", "Gasto"], ["imp", "Impuesto"]];
   function renderEscenarios() {
+    escPull();
     var C = escData(), S = C.sc, r = escRate(), rows = "";
     if (!r && !ESRT) { ESRT = 1; escRateFetch(function () { if (st.v === "finanzas" && st.fm === "esc") render(true); }); }
     var cell = function (cid, s) { return '<td style="padding:4px 6px;vertical-align:top"><input class="inp" data-ec="' + cid + "|" + s.id + '" value="' + esc(s.c[cid] || "") + '" style="text-align:right;padding:6px 8px;min-width:120px;font-weight:600"><div class="meta" data-sub="' + cid + "|" + s.id + '" style="text-align:right;font-size:.72rem;margin-top:2px"></div></td>'; };
@@ -1487,7 +1606,8 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     (st.stock || []).forEach(function (x) { var n = need[nrm(x.ins)]; if (n && x.mov && n > x.stock + 1e-9) out.push({ ins: x.ins, uni: x.uni, need: n, have: x.stock, falta: n - x.stock }); });
     return out;
   }
-  function stkAlertLines() {
+  function stkAlertLines() { return stkAlertLines0().concat(psSobLines()); }
+  function stkAlertLines0() {
     if (!st.alertas) return [];
     var l = [], d = stkDemand();
     if (d.length) l.push(["🔴 Para los pedidos en curso te falta: " + d.slice(0, 3).map(function (x) { return x.ins + " (" + fm(x.falta) + " " + x.uni + ")"; }).join(", ") + (d.length > 3 ? " y " + (d.length - 3) + " más" : ""), "stock", "alert"]);
@@ -2668,7 +2788,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     var pers = (st.gp === "pers") ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0"><label class="meta">Desde<input class="inp" type="date" data-gpd="d" value="' + esc(st.gpd || "") + '"></label><label class="meta">Hasta<input class="inp" type="date" data-gpd="h" value="' + esc(st.gph || "") + '"></label></div>' : "";
     var d = popBase("gesh", 480);
     d.__c.innerHTML = popHead("📋 Gestionados") + '<div style="padding:0 2px 14px"><div style="display:flex;gap:6px;overflow-x:auto;margin:4px 0 10px;padding-bottom:2px">' + P + "</div>" + pers +
-      '<div style="background:linear-gradient(90deg,#2F4A25,#4A6B3A 55%,#6B8F4A);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px"><div style="font-size:.78rem;opacity:.85">Gestionaste</div><div style="font-size:1.8rem;font-weight:800">' + L.length + ' <span style="font-size:.9rem;font-weight:600;opacity:.9">movimientos</span></div></div>' +
+      '<div style="background:linear-gradient(90deg,#2F4A25,#4A6B3A 55%,#6B8F4A);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px"><div style="font-size:.78rem;opacity:.85">' + ({ hoy: "Hoy", sem: "Esta semana", mes: "Este mes", anio: "Este año", pers: "En el período" }[st.gp || "hoy"]) + ' despachaste</div><div style="font-size:1.8rem;font-weight:800">' + ((cnt.env || 0) + (cnt.ent || 0)) + ' <span style="font-size:.9rem;font-weight:600;opacity:.9">pedidos · ' + L.length + ' movimientos en total</span></div></div>' +
       (sumH ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">' + sumH + "</div>" : "") + cards + "</div>";
   }
   document.addEventListener("click", function (e) {
@@ -2876,6 +2996,12 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   var KB = [
     { t: "Ordenar las pestañas (Ventas, Pendientes, Escenarios…)", k: "ordenar orden pestañas chips mover arrastrar izquierda derecha filtros", go: "finanzas", p: ["Mantené apretada una pestaña y arrastrala a izquierda o derecha.", "Soltala en el lugar que quieras: queda guardado en este celular."] },
     { t: "Ver reportes y gráficos", k: "reporte reportes grafico graficos torta barras linea numeros estadistica reporteria", go: "reportes", p: ["Tocá el atajo Reportería (o el menú arriba → Reportería).", "Elegí período, Agrupar por y Medir.", "Elegí el gráfico: barras, torta, dona, línea, área o números."] },
+    { t: "Stock de productos: cuántas hechas hay", k: "stock producto disponible cantidad parentesis hechas tanda frascos", go: "productos", p: ["En Productos, al lado del nombre ves entre paréntesis cuántas hechas hay.", "Tocá el número: ＋ y − suman o restan de a 1.", "Elegí el motivo (hecho, sobrante, venta, consumo personal, pérdida o contado), la cantidad entera y tocá Registrar.", "Cada movimiento queda en el historial y podés deshacerlo con ✕."] },
+    { t: "Presentaciones de un producto (300/330 g, 600/650 g)", k: "presentacion presentaciones tamano gramos 300 600 agotado disponible variante", go: "productos", p: ["Tocá el número del producto y escribí la presentación abajo (ej. 300/330 g) → ＋.", "Cada presentación tiene su propio stock y se marca Disponible o Agotado sola.", "No hace falta cargar el producto dos veces."] },
+    { t: "Sobrantes de tanda", k: "sobrante sobrantes sobran tanda excedente faltan pedidas", go: "pedidos", p: ["En Pedidos, al lado de ＋ Nuevo pedido, tocá 🥒 Sobrantes.", "Ves hechas, pedidas y cuántas sobran o faltan por producto.", "Tocá un producto para registrar el sobrante. Los sobrantes también aparecen en las alertas de Inicio."] },
+    { t: "Alerta de pedido ya hecho", k: "alerta pedido hecho stock disponible tilde verde ya tengo", go: "pedidos", p: ["Un ✅ al lado del nombre del cliente avisa que todo lo del pedido ya está hecho en stock.", "Al abrir el pedido ves cuántas hechas hay de cada producto."] },
+    { t: "Deslizar filas, carrito y precios de insumos", k: "deslizar swipe carrito compras insumos precio atajo editar eliminar sumar", go: "stock", p: ["Deslizá ← para ver −, otra vez ← para eliminar (con confirmación); → de punta a punta suma.", "Carrito: tocá la fila para editar, tildá para cargar directo y cambiá la cantidad en la misma fila.", "El atajo Insumos abre los precios; Stock sigue con sumar, restar e igual."] },
+    { t: "Escenarios sincronizados", k: "escenarios sincronizar planilla guardar celular dispositivos", go: "escenarios", p: ["Los escenarios se guardan también en la planilla (hoja Datos app), así los ves igual desde cualquier dispositivo."] },
     { t: "Simular escenarios (estado de resultados)", k: "escenario escenarios simulador estado resultados utilidad amortizacion categoria", go: "escenarios", p: ["Tocá el atajo Escenarios (o Finanzas → Escenarios).", "Tocá un escenario para editarlo: líneas en $ o %, y meses para amortizar.", "＋ Escenario o ＋ Categoría para sumar más."] },
     { t: "Deslizar para editar o borrar", k: "deslizar swipe borrar eliminar editar precio stock insumos productos carrito multiseleccion", go: "inicio", p: ["Deslizá una fila a la derecha o izquierda: aparecen sus acciones.", "En Productos mantené apretado para seleccionar varios (mostrar, ocultar, eliminar).", "El ojo 👁 del producto lo muestra u oculta en la tienda."] },
     { t: "Ver lo gestionado hoy", k: "gestionados hoy actividad movimientos", go: "inicio", p: ["En Inicio, debajo de los Atajos, tocá 📋 Gestionados hoy."] },
