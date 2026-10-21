@@ -631,12 +631,34 @@ body.sh-open .nav{opacity:0;pointer-events:none}
       else { store("uovo_c_pedidos", null); st.swo = null; api("pedidos").then(function (k) { if (k && k.ok) st.pedidos = k.pedidos; st.pdx = 0; render(); toast("Eliminados: " + j.n + (j.pedidos && j.pedidos > j.n ? " de " + j.pedidos : "")); }); }
     }).catch(function () { render(true); toast("No se pudo eliminar"); });
   }
+  /* Descuento automático de insumos según receta al marcar un pedido como Hecho (se revierte al desmarcar). */
+  function rcDesc(p, on) {
+    var RK = "uovo_rdesc", A = blRd(RK), id = String(p.id);
+    if (on && A[id]) return; if (!on && !A[id]) return;
+    function go() {
+      var items = [];
+      if (on) {
+        var need = {}, it = pedItems(p);
+        Object.keys(it.frascos).forEach(function (k) { var rec = (st.recetas || []).filter(function (r) { return nrm(r.nombre) === nrm(k); })[0]; if (!rec || !rec.y) return; (rec.items || []).forEach(function (x) { var kk = nrm(x.n); need[kk] = (need[kk] || 0) + x.q / rec.y * it.frascos[k]; }); });
+        (st.stock || []).forEach(function (x) { var n = need[nrm(x.ins)]; if (n > 0 && x.mov) items.push({ ins: x.ins, tipo: "consumo", cant: Math.round(n * 1000) / 1000, precio: 0 }); });
+        A[id] = items; blWr(RK, A);
+      } else {
+        items = (A[id] || []).map(function (x) { return { ins: x.ins, tipo: "compra", cant: x.cant, precio: 0 }; }); delete A[id]; blWr(RK, A);
+      }
+      if (!items.length) return;
+      stkApply(items).then(function (r) { toast(r.ok ? (on ? "Insumos descontados de la receta ✓" : "Insumos devueltos al stock ✓") : (r.fail || "No se pudo descontar")); });
+    }
+    var ch = Promise.resolve();
+    if (!st.recetas) ch = ch.then(function () { return api("recetas2").then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; } }); });
+    if (!st.stock) ch = ch.then(function () { return api("stock").then(function (j) { if (j && j.ok) st.stock = j.stock; }); });
+    ch.then(go).catch(function () {});
+  }
   function patchPedido(r, campo, valor, undo) {
     var p = st.pedidos.filter(function (x) { return x.r === r; })[0]; if (!p) return;
     var old = p[campo], oldcc = p.cc; p[campo] = valor; if (campo === "te") p.cc = valor; render(true);
     return api("setPedido", { r: r, id: p.id, campo: campo, valor: valor }).then(function (j) {
       if (!j || !j.ok) { p[campo] = old; p.cc = oldcc; render(true); toast(j && j.msg || "No se pudo guardar"); return; }
-      for (var k in j.p) p[k] = j.p[k]; if (campo === "ap" && valor) { try { cpApprove(p); } catch (x0) {} } render(true); try { actLog(({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] ? ({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] + " · " + p.nombre : "Editó " + campo + " · " + p.nombre, p.id); } catch (x) {}
+      for (var k in j.p) p[k] = j.p[k]; if (campo === "ap" && valor) { try { cpApprove(p); } catch (x0) {} } if (campo === "he") { try { rcDesc(p, !!valor); } catch (x1) {} } render(true); try { actLog(({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] ? ({ ap: "Aprobó", he: "Hizo", en: "Entregó", te: "Canceló", ev: "Envió" })[campo] + " · " + p.nombre : "Editó " + campo + " · " + p.nombre, p.id); } catch (x) {}
     }).catch(function () { p[campo] = old; p.cc = oldcc; render(true); toast("No se pudo guardar"); });
   }
 
@@ -1561,6 +1583,19 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   var ICK = "uovo_icat", CKS = "uovo_cats";
   function catExtras() { var o = blRd(CKS); return Array.isArray(o.l) ? o.l : []; }
   function catOf(x) { var m = blRd(ICK)[nrm(x.ins)]; return m || (x.t === "p" ? "Packaging" : "Insumo"); }
+  function catPush() { if (DEMO) return; clearTimeout(catPush.t); catPush.t = setTimeout(function () { api("setCats", { map: blRd(ICK), list: catExtras() }).catch(function () {}); }, 800); }
+  function catPull() {
+    if (DEMO || catPull.d) return; catPull.d = 1;
+    api("cats").then(function (j) {
+      if (!(j && j.ok && j.map)) return;
+      var m = blRd(ICK), ch = 0, l = catExtras(), push = 0, rk = Object.keys(j.map);
+      rk.forEach(function (k) { if (!m[k]) { m[k] = j.map[k]; ch = 1; } });
+      Object.keys(m).forEach(function (k) { if (j.map[k] == null) push = 1; });
+      (j.list || []).forEach(function (c) { if (l.map(nrm).indexOf(nrm(c)) < 0) { l.push(c); ch = 1; } });
+      if (ch) { blWr(ICK, m); blWr(CKS, { l: l }); if (st.v === "stock") render(true); }
+      if (push || ch) catPush();
+    }).catch(function () {});
+  }
   function catAll() { return ["Insumo", "Packaging"].concat(catExtras()); }
   function tabOf(nm) { var r = "a"; ["a", "p"].forEach(function (t) { ((st.prov && st.prov[t]) || []).forEach(function (z) { if (nrm(z.ins) === nrm(nm)) r = t; }); }); return r; }
   function setPU(t, nm, p, pv) {
@@ -1582,7 +1617,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     return api("addInsumo", { t: t, nombre: nm, unidad: un }).then(function (j) {
       if (!(j && j.ok)) { toast(j && j.msg || "No se pudo crear"); return null; }
       st.prov = j.proveedores; VC.prov = null;
-      if (nrm(cat) !== "insumo" && nrm(cat) !== "packaging") { var m = blRd(ICK); m[nrm(nm)] = cat; blWr(ICK, m); var l = catExtras(); if (l.map(nrm).indexOf(nrm(cat)) < 0) { l.push(cat); blWr(CKS, { l: l }); } }
+      if (nrm(cat) !== "insumo" && nrm(cat) !== "packaging") { var m = blRd(ICK); m[nrm(nm)] = cat; blWr(ICK, m); var l = catExtras(); if (l.map(nrm).indexOf(nrm(cat)) < 0) { l.push(cat); blWr(CKS, { l: l }); } catPush(); }
       var q0 = s0 ? parseQty(s0, un) : null;
       return setPU(t, nm, pr, pv).then(function () { if (q0 && q0.n > 0) return stkApply([{ ins: nm, tipo: "ajuste", cant: q0.n, precio: 0 }]); }).then(function () { st.stock = null; return api("stock").then(function (z) { if (z && z.ok) st.stock = z.stock; return { nm: nm }; }); });
     }).catch(function () { toast("No se pudo crear"); return null; });
@@ -1617,6 +1652,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     return l;
   }
   function renderStock() {
+    catPull();
     if (!st.stock) return BACK + '<div class="empty">Cargando…</div>';
     if (!st.movs && !st.movf) { st.movf = 1; api("stockMovs").then(function (j) { st.movs = j && j.ok ? j.movs : []; if (st.v === "stock") render(true); }).catch(function () { st.movs = []; }); }
     if (st.alertas && !st.recf) { st.recf = 1; api("recetas2").then(function (j) { if (j && j.ok) { st.recetas = j.recetas; st.insumos = j.insumos; } if (st.v === "stock") render(true); }).catch(function () {}); }
