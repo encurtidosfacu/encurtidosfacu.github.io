@@ -1129,6 +1129,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     return s + "</svg>";
   }
   function renderReportes() {
+    if (!st.loaded.pedidos) { if (!st.pfetch) { st.pfetch = 1; api("pedidos").then(function (j) { if (j && j.ok) { st.pedidos = j.pedidos; st.loaded.pedidos = true; } st.pfetch = 0; if (st.v === "reportes") render(true); }).catch(function () { st.pfetch = 0; }); } return '<div class="nm" style="margin:6px 2px 8px">📈 Reportería</div><div class="empty">Cargando datos…</div>'; }
     var r = rpSt(), D = rpData(), ch = function (k, L, cur) { return '<div class="chips" style="margin:2px 0 8px;overflow-x:auto;flex-wrap:nowrap">' + L.map(function (x) { return '<button class="chip' + (cur === x[0] ? " on" : "") + '" data-rp="' + k + ":" + x[0] + '" style="flex:none">' + x[1] + "</button>"; }).join("") + "</div>"; };
     var kp = function (l, v) { return '<div class="card" style="flex:1;min-width:46%;margin:0;padding:10px 12px"><div class="meta">' + l + '</div><div class="nm" style="font-size:1.15rem">' + v + "</div></div>"; };
     var h = '<div class="nm" style="margin:6px 2px 8px">📈 Reportería</div><div class="meta" style="margin:0 2px 8px">Pedidos · elegí período, agrupación, medida y tipo de gráfico.</div>';
