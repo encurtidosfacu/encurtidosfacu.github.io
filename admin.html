@@ -514,6 +514,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     api("config").then(function (j) { if (!j || !j.ok) { $("view").innerHTML = '<div class="empty">No se pudo cargar.</div>'; return; } st.cfg = j.config; st.loaded.textos = true; if (st.v === "textos") render(); }).catch(function () {});
   }
   function fetchView(v) {
+    if (v === "reportes") { if (!st.loaded.pedidos) api("pedidos").then(function (j) { if (j && j.ok) { st.pedidos = j.pedidos; st.loaded.pedidos = true; } if (st.v === "reportes") render(); }).catch(function () { if (st.v === "reportes") $("view").innerHTML = '<div class="empty">No se pudo cargar.</div>'; }); else render(); return; }
     if (v === "suscripciones" || v === "tarjetas") { loadSu(); return; }
     if (v === "textos") { fetchTextos(); return; }
     if (v === "tandas") { st.__tl = 0; tLoad(true); return; }
