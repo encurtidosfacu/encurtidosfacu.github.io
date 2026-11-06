@@ -1342,11 +1342,41 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     s = s.replace(/(\d+(?:\.\d+)?)%/g, "(V*$1/100)");
     try { var r = Function("V", "return (" + s + ")")(V); return isFinite(r) ? r : NaN; } catch (e) { return NaN; }
   }
+  /* Fórmulas tipo Excel: empiezan con = y pueden usar referencias (B2 = columna del escenario + fila).
+     Columna B = 1er escenario, C = 2º… Fila = número a la izquierda del concepto. Sin "=" se usa el modo viejo (15% = de ventas). */
+  function escRef(raw, V, get) {
+    var t = String(raw == null ? "" : raw).trim();
+    if (t.charAt(0) !== "=") return escEval(t, V);
+    var x = t.slice(1).replace(/[x\u00d7]/g, "*").replace(/\$/g, "").replace(/\s+/g, "").replace(/,/g, ".").replace(/\.(?=\d{3}(\D|$))/g, "");
+    x = x.replace(/\bV\b/g, "(" + Number(V || 0) + ")");
+    var bad = false;
+    x = x.replace(/([A-Z]{1,2})(\d{1,3})(?![\w(])/g, function (m, c, n) { var v = get(c, Number(n)); if (!isFinite(v)) bad = true; return "(" + (isFinite(v) ? v : 0) + ")"; });
+    if (bad || !x) return NaN;
+    if (!/^[0-9.+\-*\/()%]*$/.test(x)) return NaN;
+    x = x.replace(/(\d+(?:\.\d+)?)%/g, "($1/100)");
+    try { var r = Function("return (" + x + ")")(); return isFinite(r) ? r : NaN; } catch (e) { return NaN; }
+  }
   function escCalc(s) {
-    var C = escData(), V = 0, R = { cat: {}, V: 0, cmv: 0, gas: 0, imp: 0 };
-    C.cats.forEach(function (c) { if (c.t === "ing") { var x = escEval(s.c[c.id], 0); if (isFinite(x)) V += x; } });
-    C.cats.forEach(function (c) { var x = escEval(s.c[c.id], c.t === "ing" ? 0 : V); if (!isFinite(x)) x = 0; R.cat[c.id] = x; if (c.t === "cmv") R.cmv += x; else if (c.t === "gas") R.gas += x; else if (c.t === "imp") R.imp += x; });
-    R.V = V; R.bruta = V - R.cmv; R.ebit = R.bruta - R.gas; R.neta = R.ebit - R.imp; return R;
+    var C = escData(), k = C.sc.indexOf(s), ctx = { memo: {}, busy: {}, vk: {} }, R = { cat: {}, cells: {}, V: 0, cmv: 0, gas: 0, imp: 0 };
+    function cell(i, kk) {
+      var key = kk + "|" + i; if (key in ctx.memo) return ctx.memo[key]; if (ctx.busy[key]) return NaN;
+      var c = C.cats[i], sc = C.sc[kk]; if (!c || !sc) return NaN;
+      ctx.busy[key] = 1; var V = c.t === "ing" ? 0 : ventas(kk);
+      var v = escRef(sc.c[c.id], V, getRef); delete ctx.busy[key]; ctx.memo[key] = v; return v;
+    }
+    function getRef(col, n) {
+      if (col.length !== 1) return NaN; var kk = col.charCodeAt(0) - 66; if (kk < 0 || kk >= C.sc.length) return NaN;
+      var i = n - 2; if (i < 0 || i >= C.cats.length) return NaN; return cell(i, kk);
+    }
+    function ventas(kk) {
+      if (kk in ctx.vk) return ctx.vk[kk]; ctx.vk[kk] = 0; var V = 0;
+      C.cats.forEach(function (c, i) { if (c.t === "ing") { var x = cell(i, kk); if (isFinite(x)) V += x; } });
+      ctx.vk[kk] = V; return V;
+    }
+    if (k < 0) return R;
+    R.V = ventas(k);
+    C.cats.forEach(function (c, i) { var raw = cell(i, k); R.cells[c.id] = raw; var x = isFinite(raw) ? raw : 0; R.cat[c.id] = x; if (c.t === "cmv") R.cmv += x; else if (c.t === "gas") R.gas += x; else if (c.t === "imp") R.imp += x; });
+    var V = R.V; R.bruta = V - R.cmv; R.ebit = R.bruta - R.gas; R.neta = R.ebit - R.imp; return R;
   }
   function escRate() { return Number(escData().rate) || 0; }
   function escUsd(n) { var r = escRate(); return r > 0 ? "US$ " + Math.round(n / r).toLocaleString("es-AR") : "US$ —"; }
@@ -1361,31 +1391,48 @@ body.sh-open .nav{opacity:0;pointer-events:none}
   var EC_TYPES = [["ing", "Ingreso"], ["cmv", "CMV"], ["gas", "Gasto"], ["imp", "Impuesto"]];
   function renderEscenarios() {
     escPull();
-    var C = escData(), S = C.sc, r = escRate(), rows = "";
+    var C = escData(), S = C.sc, r = escRate(), rows = "", CR = {};
+    S.forEach(function (x) { CR[x.id] = escCalc(x); });
     if (!r && !ESRT) { ESRT = 1; escRateFetch(function () { if (st.v === "finanzas" && st.fm === "esc") render(true); }); }
-    var cell = function (cid, s) { return '<td style="padding:4px 6px;vertical-align:top"><input class="inp" data-ec="' + cid + "|" + s.id + '" value="' + esc(s.c[cid] || "") + '" style="text-align:right;padding:6px 8px;min-width:120px;font-weight:600"><div class="meta" data-sub="' + cid + "|" + s.id + '" style="text-align:right;font-size:.72rem;margin-top:2px"></div></td>'; };
-    var label = function (c) { return '<td style="padding:6px 8px;position:sticky;left:0;background:#fff;z-index:1;min-width:170px;max-width:200px;border-right:1px solid var(--line)"><div style="display:flex;gap:4px;align-items:center"><input class="inp" data-cname="' + c.id + '" value="' + esc(c.n) + '" style="padding:5px 6px;font-size:.8rem;min-width:0;flex:1"><select class="inp" data-ctype="' + c.id + '" style="padding:4px;font-size:.72rem;width:auto">' + EC_TYPES.map(function (x) { return '<option value="' + x[0] + '"' + (c.t === x[0] ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + '</select><button class="sm" data-cdel="' + c.id + '" style="padding:2px 6px">×</button></div></td>'; };
+    var cell = function (cid, s) { var raw = s.c[cid] || "", isF = /^\s*=/.test(raw), R0 = CR[s.id], v0 = R0 ? R0.cells[cid] : NaN, shown = isF ? (isFinite(v0) ? Math.round(v0).toLocaleString("es-AR") : "#ERR") : raw; return '<td style="padding:4px 6px;vertical-align:top"><input class="inp" data-ec="' + cid + "|" + s.id + '" data-f="' + (isF ? 1 : 0) + '" data-val="' + (isFinite(v0) ? v0 : "") + '" value="' + esc(shown) + '" style="text-align:right;padding:6px 8px;min-width:120px;font-weight:600"><div class="meta" data-sub="' + cid + "|" + s.id + '" style="text-align:right;font-size:.72rem;margin-top:2px"></div></td>'; };
+    var label = function (c) { return '<td style="padding:6px 8px;position:sticky;left:0;background:#fff;z-index:1;min-width:170px;max-width:200px;border-right:1px solid var(--line)"><div style="display:flex;gap:4px;align-items:center"><span class="meta" style="font-size:.68rem;min-width:16px">' + (C.cats.indexOf(c) + 2) + '</span><input class="inp" data-cname="' + c.id + '" value="' + esc(c.n) + '" style="padding:5px 6px;font-size:.8rem;min-width:0;flex:1"><select class="inp" data-ctype="' + c.id + '" style="padding:4px;font-size:.72rem;width:auto">' + EC_TYPES.map(function (x) { return '<option value="' + x[0] + '"' + (c.t === x[0] ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + '</select><button class="sm" data-cdel="' + c.id + '" style="padding:2px 6px">×</button></div></td>'; };
     var calc = function (key, L, bold) { return '<tr style="border-top:2px solid var(--line);background:#F6F4EC"><td style="padding:7px 8px;position:sticky;left:0;background:#F6F4EC;font-weight:800;border-right:1px solid var(--line)">' + L + "</td>" + S.map(function (s) { return '<td style="padding:6px 8px;text-align:right"><div data-out="' + key + "|" + s.id + '" style="font-weight:800;font-size:.95rem">—</div><div class="meta" data-subo="' + key + "|" + s.id + '" style="font-size:.72rem"></div></td>'; }).join("") + "</tr>"; };
     var order = ["ing", "cmv", "gas", "imp"], after = { cmv: ["bruta", "Utilidad bruta"], gas: ["ebit", "EBIT"], imp: ["neta", "Utilidad neta"] };
     order.forEach(function (t) { C.cats.filter(function (c) { return c.t === t; }).forEach(function (c) { rows += "<tr>" + label(c) + S.map(function (s) { return cell(c.id, s); }).join("") + "</tr>"; }); if (after[t]) rows += calc(after[t][0], after[t][1]); });
     if (!C.cats.some(function (c) { return c.t === "imp"; })) rows += calc("neta", "Utilidad neta");
-    var head = '<tr><th style="position:sticky;left:0;background:#fff;z-index:2;padding:8px;text-align:left;min-width:170px;border-right:1px solid var(--line)">Concepto</th>' + S.map(function (s) { return '<th style="padding:6px 8px;min-width:150px"><div style="display:flex;gap:4px;align-items:center"><input class="inp" data-sn="' + s.id + '" value="' + esc(s.n) + '" style="font-weight:800;padding:6px 8px;min-width:0;flex:1"><button class="sm" data-sdel="' + s.id + '" style="padding:2px 7px">×</button></div></th>'; }).join("") + "</tr>";
-    return '<div class="meta" style="margin:0 2px 6px">Escribí en cada casilla: <b>monto</b> (250000), <b>% de ventas</b> (15%) o una cuenta (50000/24). Nombres y filas también se editan.</div>' +
+    var head = '<tr><th style="position:sticky;left:0;background:#fff;z-index:2;padding:8px;text-align:left;min-width:170px;border-right:1px solid var(--line)">Concepto</th>' + S.map(function (s, k) { return '<th style="padding:6px 8px;min-width:150px"><div class="meta" style="font-size:.68rem">' + String.fromCharCode(66 + k) + '</div><div style="display:flex;gap:4px;align-items:center"><input class="inp" data-sn="' + s.id + '" value="' + esc(s.n) + '" style="font-weight:800;padding:6px 8px;min-width:0;flex:1"><button class="sm" data-sdel="' + s.id + '" style="padding:2px 7px">×</button></div></th>'; }).join("") + "</tr>";
+    return '<div class="meta" style="margin:0 2px 6px">Escribí en cada casilla: <b>monto</b> (250000), <b>% de ventas</b> (15%) o una cuenta (50000/24). Para calcular con otra casilla: escribí <b>=</b>, la cuenta (ej. <b>=1,25x</b>) y <b>tocá la casilla</b> que querés usar; se anota sola su dirección (ej. <b>B2</b>, que figura abajo de cada casilla). Si cambiás esa casilla, todo se recalcula.</div>' +
       '<div class="card" style="display:flex;align-items:center;gap:8px;padding:10px 12px;margin:0 0 8px"><span class="meta" style="flex:1">Dólar compra Galicia' + (escData().rateAt ? " · " + esc(escData().rateAt) : "") + '</span><input class="inp" type="number" inputmode="decimal" data-rate="1" value="' + (r || "") + '" placeholder="1545" style="width:110px;padding:6px 8px"><button class="sm" data-ratef="1">↻</button></div>' +
       '<div style="overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff"><table style="border-collapse:collapse;font-size:.84rem">' + head + rows + "</table></div>" +
       '<div style="display:flex;gap:8px;margin-top:10px"><button class="btn" data-sadd="1" style="flex:1">＋ Escenario</button><button class="sm" data-cadd="1" style="flex:1">＋ Fila</button></div>';
   }
+  function escAddr(C, cid, sid) { var k = -1, i = -1; C.sc.forEach(function (x, n) { if (x.id === sid) k = n; }); C.cats.forEach(function (c, n) { if (c.id === cid) i = n; }); return k < 0 || i < 0 ? "" : String.fromCharCode(66 + k) + (i + 2); }
+  /* tocar una casilla mientras se escribe una fórmula (=, +, -, *, /, x) inserta su referencia */
+  var escPickT = 0;
+  function escPick(e) {
+    var a = document.activeElement, t = e.target && e.target.closest ? e.target.closest("[data-ec]") : null;
+    if (!t || !a || a === t || !a.matches || !a.matches("[data-ec]")) return;
+    if (!/^\s*=/.test(a.value) || !/[=+\-*\/(x\u00d7]\s*$/.test(a.value)) return;
+    e.preventDefault(); if (Date.now() - escPickT < 500) return; escPickT = Date.now();
+    var p = t.getAttribute("data-ec").split("|"), ref = escAddr(escData(), p[0], p[1]); if (!ref) return;
+    a.value += ref; a.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  document.addEventListener("mousedown", escPick, true);
+  document.addEventListener("touchstart", escPick, { capture: true, passive: false });
+  document.addEventListener("click", function (e) { if (Date.now() - escPickT < 600 && e.target.closest && e.target.closest("[data-ec]")) { e.preventDefault(); e.stopPropagation(); } }, true);
   function refreshEsc() {
     var C = escData(), cache = {}, r = escRate();
     C.sc.forEach(function (s) { cache[s.id] = escCalc(s); });
     document.querySelectorAll("[data-out]").forEach(function (el) { var p = el.getAttribute("data-out").split("|"), R = cache[p[1]]; if (R) el.textContent = money(Math.round(R[p[0]])); });
     document.querySelectorAll("[data-subo]").forEach(function (el) { var p = el.getAttribute("data-subo").split("|"), R = cache[p[1]]; if (R) el.textContent = (r ? escUsd(R[p[0]]) + " · " : "") + escPct(R[p[0]], R.V); });
-    document.querySelectorAll("[data-sub]").forEach(function (el) { var p = el.getAttribute("data-sub").split("|"), R = cache[p[1]]; if (R) { var x = R.cat[p[0]] || 0; el.textContent = (r ? escUsd(x) + " · " : "") + escPct(x, R.V); } });
-    document.querySelectorAll("[data-ec]").forEach(function (el) { var p = el.getAttribute("data-ec").split("|"), s = C.sc.filter(function (x) { return x.id === p[1]; })[0], V = cache[p[1]] ? cache[p[1]].V : 0; el.style.color = s && !isFinite(escEval(s.c[p[0]], p[0] && C.cats.filter(function (c) { return c.id === p[0] && c.t === "ing"; }).length ? 0 : V)) ? "#B3261E" : ""; });
+    document.querySelectorAll("[data-sub]").forEach(function (el) { var p = el.getAttribute("data-sub").split("|"), R = cache[p[1]]; if (R) { var x = R.cat[p[0]] || 0; el.textContent = escAddr(C, p[0], p[1]) + " · " + (r ? escUsd(x) + " · " : "") + escPct(x, R.V); } });
+    document.querySelectorAll("[data-ec]").forEach(function (el) { var p = el.getAttribute("data-ec").split("|"), R = cache[p[1]], v = R ? R.cells[p[0]] : NaN; el.setAttribute("data-val", isFinite(v) ? v : ""); el.style.color = (R && !isFinite(v)) ? "#B3261E" : ""; });
   }
+  document.addEventListener("focusin", function (e) { var t = e.target; if (!t.matches || !t.matches("[data-ec]")) return; var p = t.getAttribute("data-ec").split("|"), s = escData().sc.filter(function (x) { return x.id === p[1]; })[0]; if (s && t.getAttribute("data-f") === "1") t.value = s.c[p[0]] || ""; });
+  document.addEventListener("focusout", function (e) { var t = e.target; if (!t.matches || !t.matches("[data-ec]") || t.getAttribute("data-f") !== "1") return; var v = parseFloat(t.getAttribute("data-val")); t.value = isFinite(v) ? Math.round(v).toLocaleString("es-AR") : "#ERR"; });
   document.addEventListener("input", function (e) {
     var t = e.target; if (!t.matches) return; var C = escData();
-    if (t.matches("[data-ec]")) { var p = t.getAttribute("data-ec").split("|"), s = C.sc.filter(function (x) { return x.id === p[1]; })[0]; if (s) { s.c[p[0]] = t.value; escSave(); refreshEsc(); } }
+    if (t.matches("[data-ec]")) { var p = t.getAttribute("data-ec").split("|"), s = C.sc.filter(function (x) { return x.id === p[1]; })[0]; if (s) { s.c[p[0]] = t.value; t.setAttribute("data-f", /^\s*=/.test(t.value) ? "1" : "0"); escSave(); refreshEsc(); } }
     else if (t.matches("[data-sn]")) { var s2 = C.sc.filter(function (x) { return x.id === t.getAttribute("data-sn"); })[0]; if (s2) { s2.n = t.value; escSave(); } }
     else if (t.matches("[data-cname]")) { var c = C.cats.filter(function (x) { return x.id === t.getAttribute("data-cname"); })[0]; if (c) { c.n = t.value; escSave(); } }
     else if (t.matches("[data-rate]")) { C.rate = Number(t.value) || 0; C.rateAt = ""; escSave(); refreshEsc(); }
