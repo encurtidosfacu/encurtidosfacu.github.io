@@ -153,7 +153,21 @@ button { cursor:pointer; }
 .va.er{border-color:#e8b4b0;background:#fdf1f0}
 .vq{background:#FBF3DC;border-radius:12px;padding:10px 12px;margin:8px 0;font-weight:600}
 
-.msel-on{outline:2px solid #4A6B3A;outline-offset:-2px;background:#F1F6EA !important;transition:background .15s}
+.fxbar{display:flex;justify-content:flex-end;gap:8px;margin:0 0 8px}
+.bk{position:relative}
+.bk .fxbar{position:absolute;right:0;top:50%;transform:translateY(-50%);margin:0}
+.fxb{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--bline);background:#fff;color:#33402B;display:grid;place-items:center;position:relative;cursor:pointer;padding:0;box-shadow:var(--sh1)}
+.fxb.on{background:#4A6B3A!important;border-color:#4A6B3A!important;color:#fff}
+.fxb sup{position:absolute;top:-5px;right:-5px;background:#fff;color:#4A6B3A;border:1.5px solid #4A6B3A;border-radius:999px;font-size:.62rem;font-weight:800;min-width:17px;height:17px;line-height:14px;text-align:center;vertical-align:baseline}
+.fxb.fxc{border-color:#D14343;color:#D14343;font-size:1.05rem}
+.fxok{position:sticky;bottom:-16px;margin:12px -14px -16px;padding:14px 14px 16px;background:linear-gradient(to top,#fff 70%,rgba(255,255,255,0))}
+.fxs{display:block;width:100%;text-align:left;margin-top:6px}
+.fxs.on{background:#EEF4E6;border-color:#4A6B3A}
+#fxpop .chips{overflow:visible;padding:2px}
+.fxg{margin:10px 0 4px;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);font-weight:800}
+.msel-on{background:#EAF4DC !important;box-shadow:0 8px 22px rgba(74,107,58,.2);animation:wig .45s ease-in-out infinite;transition:background .15s}
+@keyframes wig{0%,100%{transform:rotate(-.45deg) translateX(-.6px)}50%{transform:rotate(.45deg) translateX(.6px)}}
+@media (prefers-reduced-motion:reduce){.msel-on{animation:none}}
 .msel-on::after{content:"✓";position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:#4A6B3A;color:#fff;display:grid;place-items:center;font-weight:800;font-size:.85rem;z-index:2}
 .msel-mode article.card{position:relative;-webkit-user-select:none;user-select:none}
 .msel-mode article.card:not(.msel-on)::after{content:"";position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:2px solid #C9D1BC;background:#fff;z-index:2}
@@ -2968,13 +2982,150 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     }).join("");
     return h;
   }
+
+  /* ---------- v18: motor de filtros y orden combinables (todas las listas) ---------- */
+  var FXK = "uovo_adm_fx";
+  function fxHas(v) { return v != null && String(v).trim() !== ""; }
+  function fxYn(id, t, ys, ns, fy, fn) { return { id: id, l: t, o: [[id + "1", ys, fy], [id + "0", ns, fn || function (x) { return !fy(x); }]] }; }
+  function fxDyn(id, t, L, get) { var seen = {}, vals = []; L.forEach(function (x) { var v = String(get(x) == null ? "" : get(x)).trim(); if (v && !seen[v]) { seen[v] = 1; vals.push(v); } }); if (vals.length < 2) return null; vals.sort(function (a, b) { return a.localeCompare(b, "es"); }); return { id: id, l: t, o: vals.map(function (v) { return [id + "_" + v, v, function (x) { return String(get(x) == null ? "" : get(x)).trim() === v; }]; }) }; }
+  function fxCmpV(get, desc) { return function (a, b) { var x = get(a), y = get(b), ex = x == null || x === "" || isNaN(x), ey = y == null || y === "" || isNaN(y); if (ex && ey) return 0; if (ex) return 1; if (ey) return -1; return desc ? y - x : x - y; }; }
+  function fxCmpS(get, desc) { return function (a, b) { var x = String(get(a) == null ? "" : get(a)), y = String(get(b) == null ? "" : get(b)); if (!x && !y) return 0; if (!x) return 1; if (!y) return -1; var r = x.localeCompare(y, "es"); return desc ? -r : r; }; }
+  function fxDate(x) { return pf(x.fecha) || Date.parse(x.fecha) || null; }
+  function fxLast(x) { var d = fxDate(x), lim = Date.now() - 30 * 864e5; return d ? (d >= lim ? 1 : 2) : 0; }
+  function fxClean(a) { return a.filter(Boolean); }
+  var FXD = {
+    productos: {
+      items: function () { return st.productos || []; }, key: function (x) { return x.r; },
+      g: function (L) { var RN = {}; (st.recetas || []).forEach(function (z) { RN[nrm(z.nombre)] = 1; }); return fxClean([
+        { id: "est", l: "Estado", o: [["est_v", "Visibles", function (x) { return !!x.vi; }], ["est_o", "Ocultos", function (x) { return !x.vi; }], ["est_a", "Agotados", function (x) { return !!x.ag; }], ["est_d", "Disponibles", function (x) { return !x.ag; }]] },
+        st.recetas ? fxYn("rec", "Receta", "Con receta", "Sin receta", function (x) { return !!RN[nrm(x.nombre)]; }) : null,
+        fxYn("cos", "Costo", "Con costo", "Sin costo", function (x) { return x.costo != null; }),
+        fxDyn("cat", "Categoría", L, function (x) { return x.cat; })]); },
+      s: [["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.nombre; })], ["nomz", "Nombre Z→A", "n", fxCmpS(function (x) { return x.nombre; }, 1)], ["pre", "Precio menor a mayor", "p", fxCmpV(function (x) { return x.precio; })], ["prez", "Precio mayor a menor", "p", fxCmpV(function (x) { return x.precio; }, 1)], ["mar", "Mayor margen", "m", fxCmpV(function (x) { return x.costo != null && x.precio > 0 ? (x.precio - x.costo) / x.precio : null; }, 1)], ["cat", "Categoría A→Z", "c", fxCmpS(function (x) { return x.cat; })]] },
+    pedidos: {
+      items: function () { return st.pedidos || []; }, key: function (x) { return x.r; },
+      g: function (L) { return fxClean([
+        fxDyn("pag", "Medio de pago", L, function (x) { return x.pago; }),
+        fxDyn("ent", "Entrega", L, function (x) { return x.entrega; }),
+        fxYn("cup", "Cupón", "Con cupón", "Sin cupón", function (x) { return fxHas(x.cupon); }),
+        fxYn("not", "Nota", "Con nota", "Sin nota", function (x) { return fxHas(x.notas); }),
+        { id: "can", l: "Cantidad", o: [["can_1", "1 a 2", function (x) { return Number(x.cant) <= 2; }], ["can_3", "3 a 5", function (x) { return Number(x.cant) >= 3 && Number(x.cant) <= 5; }], ["can_6", "6 o más", function (x) { return Number(x.cant) >= 6; }]] }]); },
+      s: [["new", "Más nuevos primero", "f", fxCmpV(function (x) { return pf(x.fecha); }, 1)], ["old", "Más viejos primero", "f", fxCmpV(function (x) { return pf(x.fecha); })], ["tot", "Mayor total", "t", fxCmpV(function (x) { return x.total; }, 1)], ["totz", "Menor total", "t", fxCmpV(function (x) { return x.total; })], ["can", "Más frascos", "c", fxCmpV(function (x) { return x.cant; }, 1)], ["cli", "Cliente A→Z", "n", fxCmpS(function (x) { return x.nombre; })]] },
+    stock: {
+      items: function () { return st.stock || []; }, key: function (x) { return x.ins; },
+      g: function (L) { return fxClean([
+        { id: "niv", l: "Nivel", o: [["niv_r", "Rojo (falta)", function (x) { return !!x.mov && x.nivel === "rojo"; }], ["niv_a", "Cerca del mínimo", function (x) { return !!x.mov && x.nivel === "amarillo"; }], ["niv_o", "Bien", function (x) { return !!x.mov && x.nivel === "ok"; }], ["niv_s", "Sin cargar", function (x) { return !x.mov; }]] },
+        { id: "tip", l: "Tipo", o: [["tip_a", "Insumo", function (x) { return x.t !== "p"; }], ["tip_p", "Packaging", function (x) { return x.t === "p"; }]] },
+        fxYn("pp", "Punto de pedido", "Con punto de pedido", "Sin punto de pedido", function (x) { return fxHas(x.min); }),
+        fxYn("pr", "Precio", "Con precio", "Sin precio", function (x) { return Number(x.precio) > 0 || Number(x.costo) > 0; })]); },
+      s: [["sto", "Menos stock primero", "s", fxCmpV(function (x) { return x.mov ? x.stock : null; })], ["stoz", "Más stock primero", "s", fxCmpV(function (x) { return x.mov ? x.stock : null; }, 1)], ["cos", "Mayor costo", "c", fxCmpV(function (x) { return x.costo; }, 1)], ["min", "Más cerca del mínimo", "m", fxCmpV(function (x) { return x.mov && fxHas(x.min) ? x.stock - x.min : null; })], ["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.ins; })]] },
+    proveedores: {
+      items: function () { return (st.prov && st.prov[st.pvt]) || []; }, key: function (x) { return x.r; },
+      g: function (L) { return fxClean([
+        fxYn("pr", "Precio", "Con precio", "Sin precio", function (x) { return Number(x.precio) > 0; }),
+        fxYn("pv", "Proveedor", "Con proveedor", "Sin proveedor", function (x) { return fxHas(x.prov); }),
+        { id: "ult", l: "Última compra", o: [["ult_1", "Últimos 30 días", function (x) { return fxLast(x) === 1; }], ["ult_2", "Hace más de 30 días", function (x) { return fxLast(x) === 2; }], ["ult_0", "Nunca", function (x) { return fxLast(x) === 0; }]] },
+        fxDyn("uni", "Unidad", L, function (x) { return x.uni; })]); },
+      s: [["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.ins; })], ["pre", "Precio menor a mayor", "p", fxCmpV(function (x) { return x.precio; })], ["prez", "Precio mayor a menor", "p", fxCmpV(function (x) { return x.precio; }, 1)], ["rec", "Compra más reciente", "f", fxCmpV(fxDate, 1)], ["vie", "Compra más vieja", "f", fxCmpV(fxDate)], ["prv", "Proveedor A→Z", "v", fxCmpS(function (x) { return x.prov; })], ["can", "Mayor cantidad", "c", fxCmpV(function (x) { return x.cant; }, 1)]] },
+    packs: {
+      items: function () { return st.packs || []; }, key: function (x) { return x.r; },
+      g: function () { return [
+        { id: "tip", l: "Tipo", o: [["tip_p", "Pack", function (x) { return x.tipo === "Pack"; }], ["tip_c", "Combo", function (x) { return x.tipo === "Combo"; }]] },
+        { id: "est", l: "Estado", o: [["est_a", "Activos", function (x) { return !!x.ac; }], ["est_p", "Pausados", function (x) { return !x.ac; }]] },
+        fxYn("lim", "Límite", "Con límite", "Sin límite", function (x) { return Number(x.lim) > 0; }),
+        fxYn("ven", "Vencimiento", "Con vencimiento", "Sin vencimiento", function (x) { return fxHas(x.vence); }),
+        fxYn("fot", "Foto", "Con foto", "Sin foto", function (x) { return fxHas(x.foto); })]; },
+      s: [["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.nombre; })], ["pre", "Precio menor a mayor", "p", fxCmpV(function (x) { return x.precio; })], ["prez", "Precio mayor a menor", "p", fxCmpV(function (x) { return x.precio; }, 1)], ["can", "Más frascos", "c", fxCmpV(function (x) { return x.q; }, 1)], ["aho", "Mayor ahorro", "a", fxCmpV(function (x) { return x.ahorro; }, 1)], ["gan", "Mayor ganancia", "g", fxCmpV(function (x) { return x.ganancia; }, 1)]] },
+    cupones: {
+      items: function () { return st.cupones || []; }, key: function (x) { return x.r; },
+      g: function () { return [
+        { id: "est", l: "Estado", o: [["est_a", "Activos", function (x) { return !!x.activo; }], ["est_p", "Pausados", function (x) { return !x.activo; }]] },
+        fxYn("min", "Compra mínima", "Con compra mínima", "Sin compra mínima", function (x) { return Number(x.min) > 0; })]; },
+      s: [["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.nombre; })], ["des", "Mayor descuento", "d", fxCmpV(function (x) { return x.pct; }, 1)], ["ped", "Menos pedidos necesarios", "p", fxCmpV(function (x) { return x.n; })]] },
+    resenas: {
+      items: function () { return st.rvs || []; }, key: function (x) { return x.r; },
+      g: function () { return [
+        { id: "vis", l: "Visibilidad", o: [["vis_v", "Visibles", function (x) { return !!x.vi; }], ["vis_o", "Ocultas", function (x) { return !x.vi; }]] },
+        { id: "est", l: "Estrellas", o: [["est_5", "5 estrellas", function (x) { return Number(x.est) === 5; }], ["est_4", "4 estrellas", function (x) { return Number(x.est) === 4; }], ["est_3", "3 o menos", function (x) { return Number(x.est) <= 3; }]] },
+        fxYn("fot", "Foto", "Con foto", "Sin foto", function (x) { return fxHas(x.foto); }),
+        fxYn("com", "Comentario", "Con comentario", "Sin comentario", function (x) { return fxHas(x.com); })]; },
+      s: [["est", "Más estrellas", "e", fxCmpV(function (x) { return x.est; }, 1)], ["estz", "Menos estrellas", "e", fxCmpV(function (x) { return x.est; })], ["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.nombre; })]] },
+    recetas: {
+      items: function () { return st.recetas || []; }, key: function (x) { return x.nombre; },
+      g: function () { var y = function (x) { return parseFloat(x.y || x.q) || 0; }; return [
+        { id: "rin", l: "Lo que rinde", o: [["rin_1", "10 o menos", function (x) { return y(x) <= 10; }], ["rin_2", "11 a 15", function (x) { return y(x) > 10 && y(x) <= 15; }], ["rin_3", "Más de 15", function (x) { return y(x) > 15; }]] },
+        { id: "ins", l: "Insumos", o: [["ins_1", "Hasta 3", function (x) { return (x.items || []).length <= 3; }], ["ins_2", "Más de 3", function (x) { return (x.items || []).length > 3; }]] }]; },
+      s: [["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.nombre; })], ["rin", "Rinde más", "r", fxCmpV(function (x) { return parseFloat(x.y || x.q) || null; }, 1)], ["ins", "Más insumos", "i", fxCmpV(function (x) { return (x.items || []).length; }, 1)]] }
+    ,
+    suscripciones: {
+      items: function () { var D = st.su || {}; return st.sut === "envios" ? (D.envios || []) : st.sut === "subs" ? (D.suscriptores || []) : []; }, key: function (x) { return x.id; },
+      g: function (L) { return st.sut === "envios" ? fxClean([
+        { id: "esd", l: "Estado del envío", o: [["esd_p", "Pendientes", function (x) { return !x.enviado && !x.entregado; }], ["esd_e", "Enviados", function (x) { return !!x.enviado && !x.entregado; }], ["esd_d", "Entregados", function (x) { return !!x.entregado; }]] },
+        fxDyn("plan", "Plan", L, function (x) { return x.plan; }), fxDyn("mes", "Mes", L, function (x) { return x.mes; })]) : fxClean([
+        fxDyn("est", "Estado", L, function (x) { return x.estado; }), fxDyn("plan", "Plan", L, function (x) { return x.plan; }), fxDyn("zon", "Zona", L, function (x) { return x.zona; }),
+        fxYn("not", "Notas", "Con notas", "Sin notas", function (x) { return fxHas(x.notas); })]); },
+      s: [["nom", "Nombre A→Z", "n", fxCmpS(function (x) { return x.nombre; })], ["pla", "Plan A→Z", "p", fxCmpS(function (x) { return x.plan; })], ["fec", "Más nuevos primero", "f", fxCmpV(function (x) { return fxDate(x) || (x.mes ? Date.parse(x.mes + "-01") : null); }, 1)]] }
+  };
+  function fxSt() { if (!st.fx) { st.fx = blRd(FXK); } return st.fx; }
+  function fxCount(v) { var F = fxSt()[v]; if (!F) return 0; var n = (F.s || []).length; Object.keys(F.f || {}).forEach(function (k) { n += (F.f[k] || []).length; }); return n; }
+  function fxOpt(g, id) { return g.o.filter(function (o) { return o[0] === id; })[0]; }
+  function fxPost() {
+    Array.prototype.forEach.call(document.querySelectorAll(".fxbar,.fxe"), function (e) { e.remove(); });
+    var v = st.v, D = FXD[v]; if (!D) return;
+    var n = fxCount(v), bar = document.createElement("div"); bar.className = "fxbar";
+    bar.innerHTML = (n ? '<button class="fxb fxc" data-fxclr="1" aria-label="Quitar filtros">🧹</button>' : "") + '<button class="fxb' + (n ? " on" : "") + '" data-fxo="1" aria-label="Filtrar y ordenar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>' + (n ? "<sup>" + n + "</sup>" : "") + "</button>";
+    var bk = document.querySelector("#view .bk"), vw = $("view");
+    if (bk) bk.appendChild(bar); else vw.insertBefore(bar, vw.firstChild);
+    var F = fxSt()[v]; if (!F) return;
+    var c = msCfg(); if (!c) return; var els = msEls(); if (!els.length) return;
+    var L = D.items(), map = {}; L.forEach(function (x) { map[String(D.key(x))] = x; });
+    var G = D.g(L) || [], act = [];
+    G.forEach(function (g) { var ids = ((F.f || {})[g.id] || []).filter(function (id) { return fxOpt(g, id); }); if (ids.length) act.push({ g: g, ids: ids }); });
+    var rows = els.map(function (el, i) { var node = el.closest(".ssw") || el; return { el: el, node: node, item: map[String(c.key(el))], i: i }; });
+    var vis = 0;
+    rows.forEach(function (r) { var ok = true; if (r.item) act.forEach(function (a) { if (!a.ids.some(function (id) { return fxOpt(a.g, id)[2](r.item); })) ok = false; }); r.node.style.display = ok ? "" : "none"; if (ok) vis++; });
+    var cmps = (F.s || []).map(function (id) { return D.s.filter(function (z) { return z[0] === id; })[0]; }).filter(Boolean);
+    if (cmps.length) {
+      var byP = []; rows.forEach(function (r) { var p = r.node.parentNode, g = byP.filter(function (z) { return z.p === p; })[0]; if (!g) { g = { p: p, a: [] }; byP.push(g); } g.a.push(r); });
+      byP.forEach(function (g) {
+        var S = g.a.slice().sort(function (a, b) { for (var k = 0; k < cmps.length; k++) { if (!a.item || !b.item) break; var r = cmps[k][3](a.item, b.item); if (r) return r; } return a.i - b.i; });
+        var ph = document.createComment("fx"); g.p.insertBefore(ph, g.a[0].node); S.forEach(function (r) { g.p.insertBefore(r.node, ph); }); ph.remove();
+      });
+    }
+    if (act.length && !vis) { var em = document.createElement("div"); em.className = "empty fxe"; em.textContent = "Nada coincide con los filtros. Tocá la escoba 🧹 para quitarlos."; var last = rows[rows.length - 1].node; last.parentNode.insertBefore(em, last.nextSibling); }
+  }
+  function fxOpen() {
+    var v = st.v, D = FXD[v]; if (!D) return;
+    var saved = JSON.parse(JSON.stringify(fxSt()[v] || { f: {}, s: [] })); saved.f = saved.f || {}; saved.s = saved.s || [];
+    var W = JSON.parse(JSON.stringify(saved)), dd = popBase("fxpop", 430), G = D.g(D.items()) || [];
+    function norm(o) { var f = {}; Object.keys(o.f).forEach(function (k) { if (o.f[k] && o.f[k].length) f[k] = o.f[k].slice().sort(); }); return JSON.stringify({ f: f, s: o.s }); }
+    function dr() {
+      var sc = dd.__c.scrollTop, dirty = norm(W) !== norm(saved);
+      dd.__c.innerHTML = popHead("Filtrar y ordenar") + '<div class="meta" style="margin-bottom:4px">Elegí varias opciones: se combinan</div>' +
+        G.map(function (g) { return '<div class="fxg">' + esc(g.l) + '</div><div class="chips" style="flex-wrap:wrap;gap:6px">' + g.o.map(function (o) { var on = (W.f[g.id] || []).indexOf(o[0]) >= 0; return '<button class="chip' + (on ? " on" : "") + '" data-fxc="' + esc(g.id) + "|" + esc(o[0]) + '">' + esc(o[1]) + "</button>"; }).join("") + "</div>"; }).join("") +
+        '<div class="fxg">Ordenar</div>' + D.s.map(function (z) { var k = W.s.indexOf(z[0]); return '<button class="chip fxs' + (k >= 0 ? " on" : "") + '" data-fxs="' + z[0] + '">' + (k >= 0 ? (k + 1) + ". " : "") + esc(z[1]) + "</button>"; }).join("") +
+        (dirty ? '<div class="fxok"><button class="btn" data-fxap="1" style="width:100%">Aplicar</button></div>' : "");
+      dd.__c.style.animation = "none"; dd.__c.scrollTop = sc;
+    }
+    dd.addEventListener("click", function (e) {
+      var c = e.target.closest("[data-fxc]"); if (c) { var p = c.getAttribute("data-fxc").split("|"), a = W.f[p[0]] = W.f[p[0]] || [], i = a.indexOf(p[1]); if (i >= 0) a.splice(i, 1); else a.push(p[1]); dr(); return; }
+      var z = e.target.closest("[data-fxs]"); if (z) { var id = z.getAttribute("data-fxs"), i2 = W.s.indexOf(id); if (i2 >= 0) W.s.splice(i2, 1); else { var me = D.s.filter(function (q) { return q[0] === id; })[0]; W.s = W.s.filter(function (o) { var q = D.s.filter(function (y) { return y[0] === o; })[0]; return !(q && q[2] === me[2]); }); W.s.push(id); } dr(); return; }
+      if (e.target.closest("[data-fxap]")) { var o = JSON.parse(norm(W)); var all = fxSt(); if (Object.keys(o.f).length || o.s.length) all[v] = o; else delete all[v]; try { blWr(FXK, all); } catch (x) {} dd.remove(); render(true); }
+    });
+    dr();
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest ? e.target : null; if (!t) return;
+    if (t.closest("[data-fxo]")) { e.stopPropagation(); fxOpen(); return; }
+    if (t.closest("[data-fxclr]")) { e.stopPropagation(); var all = fxSt(); delete all[st.v]; try { blWr(FXK, all); } catch (x) {} render(true); }
+  }, true);
   function render(keepScroll) {
     var y = window.scrollY, chS = Array.prototype.map.call(document.querySelectorAll(".chips,.tabs"), function (c) { return c.scrollLeft; }), V = { pdash: renderPDash, pset: renderPSet, prset: renderPrSet, prdash: renderPrDash, tarjetas: renderTarjetas, suscripciones: renderSu, tandas: renderTandas, inicio: renderInicio, pedidos: renderPedidos, productos: renderProductos, mas: renderMas, packs: renderPacks, recetas: renderRecetas, finanzas: renderFinanzas, reportes: renderReportes, textos: renderTextos, proveedores: renderProv, stock: renderStock, puntos: renderPuntos, cupones: renderCupones, accesos: function () { return BACK + renderAccesos(); }, voz: renderVozCfg, resenas: renderResenas };
     var h = V[st.v]();
     if (st.mod && st.mod !== "gen" && h.indexOf(BACK) === 0) h = h.slice(BACK.length);
     else if (SUB.indexOf(st.v) >= 0 && h.indexOf(BACK) === 0 && NAMES[st.v]) h = '<div class="bk">' + BACK + '<button class="crumb" data-crumb="1" aria-haspopup="true" style="border:0;font-family:inherit">' + NAMES[st.v] + " ▾</button></div>" + h.slice(BACK.length);
     var act = document.activeElement, id = act && act.id, pos = act && act.selectionStart;
-    $("view").innerHTML = h; Array.prototype.forEach.call(document.querySelectorAll(".chips"), applyChOrd); if (st.v === "finanzas" && st.fm === "esc") refreshEsc(); Array.prototype.forEach.call(document.querySelectorAll(".chips,.tabs"), function (c, i) { if (chS[i]) c.scrollLeft = chS[i]; }); try { uiApply(); } catch (e9) {} try { costSnap(); } catch (e8) {}
+    $("view").innerHTML = h; Array.prototype.forEach.call(document.querySelectorAll(".chips"), applyChOrd); if (st.v === "finanzas" && st.fm === "esc") refreshEsc(); Array.prototype.forEach.call(document.querySelectorAll(".chips,.tabs"), function (c, i) { if (chS[i]) c.scrollLeft = chS[i]; }); try { uiApply(); } catch (e9) {} try { costSnap(); } catch (e8) {} try { fxPost(); } catch (e7) {}
     if (id === "pq" || id === "cq" || id === "pvq" || id === "sk-q" || id === "sk-s") { var e = $(id); e.focus(); try { e.setSelectionRange(pos, pos); } catch (x) {} }
     if (keepScroll) window.scrollTo(0, y);
     if (!keepScroll) maybeTour();
@@ -3070,6 +3221,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     window.addEventListener("resize", pos);
     paint();
   }
+  ["pedidos", "productos", "stock", "proveedores", "packs", "recetas", "cupones", "resenas", "suscripciones"].forEach(function (k) { TOUR[k] = (TOUR[k] || []).concat([["[data-fxo]", "Filtrar y ordenar", "Tocá el embudo para combinar filtros y elegir el orden. Cuando hay algo aplicado se llena de color y aparece una escoba 🧹 para quitarlo todo."]]); });
   function maybeTour() { if (!tourSeen(st.v) && !document.querySelector(".tour")) openTour(st.v); }
   $("wand").addEventListener("click", function () { openTour(st.v); });
 
@@ -3128,6 +3280,7 @@ body.sh-open .nav{opacity:0;pointer-events:none}
     { t: "Dictar la lista de compras", k: "dictar dictado voz microfono lista compras hablar", go: "stock", p: ["En la Lista de compras tocá 🎤 al lado de Agregar y decí el ítem y la cantidad (ej. «berenjenas 2 kilos»).", "En Cargar lista comprada tocá 🎤 Dictar la lista y decí «siguiente» entre ítem e ítem."] },
     { t: "Marcar pedidos como pagados (a cobrar)", k: "pagado cobrar cobro deuda entregado sin pagar finanzas patrimonio", go: "finanzas", p: ["En Finanzas → Patrimonio tocá «Entregado y sin cobrar».", "Se abre la lista: activá Aprobado (= pagado) en cada pedido."] },
     { t: "Dólar de Escenarios", k: "dolar galicia cotizacion compra manual escenarios", go: "escenarios", p: ["Arriba de Escenarios escribí el dólar compra de Galicia (hoy 1545). Queda guardado y sincronizado.", "↻ intenta traerlo solo; si no puede, queda el que cargaste."] },
+    { t: "Filtrar y ordenar listas", k: "filtrar filtro filtros ordenar orden embudo escoba limpiar buscar combinar lista", go: "productos", p: ["En Pedidos, Productos, Stock, Proveedores, Packs, Recetas, Cupones, Reseñas y Suscripciones tocá el embudo (arriba a la derecha).", "Elegí varias opciones: se combinan. Dentro de un mismo grupo vale cualquiera; entre grupos tienen que cumplirse todos.", "En Ordenar podés elegir varios criterios: se aplican en el orden que los tocaste (1., 2.…).", "Tocá Aplicar. Para sacar todo tocá la escoba 🧹 al lado del embudo."] },
     { t: "Simular escenarios (estado de resultados)", k: "escenario escenarios simulador estado resultados utilidad amortizacion categoria", go: "escenarios", p: ["Tocá el atajo Escenarios (o Finanzas → Escenarios).", "Tocá un escenario para editarlo: líneas en $ o %, y meses para amortizar.", "＋ Escenario o ＋ Categoría para sumar más."] },
     { t: "Deslizar para editar o borrar", k: "deslizar swipe borrar eliminar editar precio stock insumos productos carrito multiseleccion", go: "inicio", p: ["Deslizá una fila a la derecha o izquierda: aparecen sus acciones.", "En Productos mantené apretado para seleccionar varios (mostrar, ocultar, eliminar).", "El ojo 👁 del producto lo muestra u oculta en la tienda."] },
     { t: "Ver lo gestionado hoy", k: "gestionados hoy actividad movimientos", go: "inicio", p: ["En Inicio, debajo de los Atajos, tocá 📋 Gestionados hoy."] },
